@@ -378,9 +378,9 @@ class ProcessTab:
         self.parent.pauseRenderButton.setVisible(False)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
-        if self.settings["discord_rich_presence"] == "True": # only close if it exists
+        if self.settings["discord_rich_presence"] == "True":  # only close if it exists
             self.discordRPC.closeRPC()
-        
+
         self.parent.onRenderCompletion()
 
     def getRoundedPixmap(self, pixmap, corner_radius):
