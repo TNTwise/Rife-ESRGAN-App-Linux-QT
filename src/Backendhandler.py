@@ -34,6 +34,34 @@ class BackendHandler:
         except Exception as e:
             print(e)
 
+    def hideUninstallButtons(self):
+        self.parent.uninstallTorchCUDABtn.setVisible(False)
+        self.parent.uninstallTorchROCmBtn.setVisible(False)
+        self.parent.uninstallNCNNBtn.setVisible(False)
+        self.parent.uninstallTensorRTBtn.setVisible(False)
+        self.parent.uninstallDirectMLBtn.setVisible(False)
+
+    def showUninstallButton(self, backends):
+        if "pytorch" in backends:
+            self.parent.downloadTorchCUDABtn.setVisible(False)
+            self.parent.downloadTorchROCmBtn.setVisible(False)
+            self.parent.uninstallTorchCUDABtn.setVisible(True)
+            self.parent.uninstallTorchROCmBtn.setVisible(True)
+        if "ncnn" in backends:
+            self.parent.downloadNCNNBtn.setVisible(False)
+            self.parent.uninstallNCNNBtn.setVisible(True)
+        if "tensorrt" in backends:
+            self.parent.downloadTensorRTBtn.setVisible(False)
+            self.parent.uninstallTensorRTBtn.setVisible(True)
+
+        # disable as it is not complete
+        try:
+            self.parent.downloadDirectMLBtn.setEnabled(False)
+            if getPlatform() != "win32":
+                self.parent.downloadDirectMLBtn.setEnabled(False)
+        except Exception as e:
+            print(e)
+
     def setupBackendDeps(self):
         # need pop up window
         from .DownloadDeps import DownloadDependencies
@@ -68,11 +96,11 @@ class BackendHandler:
                 RegularQTPopup("Please install at least 1 backend!")
             downloadDependencies = DownloadDependencies()
             DownloadDepsDialog(
-                ncnnDownloadBtnFunc=downloadDependencies.downloadNCNNDeps,
-                pytorchCUDABtnFunc=downloadDependencies.downloadPyTorchCUDADeps,
-                pytorchROCMBtnFunc=downloadDependencies.downloadPyTorchROCmDeps,
-                trtBtnFunc=downloadDependencies.downloadTensorRTDeps,
-                directmlBtnFunc=downloadDependencies.downloadDirectMLDeps,
+                ncnnDownloadBtnFunc=lambda: downloadDependencies.downloadNCNNDeps(True),
+                pytorchCUDABtnFunc=lambda: downloadDependencies.downloadPyTorchCUDADeps(True),
+                pytorchROCMBtnFunc=lambda: downloadDependencies.downloadPyTorchROCmDeps(True),
+                trtBtnFunc=lambda: downloadDependencies.downloadTensorRTDeps(True),
+                directmlBtnFunc=lambda: downloadDependencies.downloadDirectMLDeps(True),
             )
             return self.recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
                 firstIter=False

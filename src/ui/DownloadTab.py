@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QMainWindow
 from .QTcustom import RegularQTPopup, NetworkCheckPopup
 from ..DownloadDeps import DownloadDependencies
 from ..ModelHandler import downloadModelsBasedOnInstalledBackend
-
+from ..Util import printAndLog
 
 class DownloadTab:
     def __init__(
@@ -16,29 +16,41 @@ class DownloadTab:
         self.QButtonConnect()
 
     def QButtonConnect(self):
-        self.parent.downloadNCNNBtn.clicked.connect(lambda: self.download("ncnn"))
+        self.parent.downloadNCNNBtn.clicked.connect(lambda: self.download("ncnn", True))
         self.parent.downloadTorchCUDABtn.clicked.connect(
-            lambda: self.download("torch_cuda")
+            lambda: self.download("torch_cuda", True)
         )
         self.parent.downloadTensorRTBtn.clicked.connect(
-            lambda: self.download("tensorrt")
+            lambda: self.download("tensorrt", True)
         )
         self.parent.downloadTorchROCmBtn.clicked.connect(
-            lambda: self.download("torch_rocm")
+            lambda: self.download("torch_rocm", True)
         )
         self.parent.downloadDirectMLBtn.clicked.connect(
-            lambda: self.download("directml")
+            lambda: self.download("directml", True)
         )
         self.parent.downloadAllModelsBtn.clicked.connect(
             lambda: downloadModelsBasedOnInstalledBackend(
                 ["ncnn", "pytorch", "tensorrt", "directml"]
             )
         )
-        self.parent.downloadSomeModelsBasedOnInstalledBackendbtn.clicked.connect(
-            lambda: downloadModelsBasedOnInstalledBackend(self.installed_backends)
+        self.parent.uninstallNCNNBtn.clicked.connect(
+            lambda: self.download("ncnn", False)
+        )
+        self.parent.uninstallTorchCUDABtn.clicked.connect(
+            lambda: self.download("torch_cuda", False)
+        )
+        self.parent.uninstallTensorRTBtn.clicked.connect(
+            lambda: self.download("tensorrt", False)
+        )
+        self.parent.uninstallTorchROCmBtn.clicked.connect(
+            lambda: self.download("torch_rocm", False)
+        )
+        self.parent.uninstallDirectMLBtn.clicked.connect(
+            lambda: self.download("directml", False)
         )
 
-    def download(self, dep):
+    def download(self, dep, install: bool = True):
         """
         Downloads the specified dependency.
         Parameters:
@@ -51,15 +63,15 @@ class DownloadTab:
         ):  # check for network before installing
             match dep:
                 case "ncnn":
-                    self.downloadDeps.downloadNCNNDeps()
+                    self.downloadDeps.downloadNCNNDeps(install)
                 case "torch_cuda":
-                    self.downloadDeps.downloadPyTorchCUDADeps()
+                    self.downloadDeps.downloadPyTorchCUDADeps(install)
                 case "tensorrt":
-                    self.downloadDeps.downloadTensorRTDeps()
+                    self.downloadDeps.downloadTensorRTDeps(install)
                 case "torch_rocm":
-                    self.downloadDeps.downloadPyTorchROCmDeps()
+                    self.downloadDeps.downloadPyTorchROCmDeps(install)
                 case "directml":
-                    self.downloadDeps.downloadDirectMLDeps()
+                    self.downloadDeps.downloadDirectMLDeps(install)
             RegularQTPopup(
                 "Download Complete\nPlease restart the application to apply changes."
             )

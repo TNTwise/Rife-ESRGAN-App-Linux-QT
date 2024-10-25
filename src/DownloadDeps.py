@@ -71,7 +71,6 @@ class DownloadDependencies:
         """
 
         if not os.path.exists(backendDirectory()):
-            
             print(str(backendDirectory()) + " Does not exist!")
             backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.tar.gz"
             main_zip = os.path.join(currentDirectory(), "backend.tar.gz")
@@ -154,19 +153,28 @@ class DownloadDependencies:
         makeExecutable(ffmpegTempPath)
         move(ffmpegTempPath, ffmpegPath())
 
-    def pipInstall(
-        self, deps: list
+    def pip(
+        self,
+        deps: list,
+        install: bool = True,
     ):  # going to have to make this into a qt module pop up
         command = [
             pythonPath(),
             "-m",
             "pip",
-            "install",
-            "--no-warn-script-location",
-            "--no-cache-dir",
-            "--extra-index-url",
-            "https://download.pytorch.org/whl/cu124",
-        ] + deps
+            "install" if install else "uninstall",
+        ]
+        if install:
+            command += [
+                "--no-warn-script-location",
+                "--extra-index-url",
+                "https://download.pytorch.org/whl/cu124",
+            ]
+        else:
+            command += [
+                "-y"
+            ]
+        command += deps
         # totalDeps = self.get_total_dependencies(deps)
         totalDeps = len(deps)
         printAndLog("Downloading Deps: " + str(command))
@@ -220,7 +228,7 @@ class DownloadDependencies:
             "einops",
             "cupy-cuda12x==13.3.0",
         ]
-        return self.getPlatformIndependentDeps() + torchCUDADeps
+        return torchCUDADeps
 
     def getTensorRTDeps(self):
         """
@@ -239,29 +247,36 @@ class DownloadDependencies:
 
         return tensorRTDeps
 
-    def downloadPyTorchCUDADeps(self):
-        self.pipInstall(self.getPyTorchCUDADeps())
+    def downloadPyTorchCUDADeps(self, install: bool = True):
+        if install:
+            self.pip(self.getPlatformIndependentDeps())
+        self.pip(self.getPyTorchCUDADeps(), install)
 
-    def downloadTensorRTDeps(self):
-        self.pipInstall(
+    def downloadTensorRTDeps(self, install: bool = True):
+        if install:
+            self.pip(self.getPlatformIndependentDeps())
+        self.pip(
             self.getPyTorchCUDADeps()
-            + self.getTensorRTDeps()  # Has to be in this order, because i skip dependency check for torchvision
+            + self.getTensorRTDeps(),  # Has to be in this order, because i skip dependency check for torchvision
+            install,
         )
 
-    def downloadDirectMLDeps(self):
+    def downloadDirectMLDeps(self, install: bool = True):
         directMLDeps = [
             "onnxruntime-directml",
             "onnx",
             "onnxconverter-common",
         ] + self.getPlatformIndependentDeps()
-        self.pipInstall(directMLDeps)
+        self.pip(directMLDeps, install)
 
-    def downloadNCNNDeps(self):
+    def downloadNCNNDeps(self, install: bool = True):
         """
         Installs:
         Default deps
         NCNN deps
         """
+        if install:
+            self.pip(self.getPlatformIndependentDeps())
         ncnnDeps = [
             "rife-ncnn-vulkan-python-tntwise==1.4.4",
             "upscale_ncnn_py==1.2.0",
@@ -270,19 +285,20 @@ class DownloadDependencies:
             "opencv-python-headless",
             "mpmath",
             "sympy==1.13.1",
-        ] + self.getPlatformIndependentDeps()
-        self.pipInstall(ncnnDeps)
-        # self.pipInstall(["numpy==1.26.4", "sympy","upscale_ncnn_py==1.2.0"])
-        # self.pipInstall(["upscale_ncnn_py==1.2.0"])
+        ]
+        self.pip(ncnnDeps, install)
 
-    def downloadPyTorchROCmDeps(self):
+    def downloadPyTorchROCmDeps(self, install: bool = True):
+        if install:
+            self.pip(self.getPlatformIndependentDeps())
+
         rocmLinuxDeps = [
             "https://download.pytorch.org/whl/pytorch_triton_rocm-2.3.1-cp311-cp311-linux_x86_64.whl",
             "https://download.pytorch.org/whl/rocm5.7/torch-2.3.1%2Brocm5.7-cp311-cp311-linux_x86_64.whl",
             "https://download.pytorch.org/whl/rocm5.7/torchvision-0.18.1%2Brocm5.7-cp311-cp311-linux_x86_64.whl",
         ]
         if getPlatform() == "linux":
-            self.pipInstall(rocmLinuxDeps + self.getPlatformIndependentDeps())
+            self.pip(rocmLinuxDeps, install)
 
 
 if __name__ == "__main__":

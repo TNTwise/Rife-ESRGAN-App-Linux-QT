@@ -100,6 +100,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         backendHandler = BackendHandler(self)
         backendHandler.enableCorrectBackends()
+
         backendHandler.setupBackendDeps()
         self.backends, self.fullOutput = (
             backendHandler.recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
@@ -107,6 +108,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         )
 
+        backendHandler.hideUninstallButtons()
+        backendHandler.showUninstallButton(self.backends)
         icon_path = ":/icons/icons/logo-v2.svg"
         self.setWindowIcon(QIcon(icon_path))
         QApplication.setWindowIcon(QIcon(icon_path))

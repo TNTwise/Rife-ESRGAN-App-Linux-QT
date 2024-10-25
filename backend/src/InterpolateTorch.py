@@ -11,7 +11,7 @@ from .Util import (
     modelsDirectory,
     check_bfloat16_support,
     log,
-    warnAndLog
+    warnAndLog,
 )
 from time import sleep
 
@@ -141,16 +141,18 @@ class InterpolateRifeTorch:
                 trt_min_shape: list[int] = [1, 1]
                 trt_opt_shape: list[int] = [128, 128]
                 trt_max_shape: list[int] = [256, 256]
-            elif self.height <= 1080 and self.width <= 1920: # if its 1080p or lower
+            elif self.height <= 1080 and self.width <= 1920:  # if its 1080p or lower
                 trt_min_shape: list[int] = [128, 128]
                 trt_opt_shape: list[int] = [1920, 1080]
                 trt_max_shape: list[int] = [1920, 1080]
-            elif self.height <= 2160 and self.width <= 3840: # if its 4k or lower
+            elif self.height <= 2160 and self.width <= 3840:  # if its 4k or lower
                 trt_min_shape: list[int] = [1921, 1921]
                 trt_opt_shape: list[int] = [3840, 2160]
                 trt_max_shape: list[int] = [3840, 2160]
-            else: # too big, give warning and switch to static
-                warnAndLog("Warning: Reso lution is really high, this will most likely not work at all!\nFalling back to static shape.")
+            else:  # too big, give warning and switch to static
+                warnAndLog(
+                    "Warning: Reso lution is really high, this will most likely not work at all!\nFalling back to static shape."
+                )
                 trt_static_shape = True
             self.trt_min_shape = trt_min_shape
             self.trt_opt_shape = trt_opt_shape
@@ -485,9 +487,12 @@ class InterpolateRifeTorch:
                             )
                             if self.trt_static_shape:
                                 dynamic_encode_shapes = None
-                                encodedInput = torch_tensorrt.Input(
-                                shape=[1, 3, self.ph, self.pw], dtype=torch.float
-                                ),
+                                encodedInput = (
+                                    torch_tensorrt.Input(
+                                        shape=[1, 3, self.ph, self.pw],
+                                        dtype=torch.float,
+                                    ),
+                                )
                             else:
                                 dynamic_encode_shapes = {
                                     "x": {2: dim_height, 3: dim_width},

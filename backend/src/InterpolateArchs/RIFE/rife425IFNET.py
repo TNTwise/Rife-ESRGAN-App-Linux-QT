@@ -24,6 +24,7 @@ SOFTWARE.
 
 import torch
 import torch.nn as nn
+
 try:
     from .interpolate import interpolate
 except:

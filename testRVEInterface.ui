@@ -1313,8 +1313,8 @@ QDoubleSpinBox::down-button {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>729</width>
-                   <height>652</height>
+                   <width>498</width>
+                   <height>606</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -2350,20 +2350,7 @@ background-color:white;
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_6">
-                      <property name="text">
-                       <string>PyTorch CUDA (Nvidia Only, faster infernce, large download) </string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="pytorchBackendInstallerContainer_2" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <item>
-                     <widget class="QPushButton" name="downloadTensorRTBtn">
+                     <widget class="QPushButton" name="uninstallTorchCUDABtn">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                         <horstretch>0</horstretch>
@@ -2381,7 +2368,7 @@ background-color:white;
                       </property>
                       <property name="icon">
                        <iconset resource="resources.qrc">
-                        <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
+                        <normaloff>:/icons/icons/trash-2.svg</normaloff>:/icons/icons/trash-2.svg</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -2392,9 +2379,9 @@ background-color:white;
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_8">
+                     <widget class="QLabel" name="label_6">
                       <property name="text">
-                       <string>TensorRT (Nvidia RTX 20 series and up, fastest inference, largest download)</string>
+                       <string>PyTorch CUDA (Nvidia Only, faster infernce, large download) </string>
                       </property>
                      </widget>
                     </item>
@@ -2403,7 +2390,7 @@ background-color:white;
                  </item>
                  <item>
                   <widget class="QWidget" name="pytorchBackendInstallerContainer_3" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                   <layout class="QHBoxLayout" name="horizontalLayout_10">
                     <item>
                      <widget class="QPushButton" name="downloadTorchROCmBtn">
                       <property name="sizePolicy">
@@ -2434,6 +2421,35 @@ background-color:white;
                      </widget>
                     </item>
                     <item>
+                     <widget class="QPushButton" name="uninstallTorchROCmBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/trash-2.svg</normaloff>:/icons/icons/trash-2.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QLabel" name="label_9">
                       <property name="text">
                        <string>PyTorch ROCm (AMD RX 6000 through RX 7000, linux only, faster infrence, large download)</string>
@@ -2444,8 +2460,79 @@ background-color:white;
                   </widget>
                  </item>
                  <item>
+                  <widget class="QWidget" name="pytorchBackendInstallerContainer_2" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_24">
+                    <item>
+                     <widget class="QPushButton" name="downloadTensorRTBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="uninstallTensorRTBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/trash-2.svg</normaloff>:/icons/icons/trash-2.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_8">
+                      <property name="text">
+                       <string>TensorRT (Nvidia RTX 20 series and up, fastest inference, largest download)</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QWidget" name="pytorchBackendInstallerContainer_4" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_10">
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
                     <item>
                      <widget class="QPushButton" name="downloadNCNNBtn">
                       <property name="sizePolicy">
@@ -2476,6 +2563,35 @@ background-color:white;
                      </widget>
                     </item>
                     <item>
+                     <widget class="QPushButton" name="uninstallNCNNBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/trash-2.svg</normaloff>:/icons/icons/trash-2.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <widget class="QLabel" name="label_10">
                       <property name="text">
                        <string>NCNN Vulkan (All GPUs, Slower inference, small download)</string>
@@ -2487,7 +2603,7 @@ background-color:white;
                  </item>
                  <item>
                   <widget class="QWidget" name="pytorchBackendInstallerContainer_7" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_24">
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
                     <item>
                      <widget class="QPushButton" name="downloadDirectMLBtn">
                       <property name="sizePolicy">
@@ -2508,6 +2624,35 @@ background-color:white;
                       <property name="icon">
                        <iconset resource="resources.qrc">
                         <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="uninstallDirectMLBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/trash-2.svg</normaloff>:/icons/icons/trash-2.svg</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -2718,13 +2863,13 @@ background-color:white;
        <property name="rightMargin">
         <number>0</number>
        </property>
-       <item alignment="Qt::AlignmentFlag::AlignLeft">
+       <item alignment="">
         <widget class="QWidget" name="leftMenuSubContainer" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <property name="rightMargin">
            <number>9</number>
           </property>
-          <item alignment="Qt::AlignmentFlag::AlignLeft">
+          <item alignment="">
            <widget class="QWidget" name="verticalWidget_2" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <property name="spacing">
@@ -2822,7 +2967,7 @@ background-color:white;
             </property>
            </spacer>
           </item>
-          <item alignment="Qt::AlignmentFlag::AlignLeft">
+          <item alignment="">
            <widget class="QWidget" name="verticalWidget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <property name="spacing">
