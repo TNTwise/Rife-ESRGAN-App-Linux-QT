@@ -112,7 +112,7 @@ python3 build.py --build_exe
 | Software Used | For | Link|
 |--|--|--|
 | FFmpeg | Multimedia framework for handling video, audio, and other media files | https://ffmpeg.org/ 
-| PyTorch | Neural Network Inference (CUDA/ROCm) | https://pytorch.org/ 
+| PyTorch | Neural Network Inference (CUDA/ROCm/TensorRT) | https://pytorch.org/ 
 | NCNN | Neural Network Inference (Vulkan) | https://github.com/tencent/ncnn 
 | RIFE | Real-Time Intermediate Flow Estimation for Video Frame Interpolation | https://github.com/hzwer/Practical-RIFE 
 | rife-ncnn-vulkan | Video frame interpolation implementation using NCNN and Vulkan | https://github.com/nihui/rife-ncnn-vulkan 
