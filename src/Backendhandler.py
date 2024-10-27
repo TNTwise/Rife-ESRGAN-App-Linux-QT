@@ -97,8 +97,12 @@ class BackendHandler:
             downloadDependencies = DownloadDependencies()
             DownloadDepsDialog(
                 ncnnDownloadBtnFunc=lambda: downloadDependencies.downloadNCNNDeps(True),
-                pytorchCUDABtnFunc=lambda: downloadDependencies.downloadPyTorchCUDADeps(True),
-                pytorchROCMBtnFunc=lambda: downloadDependencies.downloadPyTorchROCmDeps(True),
+                pytorchCUDABtnFunc=lambda: downloadDependencies.downloadPyTorchCUDADeps(
+                    True
+                ),
+                pytorchROCMBtnFunc=lambda: downloadDependencies.downloadPyTorchROCmDeps(
+                    True
+                ),
                 trtBtnFunc=lambda: downloadDependencies.downloadTensorRTDeps(True),
                 directmlBtnFunc=lambda: downloadDependencies.downloadDirectMLDeps(True),
             )

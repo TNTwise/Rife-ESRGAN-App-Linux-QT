@@ -1,5 +1,4 @@
 from threading import Thread
-from queue import Queue, Empty
 import os
 import math
 from time import sleep

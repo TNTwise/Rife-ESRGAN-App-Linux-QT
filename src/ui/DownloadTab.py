@@ -4,6 +4,7 @@ from ..DownloadDeps import DownloadDependencies
 from ..ModelHandler import downloadModelsBasedOnInstalledBackend
 from ..Util import printAndLog
 
+
 class DownloadTab:
     def __init__(
         self,

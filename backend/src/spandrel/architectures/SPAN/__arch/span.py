@@ -194,7 +194,6 @@ class Conv3XC(nn.Module):
         out = self.eval_conv(x)
 
         if self.has_relu:
-            
             out = F.leaky_relu(out, negative_slope=0.05)
         return out
 
