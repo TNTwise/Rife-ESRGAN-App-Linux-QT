@@ -171,9 +171,7 @@ class DownloadDependencies:
                 "https://download.pytorch.org/whl/cu124",
             ]
         else:
-            command += [
-                "-y"
-            ]
+            command += ["-y"]
         command += deps
         # totalDeps = self.get_total_dependencies(deps)
         totalDeps = len(deps)
