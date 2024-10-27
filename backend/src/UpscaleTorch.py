@@ -149,7 +149,7 @@ class UpscalePytorch:
                             if self.trt_workspace_size > 0
                             else ""
                         )
-                        + ".dyn"
+                        + ".ts"
                     ),
                 )
 
@@ -161,26 +161,32 @@ class UpscalePytorch:
                             device=self.device,
                         )
                     ]
+                    dummy_input_cpu_fp32 = [
+                        torch.zeros(
+                            (1, 3, 32, 32),
+                            dtype=torch.float32,
+                            device="cpu",
+                        )
+                    ]
 
+                    module = torch.jit.trace(model.float().cpu(), dummy_input_cpu_fp32)
+                    module.to(device=self.device, dtype=self.dtype)
                     module = torch_tensorrt.compile(
-                        model,
-                        ir="dynamo",
+                        module,
+                        ir="ts",
                         inputs=inputs,
                         enabled_precisions={self.dtype},
-                        device=self.device,
-                        debug=self.trt_debug,
+                        device=torch_tensorrt.Device(gpu_id=0),
                         workspace_size=self.trt_workspace_size,
+                        truncate_long_and_double=True,
                         min_block_size=1,
-                        max_aux_streams=self.trt_aux_streams,
-                        optimization_level=self.trt_optimization_level,
-                        cache_built_engines=False,
-                        reuse_cached_engines=False,
                     )
+
                     printAndLog(f"Saving TensorRT engine to {trt_engine_path}")
-                    torch_tensorrt.save(module, trt_engine_path, inputs=inputs)
+                    torch.jit.save(module, trt_engine_path)
 
                 printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
-                model = torch.export.load(trt_engine_path).module()
+                model = torch.jit.load(trt_engine_path)
 
             self.model = model
         self.prepareStream.synchronize()
