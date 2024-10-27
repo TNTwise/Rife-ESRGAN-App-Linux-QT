@@ -89,26 +89,27 @@ class BackendHandler:
         """
         try:
             self.availableBackends, self.fullOutput = self.getAvailableBackends()
-            return self.availableBackends, self.fullOutput
+            if not len(self.availableBackends) == 0:
+                return self.availableBackends, self.fullOutput
         except SyntaxError as e:
             printAndLog(str(e))
-            if not firstIter:
-                RegularQTPopup("Please install at least 1 backend!")
-            downloadDependencies = DownloadDependencies()
-            DownloadDepsDialog(
-                ncnnDownloadBtnFunc=lambda: downloadDependencies.downloadNCNNDeps(True),
-                pytorchCUDABtnFunc=lambda: downloadDependencies.downloadPyTorchCUDADeps(
-                    True
-                ),
-                pytorchROCMBtnFunc=lambda: downloadDependencies.downloadPyTorchROCmDeps(
-                    True
-                ),
-                trtBtnFunc=lambda: downloadDependencies.downloadTensorRTDeps(True),
-                directmlBtnFunc=lambda: downloadDependencies.downloadDirectMLDeps(True),
-            )
-            return self.recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
-                firstIter=False
-            )
+        if not firstIter:
+            RegularQTPopup("Please install at least 1 backend!")
+        downloadDependencies = DownloadDependencies()
+        DownloadDepsDialog(
+            ncnnDownloadBtnFunc=lambda: downloadDependencies.downloadNCNNDeps(True),
+            pytorchCUDABtnFunc=lambda: downloadDependencies.downloadPyTorchCUDADeps(
+                True
+            ),
+            pytorchROCMBtnFunc=lambda: downloadDependencies.downloadPyTorchROCmDeps(
+                True
+            ),
+            trtBtnFunc=lambda: downloadDependencies.downloadTensorRTDeps(True),
+            directmlBtnFunc=lambda: downloadDependencies.downloadDirectMLDeps(True),
+        )
+        return self.recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
+            firstIter=False
+        )
 
     def getAvailableBackends(self):
         from .ui.QTcustom import SettingUpBackendPopup
