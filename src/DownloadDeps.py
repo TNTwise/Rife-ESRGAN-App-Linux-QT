@@ -72,7 +72,7 @@ class DownloadDependencies:
 
         if not os.path.exists(backendDirectory()):
             print(str(backendDirectory()) + " Does not exist!")
-            backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.tar.gz"
+            backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.0.5.tar.gz"
             main_zip = os.path.join(currentDirectory(), "backend.tar.gz")
             main_folder = os.path.join(currentDirectory(), "repo")
             orig_backend_folder = os.path.join(
