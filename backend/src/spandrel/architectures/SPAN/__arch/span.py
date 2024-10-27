@@ -254,11 +254,11 @@ class SPAN(nn.Module):
         self.in_channels = num_in_ch
         self.out_channels = num_out_ch
         self.img_range = img_range
-        self.mean = torch.Tensor(rgb_mean).view(1, 3, 1, 1).cuda()
+        self.mean = torch.Tensor(rgb_mean).view(1, 3, 1, 1)
 
         self.no_norm: torch.Tensor | None
         if not norm:
-            self.register_buffer("no_norm", torch.zeros(1).cuda())
+            self.register_buffer("no_norm", torch.zeros(1))
         else:
             self.no_norm = None
 
