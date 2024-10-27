@@ -190,9 +190,11 @@ class Conv3XC(nn.Module):
         self.eval_conv.bias.data = self.bias_concat.contiguous()  # type: ignore
 
     def forward(self, x):
+        self.update_params()
         out = self.eval_conv(x)
 
         if self.has_relu:
+            
             out = F.leaky_relu(out, negative_slope=0.05)
         return out
 
