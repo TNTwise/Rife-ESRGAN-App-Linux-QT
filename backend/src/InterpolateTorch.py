@@ -19,7 +19,6 @@ torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
 logging.basicConfig(level=logging.INFO)
 
-
 class InterpolateRifeTorch:
     """InterpolateRifeTorch class for video interpolation using RIFE model in PyTorch.
 
@@ -247,6 +246,8 @@ class InterpolateRifeTorch:
                 self.flownet = GMFSS(
                     model_path=self.interpolateModel, scale=self.scale, width=self.width, height=self.height
                 )
+                #self.dtype = torch.float32
+                #warnAndLog("GMFSS does not support float16, switching to float32")
                 self.flownet.eval().to(device=self.device, dtype=self.dtype)
             
             elif IFNet is not None:

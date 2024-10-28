@@ -68,6 +68,7 @@ class GMFSS(nn.Module):
         return flow01, flow10, metric0, metric1, feat_ext0, feat_ext1
 
     def forward(self, img0, img1, timestep):
+        dtype = img0.dtype
         reuse_things = self.reuse(img0, img1)
         flow01, metric0, feat11, feat12, feat13 = (
             reuse_things[0],
