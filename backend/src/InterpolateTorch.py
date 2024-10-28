@@ -92,8 +92,6 @@ class InterpolateRifeTorch:
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
-        ensemble: bool = False,
-        rifeVersion: str = "v1",
         # trt options
         trt_workspace_size: int = 0,
         trt_max_aux_streams: int | None = None,
@@ -230,14 +228,12 @@ class InterpolateRifeTorch:
 
 
             # model unspecific setup
-
             tmp = max(_pad, int(_pad / self.scale))
             self.pw = math.ceil(self.width / tmp) * tmp
             self.ph = math.ceil(self.height / tmp) * tmp
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
             # caching the timestep tensor in a dict with the timestep as a float for the key
             self.timestepDict = {}
-            
             if GMFSS is not None:
                 for n in range(self.ceilInterpolateFactor):
                     timestep = n / (self.ceilInterpolateFactor)
