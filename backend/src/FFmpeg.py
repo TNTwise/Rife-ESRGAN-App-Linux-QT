@@ -14,7 +14,6 @@ from .Util import (
     ffmpegPath,
     ffmpegLogFile,
 )
-import time
 from threading import Thread
 
 

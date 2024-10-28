@@ -1,13 +1,11 @@
 import os
 from .Util import (
-    getVendor,
     getPlatform,
     checkIfDeps,
     printAndLog,
     pythonPath,
     backendDirectory,
     isFlatpak,
-    networkCheck,
 )
 from .version import version
 

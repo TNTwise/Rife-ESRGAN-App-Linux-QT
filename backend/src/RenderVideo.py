@@ -78,7 +78,7 @@ class Render(FFMpegRender):
         trt_optimization_level: int = 3,
         rife_trt_mode: str = "accurate",
     ):
-        if pausedFile == None:
+        if pausedFile is None:
             pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
         self.inputFile = inputFile
         self.pausedFile = pausedFile

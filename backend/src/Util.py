@@ -1,6 +1,5 @@
 import os
 import warnings
-import platform
 import numpy as np
 import cv2
 import shutil
@@ -30,14 +29,14 @@ with open(os.path.join(cwd, "backend_log.txt"), "w") as f:
 def removeFile(file):
     try:
         os.remove(file)
-    except:
+    except Exception:
         print("Failed to remove file!")
 
 
 def removeFolder(folder):
     try:
         shutil.rmtree(folder)
-    except:
+    except Exception:
         print("Failed to remove file!")
 
 
@@ -233,7 +232,7 @@ def checkForNCNN() -> bool:
 
         try:
             from upscale_ncnn_py import UPSCALE
-        except:
+        except Exception:
             printAndLog(
                 "Warning: Cannot import upscale_ncnn, falling back to default ncnn processing. (Please install vcredlist on your computer to fix this!)"
             )

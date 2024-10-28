@@ -1,6 +1,4 @@
 from pypresence import Presence, exceptions
-from time import sleep
-import signal
 from contextlib import contextmanager
 import os
 from .Util import log
@@ -46,7 +44,7 @@ class DiscordRPC:
                                 f"{os.getenv('HOME')}/.config/discord/{client_id}",
                                 ipc_path,
                             )
-                except:
+                except Exception:
                     log("Not flatpak")
                 try:
                     self.RPC = Presence(client_id)  # Initialize the client class
@@ -62,11 +60,11 @@ class DiscordRPC:
 
         # The presence will stay on as long as the program is running
         # Can only update rich presence every 15 seconds
-        except Exception as e:
+        except Exception:
             log("Timed out!")
 
     def closeRPC(self):
         try:
             self.RPC.close()
-        except:
+        except Exception:
             pass

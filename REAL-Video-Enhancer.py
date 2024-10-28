@@ -1,27 +1,21 @@
 import sys
 import os
-
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     # this goes one step up, and goes into the actual directory. This is where backend will be copied to.
     os.chdir("..")
-import subprocess
 import re
 import math
-import certifi
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QFileDialog,
     QMessageBox,
-    QGraphicsOpacityEffect,
-    QWidget,
 )
-from PySide6.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve
 from PySide6.QtGui import QIcon
 from src.Util import printAndLog
-from mainwindow import Ui_MainWindow  # Import the UI class from the converted module
+from mainwindow import Ui_MainWindow  
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
 from src.InputHandler import VideoInputHandler
@@ -33,22 +27,17 @@ from src.Util import (
     get_gpu_info,
     getRAMAmount,
     getCPUInfo,
-    videosPath,
     checkForWritePermissions,
     getAvailableDiskSpace,
-    errorAndLog,
 )
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
 from src.ui.SettingsTab import SettingsTab, Settings
-from src.DownloadDeps import DownloadDependencies
 from src.Backendhandler import BackendHandler
 from src.ModelHandler import totalModels
 from src.ui.AnimationHandler import AnimationHandler
 from src.ui.QTstyle import Palette
-from src.ui.QTcustom import DownloadDepsDialog, RegularQTPopup, SettingUpBackendPopup
-import yt_dlp
-import validators
+from src.ui.QTcustom import RegularQTPopup
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -366,7 +355,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processTab.workerThread.stop()
             self.processTab.workerThread.quit()
             self.processTab.workerThread.wait()
-        except:
+        except Exception:
             pass  # pass just incase internet error caused a skip
         # reset image preview
         self.previewLabel.clear()

@@ -20,7 +20,6 @@ from .ui.QTcustom import (
 import os
 from platform import machine
 import subprocess
-import sys
 
 
 def run_executable(exe_path):
@@ -74,11 +73,6 @@ class DownloadDependencies:
             print(str(backendDirectory()) + " Does not exist!")
             backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.0.5.tar.gz"
             main_zip = os.path.join(currentDirectory(), "backend.tar.gz")
-            main_folder = os.path.join(currentDirectory(), "repo")
-            orig_backend_folder = os.path.join(
-                main_folder, "REAL-Video-Enhancer-2.0", "backend"
-            )
-            moved_backed_folder = os.path.join(currentDirectory(), "backend")
 
             printAndLog("Downloading backend")
             downloadFile(link=backend_url, downloadLocation=main_zip)

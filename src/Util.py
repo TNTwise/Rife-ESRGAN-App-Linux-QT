@@ -88,19 +88,6 @@ def backendDirectory():
     else:
         return os.path.join(cwd, "backend")
 
-
-def downloadFile(link, downloadLocation):
-    response = requests.get(
-        link,
-        stream=True,
-    )
-    printAndLog("Downloading: " + link)
-    with open(downloadLocation, "wb") as f:
-        chunk_size = 1024
-        for chunk in response.iter_content(chunk_size=chunk_size):
-            f.write(chunk)
-
-
 def downloadTempDirectory() -> str:
     tmppath = os.path.join(cwd, "temp")
     createDirectory(tmppath)
@@ -275,7 +262,7 @@ def currentDirectory():
 def removeFile(file):
     try:
         os.remove(file)
-    except:
+    except Exception:
         print("Failed to remove file!")
 
 
@@ -438,7 +425,7 @@ def get_gpu_info():
                 "wmic path win32_VideoController get name", shell=True
             ).decode()
             return output.strip().split("\n")[1]
-        except:
+        except Exception:
             return "Unable to retrieve GPU info on Windows"
 
     elif system == "darwin":  # macOS
@@ -447,7 +434,7 @@ def get_gpu_info():
                 "system_profiler SPDisplaysDataType | grep Vendor", shell=True
             ).decode()
             return output.strip().split(":")[1].strip()
-        except:
+        except Exception:
             return "Unable to retrieve GPU info on macOS"
 
     elif system == "linux":
@@ -455,13 +442,13 @@ def get_gpu_info():
             # Try lspci command first
             output = subprocess.check_output("lspci | grep -i vga", shell=True).decode()
             return output.strip().split(":")[2].strip()
-        except:
+        except Exception:
             try:
                 # If lspci fails, try reading from /sys/class/graphics
                 with open("/sys/class/graphics/fb0/device/vendor", "r") as f:
                     vendor_id = f.read().strip()
                 return f"Vendor ID: {vendor_id}"
-            except:
+            except Exception:
                 return "Unable to retrieve GPU info on Linux"
 
     else:
