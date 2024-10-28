@@ -468,8 +468,11 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # setting the pallette
-
+    
     app.setPalette(Palette())
     window = MainWindow()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '--fullscreen':
+            window.showFullScreen()
     window.show()
     sys.exit(app.exec())

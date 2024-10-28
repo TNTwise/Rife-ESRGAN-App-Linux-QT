@@ -6,7 +6,6 @@ import queue
 import sys
 import time
 import math
-from tqdm import tqdm
 from multiprocessing import shared_memory
 from .Util import (
     currentDirectory,
@@ -14,10 +13,8 @@ from .Util import (
     printAndLog,
     ffmpegPath,
     ffmpegLogFile,
-    removeFolder,
 )
 import time
-from time import sleep
 from threading import Thread
 
 
@@ -256,7 +253,7 @@ class FFMpegRender:
                 "-",
                 "-i",
                 f"{self.inputFile}",
-                f"-crf",
+                "-crf",
                 f"{self.crf}",
                 "-pix_fmt",
                 self.pixelFormat,
