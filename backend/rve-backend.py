@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 
 from src.RenderVideo import Render
 

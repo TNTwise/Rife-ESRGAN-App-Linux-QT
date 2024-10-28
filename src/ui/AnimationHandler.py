@@ -1,10 +1,8 @@
-from PySide6.QtWidgets import QWidget, QGraphicsOpacityEffect, QGraphicsItemAnimation
+from PySide6.QtWidgets import QWidget, QGraphicsOpacityEffect
 from PySide6.QtCore import (
     QPropertyAnimation,
     QEasingCurve,
     QRect,
-    QPoint,
-    QSize,
     QParallelAnimationGroup,
 )
 

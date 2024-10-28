@@ -5,7 +5,7 @@ import re
 
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath
-from PySide6.QtCore import Qt, QPropertyAnimation
+from PySide6.QtCore import Qt
 from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler

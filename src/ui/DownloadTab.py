@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QMainWindow
 from .QTcustom import RegularQTPopup, NetworkCheckPopup
 from ..DownloadDeps import DownloadDependencies
 from ..ModelHandler import downloadModelsBasedOnInstalledBackend
-from ..Util import printAndLog
 
 
 class DownloadTab:

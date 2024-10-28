@@ -111,7 +111,7 @@ class InterpolateRifeTorch:
             else:
                 device = torch.device("cpu")
         else:
-            decice = torch.device(device)
+            device = torch.device(device)
 
         printAndLog("Using device: " + str(device))
 
@@ -318,12 +318,11 @@ class InterpolateRifeTorch:
                             + f"_{self.dimensions}"
                             + f"_{'fp16' if self.dtype == torch.float16 else 'fp32'}"
                             + f"_scale-{self.scale}"
-                            + f"_ensemble-False"
+                            + "_ensemble-False"
                             + f"_{torch.cuda.get_device_name(self.device)}"
                             + f"torch_tensorrt-{torch_tensorrt.__version__}"
                             + f"_trt-{tensorrt.__version__}"
-                            + (f"rife_trt_mode-" + self.rife_trt_mode)
-                            + (f"model_version-2")
+                            + ("rife_trt_mode-" + self.rife_trt_mode)
                             + (
                                 f"_workspace-{self.trt_workspace_size}"
                                 if self.trt_workspace_size > 0

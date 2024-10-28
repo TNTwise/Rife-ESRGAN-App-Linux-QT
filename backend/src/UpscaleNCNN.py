@@ -2,7 +2,6 @@ import numpy as np
 import os
 from time import sleep
 import math
-import numpy as np
 
 try:
     from upscale_ncnn_py import UPSCALE

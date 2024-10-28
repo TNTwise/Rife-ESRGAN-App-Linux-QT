@@ -2,7 +2,7 @@ import os
 import re
 from .DownloadModels import DownloadModel
 from .ui.QTcustom import NetworkCheckPopup
-from .Util import currentDirectory, customModelsPath, createDirectory, printAndLog
+from .Util import customModelsPath, createDirectory, printAndLog
 
 """
 Key value pairs of the model name in the GUI

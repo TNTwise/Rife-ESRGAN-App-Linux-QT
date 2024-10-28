@@ -2,14 +2,12 @@ from rife_ncnn_vulkan_python import wrapped
 from time import sleep
 
 # built-in imports
-import importlib
 import pathlib
 import sys
 
 # third-party imports
 from PIL import Image
 import numpy as np
-import cv2
 
 
 class Rife:
@@ -239,60 +237,7 @@ class Rife:
             self.height, self.width, self.channels
         )
 
-    def process_fast_torch(
-        self,
-        image0: np.ndarray,
-        image1: np.ndarray,
-        timestep: float = 0.5,
-        shape: tuple = None,
-        channels: int = 3,
-    ) -> np.ndarray:
-        """
-        An attempt at a faster implementation for NCNN that should speed it up significantly through better caching methods.
-
-        :param image0: The first image to be processed.
-        :param image1: The second image to be processed.
-        :param timestep: The timestep value for the interpolation.
-        :param shape: The shape of the images.
-        :param channels: The number of channels in the images.
-
-        :return: The processed image, format: torch.uint8
-        """
-        if self.height is None:
-            if shape is None:
-                self.height, self.width, self.channels = image0.shape
-            else:
-                self.height, self.width = shape
-
-        image1_bytes = bytearray(image1)
-        raw_in_image1 = wrapped.Image(
-            image1_bytes, self.width, self.height, self.channels
-        )
-
-        if self.image0_bytes is None:
-            self.image0_bytes = bytearray(image0)
-            raw_in_image0 = wrapped.Image(
-                self.image0_bytes, self.width, self.height, self.channels
-            )
-            self.output_bytes = bytearray(len(self.image0_bytes))
-        else:
-            raw_in_image0 = wrapped.Image(
-                self.image0_bytes, self.width, self.height, self.channels
-            )
-
-        raw_out_image = wrapped.Image(
-            self.output_bytes, self.width, self.height, self.channels
-        )
-
-        self._rife_object.process(raw_in_image0, raw_in_image1, timestep, raw_out_image)
-
-        self.image0_bytes = image1_bytes
-
-        return torch.frombuffer(self.output_bytes, dtype=torch.uint8).reshape(
-            self.height, self.width, self.channels
-        )
-
-
+  
 class RIFE(Rife): ...
 
 
