@@ -22,7 +22,7 @@ ncnnInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model)": (
+    "RIFE 4.22 (Latest General Model, Animation)": (
         "rife-v4.22",
         "rife-v4.22.tar.gz",
         1,
@@ -64,7 +64,7 @@ tensorrtInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22 (Latest General Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
     "RIFE 4.22-lite (Recommended Model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
