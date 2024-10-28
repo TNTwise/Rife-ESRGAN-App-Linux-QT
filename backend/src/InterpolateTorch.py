@@ -249,6 +249,8 @@ class InterpolateRifeTorch:
                 #self.dtype = torch.float32
                 #warnAndLog("GMFSS does not support float16, switching to float32")
                 self.flownet.eval().to(device=self.device, dtype=self.dtype)
+                if self.backend == "tensorrt":
+                    warnAndLog("TensorRT is not implemented for GMFSS yet, falling back to PyTorch")
             
             elif IFNet is not None:
                 for n in range(self.ceilInterpolateFactor):
