@@ -1,5 +1,5 @@
 import torch
-
+from collections import OrderedDict
 
 class RIFE46:
     def __init__():
@@ -217,6 +217,9 @@ class ArchDetect:
     def __init__(self, pkl_path):
         self.pkl_path = pkl_path
         self.state_dict = torch.load(pkl_path, weights_only=True)
+        # this is specific to loading gmfss, as its loaded in as one big pkl
+        if "flownet" in self.state_dict:
+            self.state_dict = self.state_dict["flownet"]
         self.keys = self.state_dict.keys()
         self.key_shape_pair = self.detect_weights()
         self.detected_arch = self.compare_arch()
