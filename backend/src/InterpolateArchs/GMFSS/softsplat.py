@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import collections
-import cupy
 import os
 import re
-import torch
 import typing
 
+import cupy
+import torch
 
 ##########################################################
 
@@ -14,19 +14,23 @@ import typing
 objCudacache = {}
 
 
-def cuda_int32(intIn:int):
+def cuda_int32(intIn: int):
     return cupy.int32(intIn)
+
+
 # end
 
 
-def cuda_float32(fltIn:float):
+def cuda_float32(fltIn: float):
     return cupy.float32(fltIn)
+
+
 # end
 
 
-def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
-    if 'device' not in objCudacache:
-        objCudacache['device'] = torch.cuda.get_device_name()
+def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
+    if "device" not in objCudacache:
+        objCudacache["device"] = torch.cuda.get_device_name()
     # end
 
     strKey = strFunction
@@ -39,16 +43,16 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
         if objValue is None:
             continue
 
-        elif type(objValue) == int:
+        elif isinstance(objValue, int):
             strKey += str(objValue)
 
-        elif type(objValue) == float:
+        elif isinstance(objValue, float):
             strKey += str(objValue)
 
-        elif type(objValue) == bool:
+        elif isinstance(objValue, bool):
             strKey += str(objValue)
 
-        elif type(objValue) == str:
+        elif isinstance(objValue, str):
             strKey += objValue
 
         elif type(objValue) == torch.Tensor:
@@ -58,12 +62,12 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
 
         elif True:
             print(strVariable, type(objValue))
-            assert(False)
+            assert False
 
         # end
     # end
 
-    strKey += objCudacache['device']
+    strKey += objCudacache["device"]
 
     if strKey not in objCudacache:
         for strVariable in objVariables:
@@ -72,49 +76,49 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             if objValue is None:
                 continue
 
-            elif type(objValue) == int:
-                strKernel = strKernel.replace('{{' + strVariable + '}}', str(objValue))
+            elif isinstance(objValue, int):
+                strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif type(objValue) == float:
-                strKernel = strKernel.replace('{{' + strVariable + '}}', str(objValue))
+            elif isinstance(objValue, float):
+                strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif type(objValue) == bool:
-                strKernel = strKernel.replace('{{' + strVariable + '}}', str(objValue))
+            elif isinstance(objValue, bool):
+                strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif type(objValue) == str:
-                strKernel = strKernel.replace('{{' + strVariable + '}}', objValue)
+            elif isinstance(objValue, str):
+                strKernel = strKernel.replace("{{" + strVariable + "}}", objValue)
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.uint8:
-                strKernel = strKernel.replace('{{type}}', 'unsigned char')
+                strKernel = strKernel.replace("{{type}}", "unsigned char")
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.float16:
-                strKernel = strKernel.replace('{{type}}', 'half')
+                strKernel = strKernel.replace("{{type}}", "half")
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.float32:
-                strKernel = strKernel.replace('{{type}}', 'float')
+                strKernel = strKernel.replace("{{type}}", "float")
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.float64:
-                strKernel = strKernel.replace('{{type}}', 'double')
+                strKernel = strKernel.replace("{{type}}", "double")
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.int32:
-                strKernel = strKernel.replace('{{type}}', 'int')
+                strKernel = strKernel.replace("{{type}}", "int")
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.int64:
-                strKernel = strKernel.replace('{{type}}', 'long')
+                strKernel = strKernel.replace("{{type}}", "long")
 
             elif type(objValue) == torch.Tensor:
                 print(strVariable, objValue.dtype)
-                assert(False)
+                assert False
 
             elif True:
                 print(strVariable, type(objValue))
-                assert(False)
+                assert False
 
             # end
         # end
 
         while True:
-            objMatch = re.search('(SIZE_)([0-4])(\()([^\)]*)(\))', strKernel)
+            objMatch = re.search("(SIZE_)([0-4])(\()([^\)]*)(\))", strKernel)
 
             if objMatch is None:
                 break
@@ -125,11 +129,18 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             strTensor = objMatch.group(4)
             intSizes = objVariables[strTensor].size()
 
-            strKernel = strKernel.replace(objMatch.group(), str(intSizes[intArg] if torch.is_tensor(intSizes[intArg]) == False else intSizes[intArg].item()))
+            strKernel = strKernel.replace(
+                objMatch.group(),
+                str(
+                    intSizes[intArg]
+                    if torch.is_tensor(intSizes[intArg]) == False
+                    else intSizes[intArg].item()
+                ),
+            )
         # end
 
         while True:
-            objMatch = re.search('(OFFSET_)([0-4])(\()', strKernel)
+            objMatch = re.search("(OFFSET_)([0-4])(\()", strKernel)
 
             if objMatch is None:
                 break
@@ -140,8 +151,8 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             intParentheses = 1
 
             while True:
-                intParentheses += 1 if strKernel[intStop] == '(' else 0
-                intParentheses -= 1 if strKernel[intStop] == ')' else 0
+                intParentheses += 1 if strKernel[intStop] == "(" else 0
+                intParentheses -= 1 if strKernel[intStop] == ")" else 0
 
                 if intParentheses == 0:
                     break
@@ -151,9 +162,9 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             # end
 
             intArgs = int(objMatch.group(2))
-            strArgs = strKernel[intStart:intStop].split(',')
+            strArgs = strKernel[intStart:intStop].split(",")
 
-            assert(intArgs == len(strArgs) - 1)
+            assert intArgs == len(strArgs) - 1
 
             strTensor = strArgs[0]
             intStrides = objVariables[strTensor].stride()
@@ -161,14 +172,27 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             strIndex = []
 
             for intArg in range(intArgs):
-                strIndex.append('((' + strArgs[intArg + 1].replace('{', '(').replace('}', ')').strip() + ')*' + str(intStrides[intArg] if torch.is_tensor(intStrides[intArg]) == False else intStrides[intArg].item()) + ')')
+                strIndex.append(
+                    "(("
+                    + strArgs[intArg + 1].replace("{", "(").replace("}", ")").strip()
+                    + ")*"
+                    + str(
+                        intStrides[intArg]
+                        if torch.is_tensor(intStrides[intArg]) == False
+                        else intStrides[intArg].item()
+                    )
+                    + ")"
+                )
             # end
 
-            strKernel = strKernel.replace('OFFSET_' + str(intArgs) + '(' + strKernel[intStart:intStop] + ')', '(' + str.join('+', strIndex) + ')')
+            strKernel = strKernel.replace(
+                "OFFSET_" + str(intArgs) + "(" + strKernel[intStart:intStop] + ")",
+                "(" + str.join("+", strIndex) + ")",
+            )
         # end
 
         while True:
-            objMatch = re.search('(VALUE_)([0-4])(\()', strKernel)
+            objMatch = re.search("(VALUE_)([0-4])(\()", strKernel)
 
             if objMatch is None:
                 break
@@ -179,8 +203,8 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             intParentheses = 1
 
             while True:
-                intParentheses += 1 if strKernel[intStop] == '(' else 0
-                intParentheses -= 1 if strKernel[intStop] == ')' else 0
+                intParentheses += 1 if strKernel[intStop] == "(" else 0
+                intParentheses -= 1 if strKernel[intStop] == ")" else 0
 
                 if intParentheses == 0:
                     break
@@ -190,9 +214,9 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             # end
 
             intArgs = int(objMatch.group(2))
-            strArgs = strKernel[intStart:intStop].split(',')
+            strArgs = strKernel[intStart:intStop].split(",")
 
-            assert(intArgs == len(strArgs) - 1)
+            assert intArgs == len(strArgs) - 1
 
             strTensor = strArgs[0]
             intStrides = objVariables[strTensor].stride()
@@ -200,88 +224,127 @@ def cuda_kernel(strFunction:str, strKernel:str, objVariables:typing.Dict):
             strIndex = []
 
             for intArg in range(intArgs):
-                strIndex.append('((' + strArgs[intArg + 1].replace('{', '(').replace('}', ')').strip() + ')*' + str(intStrides[intArg] if torch.is_tensor(intStrides[intArg]) == False else intStrides[intArg].item()) + ')')
+                strIndex.append(
+                    "(("
+                    + strArgs[intArg + 1].replace("{", "(").replace("}", ")").strip()
+                    + ")*"
+                    + str(
+                        intStrides[intArg]
+                        if torch.is_tensor(intStrides[intArg]) == False
+                        else intStrides[intArg].item()
+                    )
+                    + ")"
+                )
             # end
 
-            strKernel = strKernel.replace('VALUE_' + str(intArgs) + '(' + strKernel[intStart:intStop] + ')', strTensor + '[' + str.join('+', strIndex) + ']')
+            strKernel = strKernel.replace(
+                "VALUE_" + str(intArgs) + "(" + strKernel[intStart:intStop] + ")",
+                strTensor + "[" + str.join("+", strIndex) + "]",
+            )
         # end
 
-        objCudacache[strKey] = {
-            'strFunction': strFunction,
-            'strKernel': strKernel
-        }
+        objCudacache[strKey] = {"strFunction": strFunction, "strKernel": strKernel}
     # end
 
     return strKey
+
+
 # end
 
 
 @cupy.memoize(for_each_device=True)
-def cuda_launch(strKey:str):
-    if 'CUDA_HOME' not in os.environ:
-        os.environ['CUDA_HOME'] = cupy.cuda.get_cuda_path()
+def cuda_launch(strKey: str):
+    if "CUDA_HOME" not in os.environ:
+        os.environ["CUDA_HOME"] = cupy.cuda.get_cuda_path()
     # end
 
-    return cupy.RawKernel(objCudacache[strKey]['strKernel'], objCudacache[strKey]['strFunction'], tuple(['-I ' + os.environ['CUDA_HOME'], '-I ' + os.environ['CUDA_HOME'] + '/include']))
+    return cupy.RawKernel(
+        objCudacache[strKey]["strKernel"],
+        objCudacache[strKey]["strFunction"],
+        tuple(
+            [
+                "-I " + os.environ["CUDA_HOME"],
+                "-I " + os.environ["CUDA_HOME"] + "/include",
+            ]
+        ),
+    )
+
+
 # end
 
 
 ##########################################################
 
 
-def softsplat(tenIn:torch.Tensor, tenFlow:torch.Tensor, tenMetric:torch.Tensor, strMode:str):
-    assert(strMode.split('-')[0] in ['sum', 'avg', 'linear', 'soft'])
+def softsplat(
+    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str
+):
+    mode_parts = strMode.split("-")
+    mode_main = mode_parts[0]
+    mode_sub = mode_parts[1] if len(mode_parts) > 1 else None
 
-    if strMode == 'sum': assert(tenMetric is None)
-    if strMode == 'avg': assert(tenMetric is None)
-    if strMode.split('-')[0] == 'linear': assert(tenMetric is not None)
-    if strMode.split('-')[0] == 'soft': assert(tenMetric is not None)
+    assert mode_main in ["sum", "avg", "linear", "soft"]
+    if mode_main in ["sum", "avg"]:
+        assert tenMetric is None
+    if mode_main in ["linear", "soft"]:
+        assert tenMetric is not None
 
-    if strMode == 'avg':
-        tenIn = torch.cat([tenIn, tenIn.new_ones([tenIn.shape[0], 1, tenIn.shape[2], tenIn.shape[3]])], 1)
+    orig_dtype = tenIn.dtype
+    tenIn = tenIn.float()
+    tenFlow = tenFlow.float()
+    if tenMetric is not None:
+        tenMetric = tenMetric.float()
 
-    elif strMode.split('-')[0] == 'linear':
-        tenIn = torch.cat([tenIn * tenMetric, tenMetric], 1)
+    mode_to_operation = {
+        "avg": lambda: torch.cat(
+            [
+                tenIn,
+                tenIn.new_ones([tenIn.shape[0], 1, tenIn.shape[2], tenIn.shape[3]]),
+            ],
+            1,
+        ),
+        "linear": lambda: torch.cat([tenIn * tenMetric, tenMetric], 1),
+        "soft": lambda: torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1),
+    }
 
-    elif strMode.split('-')[0] == 'soft':
-        tenIn = torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1)
-
-    # end
+    if mode_main in mode_to_operation:
+        tenIn = mode_to_operation[mode_main]()
 
     tenOut = softsplat_func.apply(tenIn, tenFlow)
 
-    if strMode.split('-')[0] in ['avg', 'linear', 'soft']:
+    if mode_main in ["avg", "linear", "soft"]:
         tenNormalize = tenOut[:, -1:, :, :]
 
-        if len(strMode.split('-')) == 1:
-            tenNormalize = tenNormalize + 0.0000001
+        normalize_modes = {
+            None: lambda x: x + 0.0000001,
+            "addeps": lambda x: x + 0.0000001,
+            "zeroeps": lambda x: torch.where(
+                x == 0.0, torch.tensor(1.0, device=x.device), x
+            ),
+            "clipeps": lambda x: x.clip(0.0000001, None),
+        }
 
-        elif strMode.split('-')[1] == 'addeps':
-            tenNormalize = tenNormalize + 0.0000001
-
-        elif strMode.split('-')[1] == 'zeroeps':
-            tenNormalize[tenNormalize == 0.0] = 1.0
-
-        elif strMode.split('-')[1] == 'clipeps':
-            tenNormalize = tenNormalize.clip(0.0000001, None)
-
-        # end
+        if mode_sub in normalize_modes:
+            tenNormalize = normalize_modes[mode_sub](tenNormalize)
 
         tenOut = tenOut[:, :-1, :, :] / tenNormalize
-    # end
 
-    return tenOut
-# end
+    return tenOut.to(orig_dtype)
 
 
 class softsplat_func(torch.autograd.Function):
     @staticmethod
     @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
     def forward(self, tenIn, tenFlow):
-        tenOut = tenIn.new_zeros([tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]])
+        tenOut = tenIn.new_zeros(
+            [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
+        )
 
         if tenIn.is_cuda == True:
-            cuda_launch(cuda_kernel('softsplat_out', '''
+            cuda_launch(
+                cuda_kernel(
+                    "softsplat_out",
+                    """
                 extern "C" __global__ void __launch_bounds__(512) softsplat_out(
                     const int n,
                     const {{type}}* __restrict__ tenIn,
@@ -333,25 +396,32 @@ class softsplat_func(torch.autograd.Function):
                         atomicAdd(&tenOut[OFFSET_4(tenOut, intN, intC, intSoutheastY, intSoutheastX)], fltIn * fltSoutheast);
                     }
                 } }
-            ''', {
-                'tenIn': tenIn,
-                'tenFlow': tenFlow,
-                'tenOut': tenOut
-            }))(
+            """,
+                    {"tenIn": tenIn, "tenFlow": tenFlow, "tenOut": tenOut},
+                )
+            )(
                 grid=tuple([int((tenOut.nelement() + 512 - 1) / 512), 1, 1]),
                 block=tuple([512, 1, 1]),
-                args=[cuda_int32(tenOut.nelement()), tenIn.data_ptr(), tenFlow.data_ptr(), tenOut.data_ptr()],
-                stream=collections.namedtuple('Stream', 'ptr')(torch.cuda.current_stream().cuda_stream)
+                args=[
+                    cuda_int32(tenOut.nelement()),
+                    tenIn.data_ptr(),
+                    tenFlow.data_ptr(),
+                    tenOut.data_ptr(),
+                ],
+                stream=collections.namedtuple("Stream", "ptr")(
+                    torch.cuda.current_stream().cuda_stream
+                ),
             )
 
         elif tenIn.is_cuda != True:
-            assert(False)
+            assert False
 
         # end
 
         self.save_for_backward(tenIn, tenFlow)
 
         return tenOut
+
     # end
 
     @staticmethod
@@ -359,13 +429,29 @@ class softsplat_func(torch.autograd.Function):
     def backward(self, tenOutgrad):
         tenIn, tenFlow = self.saved_tensors
 
-        tenOutgrad = tenOutgrad.contiguous(); assert(tenOutgrad.is_cuda == True)
+        tenOutgrad = tenOutgrad.contiguous()
+        assert tenOutgrad.is_cuda == True
 
-        tenIngrad = tenIn.new_zeros([tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]) if self.needs_input_grad[0] == True else None
-        tenFlowgrad = tenFlow.new_zeros([tenFlow.shape[0], tenFlow.shape[1], tenFlow.shape[2], tenFlow.shape[3]]) if self.needs_input_grad[1] == True else None
+        tenIngrad = (
+            tenIn.new_zeros(
+                [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
+            )
+            if self.needs_input_grad[0] == True
+            else None
+        )
+        tenFlowgrad = (
+            tenFlow.new_zeros(
+                [tenFlow.shape[0], tenFlow.shape[1], tenFlow.shape[2], tenFlow.shape[3]]
+            )
+            if self.needs_input_grad[1] == True
+            else None
+        )
 
         if tenIngrad is not None:
-            cuda_launch(cuda_kernel('softsplat_ingrad', '''
+            cuda_launch(
+                cuda_kernel(
+                    "softsplat_ingrad",
+                    """
                 extern "C" __global__ void __launch_bounds__(512) softsplat_ingrad(
                     const int n,
                     const {{type}}* __restrict__ tenIn,
@@ -421,22 +507,37 @@ class softsplat_func(torch.autograd.Function):
 
                     tenIngrad[intIndex] = fltIngrad;
                 } }
-            ''', {
-                'tenIn': tenIn,
-                'tenFlow': tenFlow,
-                'tenOutgrad': tenOutgrad,
-                'tenIngrad': tenIngrad,
-                'tenFlowgrad': tenFlowgrad
-            }))(
+            """,
+                    {
+                        "tenIn": tenIn,
+                        "tenFlow": tenFlow,
+                        "tenOutgrad": tenOutgrad,
+                        "tenIngrad": tenIngrad,
+                        "tenFlowgrad": tenFlowgrad,
+                    },
+                )
+            )(
                 grid=tuple([int((tenIngrad.nelement() + 512 - 1) / 512), 1, 1]),
                 block=tuple([512, 1, 1]),
-                args=[cuda_int32(tenIngrad.nelement()), tenIn.data_ptr(), tenFlow.data_ptr(), tenOutgrad.data_ptr(), tenIngrad.data_ptr(), None],
-                stream=collections.namedtuple('Stream', 'ptr')(torch.cuda.current_stream().cuda_stream)
+                args=[
+                    cuda_int32(tenIngrad.nelement()),
+                    tenIn.data_ptr(),
+                    tenFlow.data_ptr(),
+                    tenOutgrad.data_ptr(),
+                    tenIngrad.data_ptr(),
+                    None,
+                ],
+                stream=collections.namedtuple("Stream", "ptr")(
+                    torch.cuda.current_stream().cuda_stream
+                ),
             )
         # end
 
         if tenFlowgrad is not None:
-            cuda_launch(cuda_kernel('softsplat_flowgrad', '''
+            cuda_launch(
+                cuda_kernel(
+                    "softsplat_flowgrad",
+                    """
                 extern "C" __global__ void __launch_bounds__(512) softsplat_flowgrad(
                     const int n,
                     const {{type}}* __restrict__ tenIn,
@@ -510,20 +611,35 @@ class softsplat_func(torch.autograd.Function):
 
                     tenFlowgrad[intIndex] = fltFlowgrad;
                 } }
-            ''', {
-                'tenIn': tenIn,
-                'tenFlow': tenFlow,
-                'tenOutgrad': tenOutgrad,
-                'tenIngrad': tenIngrad,
-                'tenFlowgrad': tenFlowgrad
-            }))(
+            """,
+                    {
+                        "tenIn": tenIn,
+                        "tenFlow": tenFlow,
+                        "tenOutgrad": tenOutgrad,
+                        "tenIngrad": tenIngrad,
+                        "tenFlowgrad": tenFlowgrad,
+                    },
+                )
+            )(
                 grid=tuple([int((tenFlowgrad.nelement() + 512 - 1) / 512), 1, 1]),
                 block=tuple([512, 1, 1]),
-                args=[cuda_int32(tenFlowgrad.nelement()), tenIn.data_ptr(), tenFlow.data_ptr(), tenOutgrad.data_ptr(), None, tenFlowgrad.data_ptr()],
-                stream=collections.namedtuple('Stream', 'ptr')(torch.cuda.current_stream().cuda_stream)
+                args=[
+                    cuda_int32(tenFlowgrad.nelement()),
+                    tenIn.data_ptr(),
+                    tenFlow.data_ptr(),
+                    tenOutgrad.data_ptr(),
+                    None,
+                    tenFlowgrad.data_ptr(),
+                ],
+                stream=collections.namedtuple("Stream", "ptr")(
+                    torch.cuda.current_stream().cuda_stream
+                ),
             )
         # end
 
         return tenIngrad, tenFlowgrad
+
     # end
+
+
 # end
