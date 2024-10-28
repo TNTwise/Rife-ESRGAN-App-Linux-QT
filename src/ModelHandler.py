@@ -36,6 +36,7 @@ ncnnInterpolateModels = {
     ),
 }
 pytorchInterpolateModels = {
+    "GMFSS (Slowest Model, Animation)": ("GMFSS.pkl","GMFSS.pkl",1,"gmfss"),
     "RIFE 4.6 (Fastest Model)": ("rife4.6.pkl", "rife4.6.pkl", 1, "rife46"),
     "RIFE 4.7 (Smoothest Model)": ("rife4.7.pkl", "rife4.7.pkl", 1, "rife47"),
     "RIFE 4.15": ("rife4.15.pkl", "rife4.15.pkl", 1, "rife413"),
@@ -45,7 +46,7 @@ pytorchInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22 (Latest General Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
     "RIFE 4.22-lite (Recommended Model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
