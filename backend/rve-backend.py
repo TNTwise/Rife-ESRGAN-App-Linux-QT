@@ -1,6 +1,6 @@
 import argparse
 import os
-
+import logging
 from src.RenderVideo import Render
 
 from src.Util import (
@@ -10,6 +10,7 @@ from src.Util import (
     check_bfloat16_support,
     checkForDirectML,
     checkForDirectMLHalfPrecisionSupport,
+    checkForGMFSS,
 )
 
 
@@ -45,6 +46,7 @@ class HandleApplication:
             )
         else:
             half_prec_supp = False
+            gmfss_supp = False
             availableBackends = []
             printMSG = ""
 
@@ -70,6 +72,7 @@ class HandleApplication:
                 availableBackends.append("pytorch")
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
+                gmfss_supp = checkForGMFSS()
 
             if checkForNCNN():
                 availableBackends.append("ncnn")
@@ -82,6 +85,9 @@ class HandleApplication:
                 printMSG += f"ONNXruntime Version: {ort.__version__}\n"
                 half_prec_supp = checkForDirectMLHalfPrecisionSupport()
             printMSG += f"Half precision support: {half_prec_supp}\n"
+            printMSG += f"GMFSS support: {gmfss_supp}\n"
+            if not gmfss_supp and "pytorch" in availableBackends:
+                printMSG += "Please install CUDA to enable GMFSS\n"
             print("Available Backends: " + str(availableBackends))
             print(printMSG)
 
