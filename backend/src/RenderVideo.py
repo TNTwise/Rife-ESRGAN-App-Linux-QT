@@ -63,7 +63,6 @@ class Render(FFMpegRender):
         interpolateModel=None,
         interpolateFactor: int = 1,
         tile_size=None,
-        rifeVersion: str = "v1",
         # ffmpeg settings
         encoder: str = "libx264",
         pixelFormat: str = "yuv420p",
@@ -95,7 +94,6 @@ class Render(FFMpegRender):
         # max timestep is a hack to make sure ncnn cache frames too early, and ncnn breaks if i modify the code at all so ig this is what we are doing
         self.maxTimestep = (interpolateFactor - 1) / interpolateFactor
         self.ncnn = self.backend == "ncnn"
-        self.rifeVersion = rifeVersion
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
         self.setupRender = self.returnFrame  # set it to not convert the bytes to array by default, and just pass chunk through
         self.setupFrame0 = None
@@ -333,7 +331,6 @@ class Render(FFMpegRender):
                 device=self.device,
                 dtype=self.precision,
                 backend=self.backend,
-                rifeVersion=self.rifeVersion,
                 trt_optimization_level=self.trt_optimization_level,
                 rife_trt_mode=self.rife_trt_mode,
             )
