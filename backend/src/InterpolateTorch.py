@@ -306,10 +306,7 @@ class InterpolateRifeTorch:
                 if self.backend == "tensorrt":
                     import tensorrt
                     import torch_tensorrt
-                    from .InterpolateArchs.RIFE.custom_warplayer import WarpPluginCreator
 
-                    registry = tensorrt.get_plugin_registry()
-                    registry.register_creator(WarpPluginCreator())
                     base_trt_engine_path = os.path.join(
                         os.path.realpath(self.trt_cache_dir),
                         (
