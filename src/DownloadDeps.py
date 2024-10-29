@@ -162,7 +162,9 @@ class DownloadDependencies:
             command += [
                 "--no-warn-script-location",
                 "--extra-index-url",
-                "https://download.pytorch.org/whl/cu124",
+                "https://download.pytorch.org/whl/nightly/cu124",
+                "--extra-index-url",
+                "https://pypi.nvidia.com",
             ]
         else:
             command += ["-y"]
@@ -214,8 +216,8 @@ class DownloadDependencies:
         Pytorch CUDA deps
         """
         torchCUDADeps = [
-            "torch==2.5.0",
-            "torchvision==0.20.0",
+            "torch==2.6.0.dev20241023",
+            "torchvision==0.20.0.dev20241023",
             "safetensors",
             "einops",
             "cupy-cuda12x==13.3.0",
@@ -230,11 +232,12 @@ class DownloadDependencies:
         TensorRT deps
         """
         tensorRTDeps = [
-            "tensorrt==10.3.0",
-            "tensorrt_cu12==10.3.0",
-            "tensorrt-cu12_libs==10.3.0",
-            "tensorrt_cu12_bindings==10.3.0",
-            "torch_tensorrt==2.5.0",
+            "tensorrt==10.4.0",
+            "tensorrt_cu12==10.4.0",
+            "tensorrt-cu12_libs==10.4.0",
+            "tensorrt_cu12_bindings==10.4.0",
+            "--no-deps",
+            "torch_tensorrt==2.6.0.dev20241023",
         ]
 
         return tensorRTDeps
@@ -248,8 +251,11 @@ class DownloadDependencies:
         if install:
             self.pip(self.getPlatformIndependentDeps())
         self.pip(
-            self.getPyTorchCUDADeps()
-            + self.getTensorRTDeps(),  # Has to be in this order, because i skip dependency check for torchvision
+            self.getPyTorchCUDADeps(),
+            install,
+        )
+        self.pip(
+            self.getTensorRTDeps(),  # Has to be in this order, because i skip dependency check for torchvision
             install,
         )
 
