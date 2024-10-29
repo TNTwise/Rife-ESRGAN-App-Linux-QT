@@ -110,7 +110,7 @@ class ProcessTab:
         self.parent.outputFileSelectButton.clicked.connect(self.parent.openOutputFolder)
         # connect render button
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-        cbs = (self.parent.methodComboBox,)
+        cbs = (self.parent.methodComboBox,self.parent.backendComboBox)
         for combobox in cbs:
             combobox.currentIndexChanged.connect(self.switchInterpolationAndUpscale)
         # set tile size visible to false by default
@@ -327,8 +327,7 @@ class ProcessTab:
                 ),
                 "--interpolateFactor",
                 f"{interpolateTimes}",
-                "--rife_trt_mode",
-                f"{self.settings['rife_trt_mode']}",
+              
             ]
         if self.settings["preview_enabled"] == "True":
             command += [
