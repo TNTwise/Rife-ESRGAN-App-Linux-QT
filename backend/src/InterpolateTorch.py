@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+from torch._decomp import get_decompositions
 from .InterpolateArchs.DetectInterpolateArch import ArchDetect
 import math
 import os
@@ -663,12 +664,13 @@ class InterpolateRifeTorch:
                             tuple(exampleInput),
                             dynamic_shapes=dynamic_shapes,
                         )
+                        exported_program = exported_program.run_decompositions(get_decompositions([torch.ops.aten.grid_sampler_2d]))
 
                         self.flownet = torch_tensorrt.dynamo.compile(
                             exported_program,
                             tuple(inputs),
                             device=self.device,
-                            enabled_precisions={self.dtype},
+                            use_explicit_typing=True,
                             debug=self.trt_debug,
                             num_avg_timing_iters=4,
                             workspace_size=self.trt_workspace_size,
