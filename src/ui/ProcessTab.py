@@ -35,7 +35,7 @@ from ..ModelHandler import (
 
 
 class ProcessTab:
-    def __init__(self, parent, backend: str, method: str):
+    def __init__(self, parent, gmfssSupport: bool):
         self.parent = parent
         self.imagePreviewSharedMemoryID = "/image_preview" + str(os.getpid())
         self.renderTextOutputList = None
@@ -43,6 +43,7 @@ class ProcessTab:
         self.animationHandler = AnimationHandler()
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
+        self.gmfssSupport = gmfssSupport
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
@@ -134,6 +135,7 @@ class ProcessTab:
         except AttributeError:
             printAndLog("No render process!")
 
+        
     def switchInterpolationAndUpscale(self):
         """
         Called every render, gets the correct model based on the backend and the method.
@@ -144,7 +146,7 @@ class ProcessTab:
         method = self.parent.methodComboBox.currentText()
         backend = self.parent.backendComboBox.currentText()
         models = self.getTotalModels(method=method, backend=backend)
-
+        
         self.parent.modelComboBox.addItems(models)
         total_items = self.parent.modelComboBox.count()
         if total_items > 0 and method.lower() == "interpolate":
@@ -154,6 +156,11 @@ class ProcessTab:
             self.parent.interpolationContainer.setVisible(True)
             self.parent.upscaleContainer.setVisible(False)
             self.animationHandler.dropDownAnimation(self.parent.interpolationContainer)
+            if not self.gmfssSupport:
+                # Disable specific options based on the selected text
+                for i in range(self.parent.modelComboBox.count()):
+                    if self.parent.modelComboBox.itemText(i) == "GMFSS (Slowest Model, Animation)": # hacky solution, just straight copy pasted
+                        self.parent.modelComboBox.model().item(i).setEnabled(self.gmfssSupport)
         else:
             self.parent.interpolationContainer.setVisible(False)
             self.parent.upscaleContainer.setVisible(True)

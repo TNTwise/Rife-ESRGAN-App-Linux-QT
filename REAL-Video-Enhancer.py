@@ -148,13 +148,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             halfPrecisionSupport = halfPrecisionSupport.group(1) == "true"
         else:
             halfPrecisionSupport = False
+
+        gmfssSupport = re.search(
+            "gmfss support: \s*(true|false)", self.fullOutput.lower()
+        )
+        if gmfssSupport:
+            gmfssSupport = gmfssSupport.group(1) == "true"
+        else:
+            gmfssSupport = False
         settings = Settings()
         settings.readSettings()
         self.settings = settings
         self.processTab = ProcessTab(
             parent=self,
-            backend=self.backendComboBox.currentText(),
-            method=self.methodComboBox.currentText(),
+            gmfssSupport=gmfssSupport,
         )
 
         self.downloadTab = DownloadTab(parent=self, installed_backends=self.backends)
