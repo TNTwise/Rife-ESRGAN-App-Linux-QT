@@ -794,10 +794,7 @@ class InterpolateRifeTorch:
                     dtype=torch.uint8,
                 ).to(device=self.device, dtype=self.dtype, non_blocking=True)
             )
-            if self.gmfss:
-                frame = F.interpolate(frame, (self.ph, self.pw), mode="bilinear")
-            else:
-                frame = F.pad(frame,self.padding)
+            frame = F.pad(frame,self.padding)
 
         self.prepareStream.synchronize()
         return frame
