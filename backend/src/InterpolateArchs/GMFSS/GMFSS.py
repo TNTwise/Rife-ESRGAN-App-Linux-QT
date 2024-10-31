@@ -125,5 +125,5 @@ class GMFSS(nn.Module):
             torch.cat([feat1t2, feat2t2], dim=1),
             torch.cat([feat1t3, feat2t3], dim=1),
         )
-        out = F.interpolate(out, (self.height, self.width), mode="bilinear")
-        return torch.clamp(out, 0, 1).squeeze().mul(255.0).permute(1, 2, 0)
+        out = out[:, :, : self.height, : self.width]
+        return torch.clamp(out, 0, 1).squeeze(0).mul(255.0).permute(1, 2, 0)
