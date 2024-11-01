@@ -233,6 +233,17 @@ class HandleApplication:
             and not self.args.benchmark
         ):
             raise os.error("Output file already exists!")
+        if not os.path.isfile(self.args.input):
+            raise os.error("Input file does not exist!")
+        if self.args.tilesize < 0:
+            raise ValueError("Tilesize must be greater than 0")
+        if self.args.interpolateFactor < 0:
+            raise ValueError("Interpolation factor must be greater than 0")
+        if self.args.interpolateFactor == 1 and self.args.interpolateModel:
+            raise ValueError(
+                "Interpolation factor must be greater than 1 if interpolation model is used.\nPlease use --interpolateFactor 2 for 2x interpolation!"
+            )
+        
 
 
 if __name__ == "__main__":
