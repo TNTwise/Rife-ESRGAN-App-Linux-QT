@@ -243,6 +243,11 @@ class HandleApplication:
             raise ValueError(
                 "Interpolation factor must be greater than 1 if interpolation model is used.\nPlease use --interpolateFactor 2 for 2x interpolation!"
             )
+        if self.args.interpolateFactor != 1 and not self.args.interpolateModel:
+            raise ValueError(
+                "Interpolation factor must be 1 if no interpolation model is used.\nPlease use --interpolateFactor 1 for no interpolation!"
+            )
+        
         
 
 
