@@ -22,17 +22,23 @@ ncnnInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model, Animation)": (
+    "RIFE 4.22 (Slowest RIFE Model, Animation)": (
         "rife-v4.22",
         "rife-v4.22.tar.gz",
         1,
         "rife421",
     ),
-    "RIFE 4.22-lite (Recommended Model)": (
+    "RIFE 4.22-lite (Latest LITE model)": (
         "rife-v4.22-lite",
         "rife-v4.22-lite.tar.gz",
         1,
         "rife422-lite",
+    ),
+    "RIFE 4.25 (Latest General Model, Recommended)": (
+        "rife-v4.25",
+        "rife-v4.25.tar.gz",
+        1,
+        "rife425",
     ),
 }
 pytorchInterpolateModels = {
@@ -46,13 +52,14 @@ pytorchInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
-    "RIFE 4.22-lite (Recommended Model)": (
+    "RIFE 4.22 (Slowest RIFE Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22-lite (Latest LITE model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
         1,
         "rife422-lite",
     ),
+    "RIFE 4.25 (Latest General Model, Recommended)": ("rife4.25.pkl", "rife4.25.pkl", 1, "rife425"),
 }
 tensorrtInterpolateModels = {
     "RIFE 4.6 (Fastest Model)": ("rife4.6.pkl", "rife4.6.pkl", 1, "rife46"),
@@ -64,13 +71,14 @@ tensorrtInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Latest General Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
-    "RIFE 4.22-lite (Recommended Model)": (
+    "RIFE 4.22 (Slowest RIFE Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22-lite (Latest LITE model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
         1,
         "rife422-lite",
     ),
+    "RIFE 4.25 (Latest General Model, Recommended)": ("rife4.25.pkl", "rife4.25.pkl", 1, "rife425"),
 }
 ncnnUpscaleModels = {
     "SPAN (Animation) (2X) (Fast)": (
