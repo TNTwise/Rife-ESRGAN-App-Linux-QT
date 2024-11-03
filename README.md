@@ -41,12 +41,12 @@
 <h1>Features: </h1>
 <ul>
   <li> <strong>NEW!</strong> Windows support. <strong>!!! NOTICE !!!</strong> The bin can be detected as a trojan. This is a false positive caused by pyinstaller.</li>
-  <li> MacOS support. (Depricated as 2.0, use 1.2 for now) </li>
   <li> Support for Ubuntu 20.04+ on Executable and Flatpak. </li>
   <li> Discord RPC support for Discord system package and Discord flatpak. </li>
   <li> Scene change detection to preserve sharp transitions. </li>
   <li> Preview that shows latest frame that has been rendered. </li>
   <li> TensorRT and NCNN for efficient inference across many GPUs. </li>
+  <li> <strong>DEPRICATED</strong> MacOS support as of 2.0, this will not be returning due to changes made by apple in MacOS 15.1. Read more <a href="https://lunduke.locals.com/post/6304352/apple-removes-ability-to-run-unsigned-apps-in-macos-15-1">here</a>.
 </ul>
 
 # Hardware/Software Requirements
