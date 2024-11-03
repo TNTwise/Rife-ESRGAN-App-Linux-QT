@@ -124,6 +124,7 @@ def checkForTensorRT() -> bool:
     except Exception as e:
         log(str(e))
 
+
 def checkForGMFSS() -> bool:
     try:
         import torch
@@ -135,6 +136,7 @@ def checkForGMFSS() -> bool:
     if cupy.cuda.get_cuda_path() == None:
         return False
     return True
+
 
 def check_bfloat16_support() -> bool:
     """

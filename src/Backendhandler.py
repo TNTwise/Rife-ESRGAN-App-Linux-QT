@@ -88,7 +88,6 @@ class BackendHandler:
         try:
             self.availableBackends, self.fullOutput = self.getAvailableBackends()
             if not len(self.availableBackends) == 0:
-                
                 return self.availableBackends, self.fullOutput
         except SyntaxError as e:
             printAndLog(str(e))

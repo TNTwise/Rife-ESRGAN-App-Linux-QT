@@ -1,5 +1,6 @@
 import torch
 
+
 class RIFE46:
     def __init__():
         pass

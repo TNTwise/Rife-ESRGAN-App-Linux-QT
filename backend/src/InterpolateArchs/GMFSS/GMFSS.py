@@ -12,9 +12,18 @@ torch.fx.wrap("warp")
 
 
 class GMFSS(nn.Module):
-    def __init__(self, model_path, model_type:str="union", scale:int=1, ensemble:bool=False, width:int=1920, height:int=1080):
+    def __init__(
+        self,
+        model_path,
+        model_type: str = "union",
+        scale: int = 1,
+        ensemble: bool = False,
+        width: int = 1920,
+        height: int = 1080,
+    ):
         super(GMFSS, self).__init__()
         from .FusionNet_u import GridNet
+
         # get gmfss from here, as its a combination of all the models https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/GMFSS.pkl
         self.width = width
         self.height = height
@@ -25,12 +34,12 @@ class GMFSS(nn.Module):
         self.fusionnet = GridNet()
         combined_state_dict = torch.load(model_path, map_location="cpu")
         if model_type != "base":
-            self.ifnet.load_state_dict(combined_state_dict['rife'])
-        self.flownet.load_state_dict(combined_state_dict['flownet'])
-        self.metricnet.load_state_dict(combined_state_dict['metricnet'])
-        self.feat_ext.load_state_dict(combined_state_dict['feat_ext'])
-        self.fusionnet.load_state_dict(combined_state_dict['fusionnet'])
-        
+            self.ifnet.load_state_dict(combined_state_dict["rife"])
+        self.flownet.load_state_dict(combined_state_dict["flownet"])
+        self.metricnet.load_state_dict(combined_state_dict["metricnet"])
+        self.feat_ext.load_state_dict(combined_state_dict["feat_ext"])
+        self.fusionnet.load_state_dict(combined_state_dict["fusionnet"])
+
         self.model_type = model_type
         self.scale = scale
 

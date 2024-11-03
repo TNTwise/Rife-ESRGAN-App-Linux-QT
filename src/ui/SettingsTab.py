@@ -105,7 +105,7 @@ class SettingsTab:
         self.parent.output_folder_location.textChanged.connect(
             lambda: self.writeOutputFolder()
         )
-        
+
         self.parent.resetSettingsBtn.clicked.connect(self.resetSettings)
 
     def writeOutputFolder(self):
