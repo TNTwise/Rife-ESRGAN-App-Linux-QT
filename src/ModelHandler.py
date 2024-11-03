@@ -42,7 +42,7 @@ ncnnInterpolateModels = {
     ),
 }
 pytorchInterpolateModels = {
-    "GMFSS (Slowest Model, Animation)": ("GMFSS.pkl","GMFSS.pkl",1,"gmfss"),
+    "GMFSS (Slowest Model, Animation)": ("GMFSS.pkl", "GMFSS.pkl", 1, "gmfss"),
     "RIFE 4.6 (Fastest Model)": ("rife4.6.pkl", "rife4.6.pkl", 1, "rife46"),
     "RIFE 4.7 (Smoothest Model)": ("rife4.7.pkl", "rife4.7.pkl", 1, "rife47"),
     "RIFE 4.15": ("rife4.15.pkl", "rife4.15.pkl", 1, "rife413"),
@@ -52,14 +52,24 @@ pytorchInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Slowest Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22 (Slowest Model, Animation)": (
+        "rife4.22.pkl",
+        "rife4.22.pkl",
+        1,
+        "rife421",
+    ),
     "RIFE 4.22-lite (Latest LITE model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
         1,
         "rife422-lite",
     ),
-    "RIFE 4.25 (Latest General Model, Recommended)": ("rife4.25.pkl", "rife4.25.pkl", 1, "rife425"),
+    "RIFE 4.25 (Latest General Model, Recommended)": (
+        "rife4.25.pkl",
+        "rife4.25.pkl",
+        1,
+        "rife425",
+    ),
 }
 tensorrtInterpolateModels = {
     "RIFE 4.6 (Fastest Model)": ("rife4.6.pkl", "rife4.6.pkl", 1, "rife46"),
@@ -71,14 +81,24 @@ tensorrtInterpolateModels = {
         1,
         "rife413",
     ),
-    "RIFE 4.22 (Slowest Model, Animation)": ("rife4.22.pkl", "rife4.22.pkl", 1, "rife421"),
+    "RIFE 4.22 (Slowest Model, Animation)": (
+        "rife4.22.pkl",
+        "rife4.22.pkl",
+        1,
+        "rife421",
+    ),
     "RIFE 4.22-lite (Latest LITE model)": (
         "rife4.22-lite.pkl",
         "rife4.22-lite.pkl",
         1,
         "rife422-lite",
     ),
-    "RIFE 4.25 (Latest General Model, Recommended)": ("rife4.25.pkl", "rife4.25.pkl", 1, "rife425"),
+    "RIFE 4.25 (Latest General Model, Recommended)": (
+        "rife4.25.pkl",
+        "rife4.25.pkl",
+        1,
+        "rife425",
+    ),
 }
 ncnnUpscaleModels = {
     "SPAN (Animation) (2X) (Fast)": (

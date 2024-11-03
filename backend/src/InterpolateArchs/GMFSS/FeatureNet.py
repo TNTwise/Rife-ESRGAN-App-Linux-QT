@@ -1,6 +1,7 @@
 import torch.nn as nn
 from .util import MyPReLU
 
+
 class FeatureNet(nn.Module):
     """The quadratic model"""
 

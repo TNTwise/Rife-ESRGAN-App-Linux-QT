@@ -237,7 +237,7 @@ class Rife:
             self.height, self.width, self.channels
         )
 
-  
+
 class RIFE(Rife): ...
 
 

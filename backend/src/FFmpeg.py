@@ -377,22 +377,6 @@ class FFMpegRender:
 
             time.sleep(0.1)
 
-    def openMPVProc(self):
-        self.mpv_process = subprocess.Popen(
-            [
-                "mpv",
-                "--no-correct-pts",
-                f"--fps={self.fps * self.ceilInterpolateFactor}",
-                "--demuxer-thread=no",
-                "--",
-                "-",
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=False,
-        )
-
     def writeOutVideoFrames(self):
         """
         Writes out frames either to ffmpeg or to pipe
@@ -401,9 +385,6 @@ class FFMpegRender:
         ffmpeg -f rawvideo -pix_fmt rgb24 -s 1920x1080 -framerate 24 -i - -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a copy out.mp4
         """
         log("Rendering")
-        #
-
-        # self.openMPVProc()
         self.startTime = time.time()
         self.framesRendered: int = 1
         self.last_length: int = 0

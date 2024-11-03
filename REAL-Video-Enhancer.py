@@ -1,5 +1,6 @@
 import sys
 import os
+
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QIcon
 from src.Util import printAndLog
-from mainwindow import Ui_MainWindow  
+from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
 from src.InputHandler import VideoInputHandler
@@ -464,11 +465,11 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # setting the pallette
-    
+
     app.setPalette(Palette())
     window = MainWindow()
     if len(sys.argv) > 1:
-        if sys.argv[1] == '--fullscreen':
+        if sys.argv[1] == "--fullscreen":
             window.showFullScreen()
     window.show()
     sys.exit(app.exec())

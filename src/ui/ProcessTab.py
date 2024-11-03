@@ -111,7 +111,7 @@ class ProcessTab:
         self.parent.outputFileSelectButton.clicked.connect(self.parent.openOutputFolder)
         # connect render button
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-        cbs = (self.parent.methodComboBox,self.parent.backendComboBox)
+        cbs = (self.parent.methodComboBox, self.parent.backendComboBox)
         for combobox in cbs:
             combobox.currentIndexChanged.connect(self.switchInterpolationAndUpscale)
         # set tile size visible to false by default
@@ -135,7 +135,6 @@ class ProcessTab:
         except AttributeError:
             printAndLog("No render process!")
 
-        
     def switchInterpolationAndUpscale(self):
         """
         Called every render, gets the correct model based on the backend and the method.
@@ -146,7 +145,7 @@ class ProcessTab:
         method = self.parent.methodComboBox.currentText()
         backend = self.parent.backendComboBox.currentText()
         models = self.getTotalModels(method=method, backend=backend)
-        
+
         self.parent.modelComboBox.addItems(models)
         total_items = self.parent.modelComboBox.count()
         if total_items > 0 and method.lower() == "interpolate":
@@ -159,8 +158,13 @@ class ProcessTab:
             if not self.gmfssSupport:
                 # Disable specific options based on the selected text
                 for i in range(self.parent.modelComboBox.count()):
-                    if self.parent.modelComboBox.itemText(i) == "GMFSS (Slowest Model, Animation)": # hacky solution, just straight copy pasted
-                        self.parent.modelComboBox.model().item(i).setEnabled(self.gmfssSupport)
+                    if (
+                        self.parent.modelComboBox.itemText(i)
+                        == "GMFSS (Slowest Model, Animation)"
+                    ):  # hacky solution, just straight copy pasted
+                        self.parent.modelComboBox.model().item(i).setEnabled(
+                            self.gmfssSupport
+                        )
         else:
             self.parent.interpolationContainer.setVisible(False)
             self.parent.upscaleContainer.setVisible(True)
@@ -334,7 +338,6 @@ class ProcessTab:
                 ),
                 "--interpolateFactor",
                 f"{interpolateTimes}",
-              
             ]
         if self.settings["preview_enabled"] == "True":
             command += [

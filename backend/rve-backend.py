@@ -247,8 +247,6 @@ class HandleApplication:
             raise ValueError(
                 "Interpolation factor must be 1 if no interpolation model is used.\nPlease use --interpolateFactor 1 for no interpolation!"
             )
-        
-        
 
 
 if __name__ == "__main__":
