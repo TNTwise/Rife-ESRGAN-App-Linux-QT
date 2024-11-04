@@ -395,7 +395,7 @@ class InterpolateRifeTorch:
                             printAndLog(
                                 f"Loading TensorRT engine from {encode_trt_engine_path}"
                             )
-                            self.encode = torch.jit.load(encode_trt_engine_path).eval()
+                            self.encode = trtHandler.load_engine(encode_trt_engine_path)
 
                         # export flow engine
                         printAndLog(
@@ -404,7 +404,7 @@ class InterpolateRifeTorch:
                         trtHandler.build_engine(model=self.flownet,dtype=self.dtype,example_inputs=exampleInput,device=self.device,trt_engine_path=trt_engine_path)
                         
                     printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
-                    self.flownet = torch.jit.load(trt_engine_path).eval()
+                    self.flownet = trtHandler.load_engine(trt_engine_path)
         self.prepareStream.synchronize()
 
     @torch.inference_mode()

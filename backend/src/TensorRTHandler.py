@@ -64,3 +64,6 @@ class TorchTensorRTHandler:
             output_format="torchscript",
             inputs=tuple(example_inputs),
         )
+        
+    def load_engine(self, trt_engine_path: str):
+        return torch.jit.load(trt_engine_path).eval()

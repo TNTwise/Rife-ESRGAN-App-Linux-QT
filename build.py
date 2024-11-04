@@ -119,16 +119,19 @@ def checkIfExeExists(exe):
     return path is not None
 
 
-install_pip()
+
 linux_and_mac_py_ver = "python3.10"
 python_version = (
     linux_and_mac_py_ver
     if getPlatform() != "win32" and checkIfExeExists(linux_and_mac_py_ver)
     else "python3"
 )
-create_venv(python_version=python_version)
-install_pip_in_venv()
-install_requirements_in_venv()
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--create_venv" or sys.argv[1] == "--build_exe":
+        install_pip()
+        create_venv(python_version=python_version)
+        install_pip_in_venv()
+        install_requirements_in_venv()
 build_gui()
 build_resources()
 if len(sys.argv) > 1:
