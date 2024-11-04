@@ -115,6 +115,8 @@ class BackendHandler:
         output = SettingUpBackendPopup(
             [
                 pythonPath(),
+                "-W",
+                "ignore",
                 os.path.join(backendDirectory(), "rve-backend.py"),
                 "--list_backends",
             ]

@@ -4,8 +4,8 @@ from threading import Thread
 import re
 
 from PySide6 import QtGui
-from PySide6.QtGui import QPixmap, QPainter, QPainterPath
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
+from PySide6.QtCore import Qt, QSize
 from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler
@@ -392,6 +392,23 @@ class ProcessTab:
 
         self.parent.onRenderCompletion()
 
+    
+    def pad_pixmap(self, original_pixmap, width, height, background_color=QColor(255, 255, 255, 0)):
+        # Create a new QPixmap with the desired dimensions
+        padded_pixmap = QPixmap(width, height)
+        padded_pixmap.fill(background_color)
+
+        # Calculate the position to center the original pixmap
+        x = (width - original_pixmap.width()) // 2
+        y = (height - original_pixmap.height()) // 2
+
+        # Draw the original pixmap onto the new pixmap
+        painter = QPainter(padded_pixmap)
+        painter.drawPixmap(x, y, original_pixmap)
+        painter.end()
+
+        return padded_pixmap
+
     def getRoundedPixmap(self, pixmap, corner_radius):
         size = pixmap.size()
         mask = QPixmap(size)
@@ -444,4 +461,14 @@ class ProcessTab:
             p = qimage.scaled(width / 2, height / 2, Qt.AspectRatioMode.KeepAspectRatio)  # type: ignore
             pixmap = QtGui.QPixmap.fromImage(p)
             roundedPixmap = self.getRoundedPixmap(pixmap, corner_radius=10)
+            padding = 20  # Amount of padding on each side
+            label_width = self.parent.previewLabel.width()
+            label_height = self.parent.previewLabel.height()
+            padded_width = label_width - 2 * padding
+            padded_height = label_height - 2 * padding
+
+            # Ensure the padded dimensions are not smaller than the original pixmap
+            padded_width = max(padded_width, roundedPixmap.width())
+            padded_height = max(padded_height, roundedPixmap.height())
+            roundedPixmap = self.pad_pixmap(roundedPixmap, padded_width, padded_height)
             self.parent.previewLabel.setPixmap(roundedPixmap)
