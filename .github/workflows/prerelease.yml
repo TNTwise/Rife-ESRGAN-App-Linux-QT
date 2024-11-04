@@ -98,7 +98,7 @@ jobs:
       - name: Create Release and Upload Release Asset
         uses: softprops/action-gh-release@v1        
         with:
-          name: REAL Video Enhancer 2.0 Pre-Release
+          name: REAL Video Enhancer 2.1.0 Pre-Release
           tag_name: prerelease_2.1.0
           body: ${{ steps.version_tag.outputs.tag }}
           draft: false
