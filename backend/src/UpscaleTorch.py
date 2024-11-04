@@ -134,6 +134,8 @@ class UpscalePytorch:
             if self.backend == "tensorrt":
                 import tensorrt as trt
                 import torch_tensorrt
+                from .TensorRTHandler import TorchTensorRTHandler
+                trtHandler = TorchTensorRTHandler(export_format="torchscript",trt_cache_dir=self.trt_cache_dir)
 
                 trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
@@ -143,6 +145,7 @@ class UpscalePytorch:
                         + f"_{'fp16' if self.dtype == torch.float16 else 'fp32'}"
                         + f"_{torch.cuda.get_device_name(self.device)}"
                         + f"_trt-{trt.__version__}"
+                        + f"_torch_tensorrt-{torch_tensorrt.__version__}"
                         + f"_opt-{self.trt_optimization_level}"
                         + (
                             f"_workspace-{self.trt_workspace_size}"
@@ -161,32 +164,10 @@ class UpscalePytorch:
                             device=self.device,
                         )
                     ]
-                    dummy_input_cpu_fp32 = [
-                        torch.zeros(
-                            (1, 3, 32, 32),
-                            dtype=torch.float32,
-                            device="cpu",
-                        )
-                    ]
-
-                    module = torch.jit.trace(model.float().cpu(), dummy_input_cpu_fp32)
-                    module.to(device=self.device, dtype=self.dtype)
-                    module = torch_tensorrt.compile(
-                        module,
-                        ir="ts",
-                        inputs=inputs,
-                        enabled_precisions={self.dtype},
-                        device=torch_tensorrt.Device(gpu_id=0),
-                        workspace_size=self.trt_workspace_size,
-                        truncate_long_and_double=True,
-                        min_block_size=1,
-                    )
-
-                    printAndLog(f"Saving TensorRT engine to {trt_engine_path}")
-                    torch.jit.save(module, trt_engine_path)
+                    trtHandler.build_engine(self.model, self.dtype, self.device, example_inputs=inputs, trt_engine_path=trt_engine_path)
 
                 printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
-                model = torch.jit.load(trt_engine_path)
+                model = trtHandler.load_engine(trt_engine_path=trt_engine_path)
 
             self.model = model
         self.prepareStream.synchronize()
