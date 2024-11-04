@@ -287,11 +287,10 @@ class InterpolateRifeTorch:
                             + f"_{self.width}x{self.height}"
                             + f"_{'fp16' if self.dtype == torch.float16 else 'fp32'}"
                             + f"_scale-{self.scale}"
-                            + "_ensemble-False"
                             + f"_{torch.cuda.get_device_name(self.device)}"
-                            + f"torch_tensorrt-{torch_tensorrt.__version__}"
                             + f"_trt-{tensorrt.__version__}"
-                            + ("rife_trt_mode-" + self.rife_trt_mode)
+                            + f"_torch_tensorrt-{torch_tensorrt.__version__}"
+                            + ("_rife_trt_mode-" + self.rife_trt_mode)
                             + (
                                 f"_workspace-{self.trt_workspace_size}"
                                 if self.trt_workspace_size > 0
