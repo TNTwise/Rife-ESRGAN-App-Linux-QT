@@ -132,8 +132,6 @@ class UpscalePytorch:
                 self.pad_h = self.videoHeight
 
             if self.backend == "tensorrt":
-                import tensorrt as trt
-                import torch_tensorrt
                 from .TensorRTHandler import TorchTensorRTHandler
 
                 trtHandler = TorchTensorRTHandler(
@@ -147,8 +145,8 @@ class UpscalePytorch:
                         + f"_{self.pad_w}x{self.pad_h}"
                         + f"_{'fp16' if self.dtype == torch.float16 else 'fp32'}"
                         + f"_{torch.cuda.get_device_name(self.device)}"
-                        + f"_trt-{trt.__version__}"
-                        + f"_torch_tensorrt-{torch_tensorrt.__version__}"
+                        + f"_trt-{trtHandler.tensorrt_version}"
+                        + f"_torch_tensorrt-{trtHandler.torch_tensorrt_version}"
                         + f"_opt-{self.trt_optimization_level}"
                         + (
                             f"_workspace-{self.trt_workspace_size}"
