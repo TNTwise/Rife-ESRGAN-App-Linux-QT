@@ -277,7 +277,11 @@ class InterpolateRifeTorch:
                     import tensorrt
                     import torch_tensorrt
                     from .TensorRTHandler import TorchTensorRTHandler
-                    trtHandler = TorchTensorRTHandler(trt_optimization_level=self.trt_optimization_level,trt_cache_dir=self.trt_cache_dir)
+
+                    trtHandler = TorchTensorRTHandler(
+                        trt_optimization_level=self.trt_optimization_level,
+                        trt_cache_dir=self.trt_cache_dir,
+                    )
 
                     base_trt_engine_path = os.path.join(
                         os.path.realpath(self.trt_cache_dir),
@@ -387,7 +391,13 @@ class InterpolateRifeTorch:
                                         device=self.device,
                                     ),
                                 ]
-                                trtHandler.build_engine(model=self.encode,dtype=self.dtype,example_inputs=encodedExampleInputs,device=self.device,trt_engine_path=encode_trt_engine_path)
+                                trtHandler.build_engine(
+                                    model=self.encode,
+                                    dtype=self.dtype,
+                                    example_inputs=encodedExampleInputs,
+                                    device=self.device,
+                                    trt_engine_path=encode_trt_engine_path,
+                                )
 
                             printAndLog(
                                 f"Loading TensorRT engine from {encode_trt_engine_path}"
@@ -398,8 +408,14 @@ class InterpolateRifeTorch:
                         printAndLog(
                             "Building TensorRT engine {}".format(trt_engine_path)
                         )
-                        trtHandler.build_engine(model=self.flownet,dtype=self.dtype,example_inputs=exampleInput,device=self.device,trt_engine_path=trt_engine_path)
-                        
+                        trtHandler.build_engine(
+                            model=self.flownet,
+                            dtype=self.dtype,
+                            example_inputs=exampleInput,
+                            device=self.device,
+                            trt_engine_path=trt_engine_path,
+                        )
+
                     printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
                     self.flownet = trtHandler.load_engine(trt_engine_path)
         self.prepareStream.synchronize()

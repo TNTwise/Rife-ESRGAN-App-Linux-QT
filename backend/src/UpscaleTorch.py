@@ -135,7 +135,10 @@ class UpscalePytorch:
                 import tensorrt as trt
                 import torch_tensorrt
                 from .TensorRTHandler import TorchTensorRTHandler
-                trtHandler = TorchTensorRTHandler(export_format="torchscript",trt_cache_dir=self.trt_cache_dir)
+
+                trtHandler = TorchTensorRTHandler(
+                    export_format="torchscript", trt_cache_dir=self.trt_cache_dir
+                )
 
                 trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
@@ -164,7 +167,13 @@ class UpscalePytorch:
                             device=self.device,
                         )
                     ]
-                    trtHandler.build_engine(self.model, self.dtype, self.device, example_inputs=inputs, trt_engine_path=trt_engine_path)
+                    trtHandler.build_engine(
+                        self.model,
+                        self.dtype,
+                        self.device,
+                        example_inputs=inputs,
+                        trt_engine_path=trt_engine_path,
+                    )
 
                 printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
                 model = trtHandler.load_engine(trt_engine_path=trt_engine_path)

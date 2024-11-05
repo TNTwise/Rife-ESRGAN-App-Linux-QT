@@ -363,7 +363,6 @@ class ProcessTab:
         )
         textOutput = []
         for line in iter(self.renderProcess.stdout.readline, b""):
-            
             if self.renderProcess.poll() is not None:
                 break  # Exit the loop if the process has terminated
             if "torch_tensorrt.dynamo" in line:
@@ -394,23 +393,6 @@ class ProcessTab:
             self.discordRPC.closeRPC()
 
         self.parent.onRenderCompletion()
-
-    
-    def pad_pixmap(self, original_pixmap, width, height, background_color=QColor(255, 255, 255, 0)):
-        # Create a new QPixmap with the desired dimensions
-        padded_pixmap = QPixmap(width, height)
-        padded_pixmap.fill(background_color)
-
-        # Calculate the position to center the original pixmap
-        x = (width - original_pixmap.width()) // 2
-        y = (height - original_pixmap.height()) // 2
-
-        # Draw the original pixmap onto the new pixmap
-        painter = QPainter(padded_pixmap)
-        painter.drawPixmap(x, y, original_pixmap)
-        painter.end()
-
-        return padded_pixmap
 
     def getRoundedPixmap(self, pixmap, corner_radius):
         size = pixmap.size()
@@ -462,9 +444,11 @@ class ProcessTab:
             height = self.parent.height()
             label_width = self.parent.previewLabel.width()
             label_height = self.parent.previewLabel.height()
-          
-            p = qimage.scaled(label_width, label_height, Qt.AspectRatioMode.KeepAspectRatio)  # type: ignore
+
+            p = qimage.scaled(
+                label_width, label_height, Qt.AspectRatioMode.KeepAspectRatio
+            )  # type: ignore
             pixmap = QtGui.QPixmap.fromImage(p)
-            
+
             roundedPixmap = self.getRoundedPixmap(pixmap, corner_radius=10)
             self.parent.previewLabel.setPixmap(roundedPixmap)

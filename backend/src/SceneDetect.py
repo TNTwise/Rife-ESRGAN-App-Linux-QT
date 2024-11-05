@@ -126,7 +126,7 @@ class NPMeanDiffSCDetect:
 class FFMPEGSceneDetect:
     def __init__(self, threshold=0.2):
         self.threshold = threshold
-        self.pipe_name = 'image_pipe'
+        self.pipe_name = "image_pipe"
         self.ffmpeg_process = None
         self.scene_changed = False
         self._create_pipe()
@@ -142,20 +142,28 @@ class FFMPEGSceneDetect:
     def _start_ffmpeg(self):
         """Start the FFmpeg process to read from the named pipe."""
         cmd = [
-            'ffmpeg',
-            '-f', 'image2pipe',
-            '-i', self.pipe_name,
-            '-f', 'image2pipe',
-            '-i', self.pipe_name,
-            '-filter_complex', f"blend=difference,select='gt(scene,{self.threshold})'",
-            '-f', 'null',
-            '-'
+            "ffmpeg",
+            "-f",
+            "image2pipe",
+            "-i",
+            self.pipe_name,
+            "-f",
+            "image2pipe",
+            "-i",
+            self.pipe_name,
+            "-filter_complex",
+            f"blend=difference,select='gt(scene,{self.threshold})'",
+            "-f",
+            "null",
+            "-",
         ]
-        self.ffmpeg_process = subprocess.Popen(cmd, stderr=subprocess.PIPE, universal_newlines=True)
+        self.ffmpeg_process = subprocess.Popen(
+            cmd, stderr=subprocess.PIPE, universal_newlines=True
+        )
 
     def sceneDetect(self, img1):
         """Send two images to the FFmpeg process through the named pipe."""
-        with open(self.pipe_name, 'wb') as fifo:
+        with open(self.pipe_name, "wb") as fifo:
             fifo.write(img1)
 
     def check_scene_change(self):
@@ -169,7 +177,7 @@ class FFMPEGSceneDetect:
             if not line:
                 break
             # Look for scene change output
-            if re.search(r'frame=\s*\d+\s+.*scene', line):
+            if re.search(r"frame=\s*\d+\s+.*scene", line):
                 self.scene_changed = True
                 return True  # Scene change detected
 
@@ -179,7 +187,7 @@ class FFMPEGSceneDetect:
         """Continuously monitor for scene changes."""
         try:
             while True:
-                self.send_images('image1.jpg', 'image2.jpg')
+                self.send_images("image1.jpg", "image2.jpg")
                 if self.check_scene_change():
                     print("Scene change detected!")
                 else:
@@ -195,6 +203,7 @@ class FFMPEGSceneDetect:
             self.ffmpeg_process.wait()
         if os.path.exists(self.pipe_name):
             os.remove(self.pipe_name)
+
 
 class SceneDetect:
     """
