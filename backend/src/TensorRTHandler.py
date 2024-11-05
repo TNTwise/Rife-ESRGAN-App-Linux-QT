@@ -16,6 +16,8 @@ class TorchTensorRTHandler:
         debug: bool = False,
         static_shape: bool = True,
     ):
+        self.TensorRT_version = TensorRT.__version__ # can just grab version from here instead of importing trt and torch trt in all related files
+        self.torch_tensorrt_version = torch_tensorrt.__version__
         self.export_format = export_format
         self.trt_workspace_size = trt_workspace_size
         self.max_aux_streams = max_aux_streams
@@ -23,7 +25,7 @@ class TorchTensorRTHandler:
         self.cache_dir = trt_cache_dir
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
-
+    
     def prepare_inputs(
         self, example_inputs: list[torch.Tensor]
     ) -> list[torch_tensorrt.Input]:
