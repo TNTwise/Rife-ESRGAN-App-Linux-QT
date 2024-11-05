@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1053</width>
+    <width>1200</width>
     <height>849</height>
    </rect>
   </property>
@@ -335,7 +335,7 @@ QDoubleSpinBox::down-button {
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
                  <item>
-                  <widget class="QWidget" name="widget_11" native="true">
+                  <widget class="QWidget" name="processSettingsContainer" native="true">
                    <layout class="QVBoxLayout" name="verticalLayout_21">
                     <item>
                      <widget class="QWidget" name="inputFileContainer" native="true">

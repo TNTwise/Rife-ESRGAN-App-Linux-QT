@@ -460,15 +460,16 @@ class ProcessTab:
 
             p = qimage.scaled(width / 2, height / 2, Qt.AspectRatioMode.KeepAspectRatio)  # type: ignore
             pixmap = QtGui.QPixmap.fromImage(p)
-            roundedPixmap = self.getRoundedPixmap(pixmap, corner_radius=10)
-            padding = 20  # Amount of padding on each side
+            
+            padding = 100  # Amount of padding on each side
             label_width = self.parent.previewLabel.width()
             label_height = self.parent.previewLabel.height()
             padded_width = label_width - 2 * padding
             padded_height = label_height - 2 * padding
 
             # Ensure the padded dimensions are not smaller than the original pixmap
-            padded_width = max(padded_width, roundedPixmap.width())
-            padded_height = max(padded_height, roundedPixmap.height())
-            roundedPixmap = self.pad_pixmap(roundedPixmap, padded_width, padded_height)
+            padded_width = max(padded_width, pixmap.width())
+            padded_height = max(padded_height, pixmap.height())
+            roundedPixmap = self.pad_pixmap(pixmap, padded_width, padded_height)
+            roundedPixmap = self.getRoundedPixmap(roundedPixmap, corner_radius=10)
             self.parent.previewLabel.setPixmap(roundedPixmap)
