@@ -227,6 +227,15 @@ def copy(prev: str, new: str):
     else:
         print("WARN tried to rename a folder to a folder that already exists")
 
+def copyFile(prev: str, new: str):
+    """
+    moves a file from prev to new
+    """
+    if not os.path.isfile(new):
+        shutil.copy(prev, new)
+    else:
+        print("WARN tried to rename a file to a file that already exists")
+
 
 def move(prev: str, new: str):
     """

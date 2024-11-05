@@ -30,6 +30,8 @@ from src.Util import (
     getCPUInfo,
     checkForWritePermissions,
     getAvailableDiskSpace,
+    copyFile,
+    customModelsPath,
 )
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
@@ -428,6 +430,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             filter=fileFilter,
         )
         self.loadVideo(inputFile)
+    
+    def importCustomModel(self, format: str):
+        """
+        *args
+        format: str
+            The format of the model to import (pytorch, ncnn)
+        """
+        if format == "pytorch":
+            fileFilter = "PyTorch Model (*.pth)"
+            
+            modelFile, _ = QFileDialog.getOpenFileName(
+                parent=self,
+                caption="Select PyTorch Model",
+                dir=self.homeDir,
+                filter=fileFilter,
+            )
+            outputModelPath = os.path.join(customModelsPath(), os.path.basename(modelFile))
+            copyFile(modelFile, customModelsPath())
+            if os.path.isfile(outputModelPath):
+                RegularQTPopup("Model imported successfully!\nPlease restart the app for the changes to take effect.")
+            else:
+                RegularQTPopup("Failed to import model!\nPlease try again.")
+        elif format == "ncnn":
+            pass
+
 
     # output file button
     def openOutputFolder(self):
