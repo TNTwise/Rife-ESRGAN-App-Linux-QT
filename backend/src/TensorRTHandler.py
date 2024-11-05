@@ -16,7 +16,7 @@ class TorchTensorRTHandler:
         debug: bool = False,
         static_shape: bool = True,
     ):
-        self.TensorRT_version = TensorRT.__version__ # can just grab version from here instead of importing trt and torch trt in all related files
+        self.tensorrt_version = tensorrt.__version__ # can just grab version from here instead of importing trt and torch trt in all related files
         self.torch_tensorrt_version = torch_tensorrt.__version__
         self.export_format = export_format
         self.trt_workspace_size = trt_workspace_size
