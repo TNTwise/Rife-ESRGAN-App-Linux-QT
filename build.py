@@ -119,7 +119,6 @@ def checkIfExeExists(exe):
     return path is not None
 
 
-
 linux_and_mac_py_ver = "python3.10"
 python_version = (
     linux_and_mac_py_ver

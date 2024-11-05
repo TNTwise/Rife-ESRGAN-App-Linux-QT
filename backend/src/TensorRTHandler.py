@@ -24,15 +24,31 @@ class TorchTensorRTHandler:
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
 
-    def prepare_inputs(self, example_inputs: list[torch.Tensor]) -> list[torch_tensorrt.Input]:
+    def prepare_inputs(
+        self, example_inputs: list[torch.Tensor]
+    ) -> list[torch_tensorrt.Input]:
         """Prepares input specifications for TensorRT."""
-        return [torch_tensorrt.Input(shape=input.shape, dtype=input.dtype) for input in example_inputs]
+        return [
+            torch_tensorrt.Input(shape=input.shape, dtype=input.dtype)
+            for input in example_inputs
+        ]
 
-    def export_dynamo_model(self, model: torch.nn.Module, example_inputs: list[torch.Tensor], device: torch.device, dtype: torch.dtype, trt_engine_path: str):
+    def export_dynamo_model(
+        self,
+        model: torch.nn.Module,
+        example_inputs: list[torch.Tensor],
+        device: torch.device,
+        dtype: torch.dtype,
+        trt_engine_path: str,
+    ):
         """Exports a model using TensorRT Dynamo."""
         model.to(device=device, dtype=dtype)
-        exported_program = torch.export.export(model, tuple(example_inputs), dynamic_shapes=None)
-        exported_program = exported_program.run_decompositions(get_decompositions([torch.ops.aten.grid_sampler_2d]))
+        exported_program = torch.export.export(
+            model, tuple(example_inputs), dynamic_shapes=None
+        )
+        exported_program = exported_program.run_decompositions(
+            get_decompositions([torch.ops.aten.grid_sampler_2d])
+        )
 
         model_trt = torch_tensorrt.dynamo.compile(
             exported_program,
@@ -46,12 +62,26 @@ class TorchTensorRTHandler:
             max_aux_streams=self.max_aux_streams,
             optimization_level=self.optimization_level,
         )
-        
-        torch_tensorrt.save(model_trt, trt_engine_path, output_format="torchscript", inputs=tuple(example_inputs))
 
-    def export_torchscript_model(self, model: torch.nn.Module, example_inputs: list[torch.Tensor], device: torch.device, dtype: torch.dtype, trt_engine_path: str):
+        torch_tensorrt.save(
+            model_trt,
+            trt_engine_path,
+            output_format="torchscript",
+            inputs=tuple(example_inputs),
+        )
+
+    def export_torchscript_model(
+        self,
+        model: torch.nn.Module,
+        example_inputs: list[torch.Tensor],
+        device: torch.device,
+        dtype: torch.dtype,
+        trt_engine_path: str,
+    ):
         """Exports a model using TorchScript."""
-        dummy_input_cpu_fp32 = [torch.zeros((1, 3, 32, 32), dtype=torch.float32, device="cpu")]
+        dummy_input_cpu_fp32 = [
+            torch.zeros((1, 3, 32, 32), dtype=torch.float32, device="cpu")
+        ]
         module = torch.jit.trace(model.float().cpu(), dummy_input_cpu_fp32)
         module.to(device=device, dtype=dtype)
 
@@ -65,7 +95,7 @@ class TorchTensorRTHandler:
             truncate_long_and_double=True,
             min_block_size=1,
         )
-        
+
         torch.jit.save(module_trt, trt_engine_path)
 
     def build_engine(
@@ -78,9 +108,13 @@ class TorchTensorRTHandler:
     ):
         """Builds a TensorRT engine from the provided model."""
         if self.export_format == "dynamo":
-            self.export_dynamo_model(model, example_inputs, device, dtype, trt_engine_path)
+            self.export_dynamo_model(
+                model, example_inputs, device, dtype, trt_engine_path
+            )
         elif self.export_format == "torchscript":
-            self.export_torchscript_model(model, example_inputs, device, dtype, trt_engine_path)
+            self.export_torchscript_model(
+                model, example_inputs, device, dtype, trt_engine_path
+            )
         else:
             raise ValueError(f"Unsupported export format: {self.export_format}")
 
