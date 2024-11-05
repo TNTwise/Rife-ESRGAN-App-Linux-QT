@@ -256,7 +256,6 @@ class InterpolateRifeTorch:
                     device=self.device,
                     width=self.width,
                     height=self.height,
-                    rife_trt_mode=self.rife_trt_mode,
                 )
 
                 state_dict = {
@@ -290,7 +289,6 @@ class InterpolateRifeTorch:
                             + f"_{torch.cuda.get_device_name(self.device)}"
                             + f"_trt-{tensorrt.__version__}"
                             + f"_torch_tensorrt-{torch_tensorrt.__version__}"
-                            + ("_rife_trt_mode-" + self.rife_trt_mode)
                             + (
                                 f"_workspace-{self.trt_workspace_size}"
                                 if self.trt_workspace_size > 0

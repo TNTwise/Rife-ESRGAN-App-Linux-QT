@@ -471,5 +471,5 @@ class ProcessTab:
             padded_width = max(padded_width, pixmap.width())
             padded_height = max(padded_height, pixmap.height())
             roundedPixmap = self.pad_pixmap(pixmap, padded_width, padded_height)
-            roundedPixmap = self.getRoundedPixmap(roundedPixmap, corner_radius=10)
+            roundedPixmap = self.getRoundedPixmap(roundedPixmap, corner_radius=15)
             self.parent.previewLabel.setPixmap(roundedPixmap)
