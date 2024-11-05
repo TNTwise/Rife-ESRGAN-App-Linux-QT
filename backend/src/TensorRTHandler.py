@@ -11,16 +11,16 @@ class TorchTensorRTHandler:
         export_format: str = "dynamo",
         trt_workspace_size: int = 0,
         max_aux_streams: int | None = None,
-        optimization_level: int = 5,
-        cache_dir: str = modelsDirectory(),
+        trt_optimization_level: int = 3,
+        trt_cache_dir: str = modelsDirectory(),
         debug: bool = False,
         static_shape: bool = True,
     ):
         self.export_format = export_format
         self.trt_workspace_size = trt_workspace_size
         self.max_aux_streams = max_aux_streams
-        self.optimization_level = optimization_level
-        self.cache_dir = cache_dir
+        self.optimization_level = trt_optimization_level
+        self.cache_dir = trt_cache_dir
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
 

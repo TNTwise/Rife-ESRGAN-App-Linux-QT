@@ -232,10 +232,10 @@ class DownloadDependencies:
         TensorRT deps
         """
         tensorRTDeps = [
-            "tensorrt==10.4.0",
-            "tensorrt_cu12==10.4.0",
-            "tensorrt-cu12_libs==10.4.0",
-            "tensorrt_cu12_bindings==10.4.0",
+            "tensorrt==10.6.0",
+            "tensorrt_cu12==10.6.0",
+            "tensorrt-cu12_libs==10.6.0",
+            "tensorrt_cu12_bindings==10.6.0",
             "--no-deps",
             "torch_tensorrt==2.6.0.dev20241023",
         ]
