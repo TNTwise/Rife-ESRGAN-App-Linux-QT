@@ -274,8 +274,7 @@ class InterpolateRifeTorch:
                 self.flownet.load_state_dict(state_dict=state_dict, strict=False)
                 self.flownet.eval().to(device=self.device, dtype=self.dtype)
                 if self.backend == "tensorrt":
-                    import tensorrt
-                    import torch_tensorrt
+                    
                     from .TensorRTHandler import TorchTensorRTHandler
 
                     trtHandler = TorchTensorRTHandler(
@@ -291,8 +290,8 @@ class InterpolateRifeTorch:
                             + f"_{'fp16' if self.dtype == torch.float16 else 'fp32'}"
                             + f"_scale-{self.scale}"
                             + f"_{torch.cuda.get_device_name(self.device)}"
-                            + f"_trt-{tensorrt.__version__}"
-                            + f"_torch_tensorrt-{torch_tensorrt.__version__}"
+                            + f"_trt-{trtHandler.tensorrt_version}"
+                            + f"_torch_tensorrt-{trtHandler.torch_tensorrt_version}"
                             + (
                                 f"_workspace-{self.trt_workspace_size}"
                                 if self.trt_workspace_size > 0
