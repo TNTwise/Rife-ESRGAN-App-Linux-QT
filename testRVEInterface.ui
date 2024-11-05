@@ -2674,7 +2674,7 @@ background-color:white;
                    <item row="0" column="0">
                     <widget class="QPushButton" name="selectPytorchCustomModel">
                      <property name="enabled">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                      <property name="text">
                       <string>Select Model (PyTorch/TensorRT/.pth)</string>

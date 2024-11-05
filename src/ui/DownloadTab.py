@@ -49,6 +49,9 @@ class DownloadTab:
         self.parent.uninstallDirectMLBtn.clicked.connect(
             lambda: self.download("directml", False)
         )
+        self.parent.selectPytorchCustomModel.clicked.connect(
+            lambda: self.parent.importCustomModel("pytorch")
+        )
 
     def download(self, dep, install: bool = True):
         """
