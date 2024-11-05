@@ -1,3 +1,5 @@
+import sys
+import os
 import tensorrt
 import torch
 import torch_tensorrt
@@ -109,6 +111,7 @@ class TorchTensorRTHandler:
         trt_engine_path: str,
     ):
         """Builds a TensorRT engine from the provided model."""
+        print(f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...", file=sys.stderr)
         if self.export_format == "dynamo":
             self.export_dynamo_model(
                 model, example_inputs, device, dtype, trt_engine_path
