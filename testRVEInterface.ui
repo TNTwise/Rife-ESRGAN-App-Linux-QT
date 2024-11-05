@@ -2,6 +2,14 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>893</width>
+    <height>822</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -1179,7 +1187,7 @@ QLabel{
                     <item>
                      <widget class="QTextEdit" name="renderOutput">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -1321,7 +1329,7 @@ QDoubleSpinBox::down-button {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>483</width>
+                   <width>466</width>
                    <height>622</height>
                   </rect>
                  </property>
