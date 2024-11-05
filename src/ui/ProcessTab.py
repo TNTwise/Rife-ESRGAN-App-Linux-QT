@@ -363,8 +363,11 @@ class ProcessTab:
         )
         textOutput = []
         for line in iter(self.renderProcess.stdout.readline, b""):
+            
             if self.renderProcess.poll() is not None:
                 break  # Exit the loop if the process has terminated
+            if "torch_tensorrt.dynamo" in line:
+                continue
             line = str(line.strip())
             if "it/s" in line:
                 textOutput = textOutput[:-1]
