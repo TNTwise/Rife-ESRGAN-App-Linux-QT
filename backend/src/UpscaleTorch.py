@@ -166,7 +166,7 @@ class UpscalePytorch:
                         )
                     ]
                     trtHandler.build_engine(
-                        self.model,
+                        model,
                         self.dtype,
                         self.device,
                         example_inputs=inputs,
