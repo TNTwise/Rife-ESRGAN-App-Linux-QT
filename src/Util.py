@@ -229,7 +229,7 @@ def copy(prev: str, new: str):
 
 def copyFile(prev: str, new: str):
     """
-    moves a file from prev to new
+    moves a file from prev to a new directory (new)
     """
     if not os.path.isfile(new):
         shutil.copy(prev, new)
