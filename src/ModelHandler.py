@@ -281,7 +281,7 @@ for model in os.listdir(customModelsPath()):
             customPytorchUpscaleModels[model] = (model, model, upscaleFactor, "custom")
     else:
         printAndLog(
-            f"Custom model {model} does not have a valid upscale factor in the name"
+            f"Custom model {model} does not have a valid upscale factor in the name, example: 2x or x2. Skipping import..."
         )
 pytorchUpscaleModels = pytorchUpscaleModels | customPytorchUpscaleModels
 tensorrtUpscaleModels = tensorrtUpscaleModels | customPytorchUpscaleModels
