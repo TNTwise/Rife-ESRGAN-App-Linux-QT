@@ -2639,7 +2639,7 @@ background-color:white;
                     </font>
                    </property>
                    <property name="text">
-                    <string>Import Custom Upscale Model (Not Available Yet!)</string>
+                    <string>Import Custom Upscale Model</string>
                    </property>
                   </widget>
                  </item>
