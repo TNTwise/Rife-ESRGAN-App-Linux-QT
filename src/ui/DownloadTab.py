@@ -52,6 +52,9 @@ class DownloadTab:
         self.parent.selectPytorchCustomModel.clicked.connect(
             lambda: self.parent.importCustomModel("pytorch")
         )
+        self.parent.selectNCNNCustomModel.clicked.connect(
+            lambda: self.parent.importCustomModel("ncnn")
+        )
 
     def download(self, dep, install: bool = True):
         """

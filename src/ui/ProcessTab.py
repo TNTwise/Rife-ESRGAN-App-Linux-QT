@@ -18,6 +18,7 @@ from ..Util import (
     log,
     errorAndLog,
     backendDirectory,
+    customModelsPath,
 )
 from ..DownloadModels import DownloadModel
 from .SettingsTab import Settings
@@ -244,12 +245,12 @@ class ProcessTab:
             self.discordRPC.start_discordRPC(
                 method, os.path.basename(self.inputFile), backend
             )
-
-        DownloadModel(
-            modelFile=self.modelFile,
-            downloadModelFile=self.downloadFile,
-            backend=backend,
-        )
+        if self.modelArch != "custom": # custom models are not downloaded
+            DownloadModel(
+                modelFile=self.modelFile,
+                downloadModelFile=self.downloadFile,
+                backend=backend,
+            )
         # self.ffmpegWriteThread()
 
         writeThread = Thread(
@@ -318,9 +319,12 @@ class ProcessTab:
             f"{self.pausedFile}",
         ]
         if method == "Upscale":
+            modelPath = os.path.join(modelsPath(), self.modelFile)
+            if self.modelArch == "custom":
+                modelPath = os.path.join(customModelsPath(), self.modelFile)
             command += [
                 "--upscaleModel",
-                os.path.join(modelsPath(), self.modelFile),
+                modelPath,
                 "--interpolateFactor",
                 "1",
             ]

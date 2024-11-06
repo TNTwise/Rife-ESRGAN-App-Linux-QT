@@ -2664,7 +2664,7 @@ background-color:white;
                    <item row="1" column="0">
                     <widget class="QPushButton" name="selectNCNNCustomModel">
                      <property name="enabled">
-                      <bool>false</bool>
+                      <bool>true</bool>
                      </property>
                      <property name="text">
                       <string>Select Model (NCNN/.bin+.param)</string>

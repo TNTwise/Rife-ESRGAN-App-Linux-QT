@@ -32,6 +32,7 @@ from src.Util import (
     getAvailableDiskSpace,
     copyFile,
     customModelsPath,
+    createDirectory
 )
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
@@ -437,6 +438,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         format: str
             The format of the model to import (pytorch, ncnn)
         """
+
         if format == "pytorch":
             fileFilter = "PyTorch Model (*.pth)"
             
@@ -452,8 +454,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 RegularQTPopup("Model imported successfully!\nPlease restart the app for the changes to take effect.")
             else:
                 RegularQTPopup("Failed to import model!\nPlease try again.")
+
         elif format == "ncnn":
-            pass
+            binFileFilter = "NCNN Bin (*.bin)"
+            paramFileFilter = "NCNN Bin (*.param)"
+            modelBinFile, _ = QFileDialog.getOpenFileName(
+                parent=self,
+                caption="Select NCNN Bin",
+                dir=self.homeDir,
+                filter=binFileFilter,
+            )
+            modelParamFile, _ = QFileDialog.getOpenFileName(
+                parent=self,
+                caption="Select NCNN Param",
+                dir=self.homeDir,
+                filter=paramFileFilter,
+            )
+            outputModelFolder = os.path.join(customModelsPath(), os.path.basename(modelBinFile).replace(".bin", ""))
+            createDirectory(outputModelFolder)
+            outputBinPath = os.path.join(outputModelFolder, os.path.basename(modelBinFile))
+            copyFile(modelBinFile, outputModelFolder)
+            outputParamPath = os.path.join(outputModelFolder, os.path.basename(modelParamFile))
+            copyFile(modelParamFile, outputModelFolder)
+
+            if os.path.isfile(outputBinPath) and os.path.isfile(outputParamPath):
+                RegularQTPopup("Model imported successfully!\nPlease restart the app for the changes to take effect.")
+            else:
+                RegularQTPopup("Failed to import model!\nPlease try again.")
 
 
     # output file button

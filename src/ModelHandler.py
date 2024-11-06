@@ -273,8 +273,10 @@ for model in os.listdir(customModelsPath()):
         upscaleFactor = int(
             matches[0].replace("x", "")
         )  # get the integer value of the upscale factor
-        if model.endswith(".bin"):
-            customNCNNUpscaleModels[model] = (model, model, upscaleFactor, "custom")
+        model_path = os.path.join(customModelsPath(),model)
+        if os.path.exists(model_path):
+            if not os.path.isfile(model_path):
+                customNCNNUpscaleModels[model] = (model, model, upscaleFactor, "custom")
         if model.endswith(".pth"):
             customPytorchUpscaleModels[model] = (model, model, upscaleFactor, "custom")
     else:
