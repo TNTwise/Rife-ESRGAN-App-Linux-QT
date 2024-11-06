@@ -1,6 +1,6 @@
 # RVE 2.1
 ### Added
- - Custom Model Support
+ - Custom Upscale Model Support
  - GMFSS
  - RIFE 4.25 (TensorRT/Pytorch/NCNN)
 ### Removed
