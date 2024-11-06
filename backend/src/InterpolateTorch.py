@@ -86,7 +86,7 @@ class InterpolateRifeTorch:
     @torch.inference_mode()
     def __init__(
         self,
-        interpolateModelPath: str,
+        modelPath: str,
         ceilInterpolateFactor: int = 2,
         width: int = 1920,
         height: int = 1080,
@@ -98,7 +98,7 @@ class InterpolateRifeTorch:
         trt_workspace_size: int = 0,
         trt_max_aux_streams: int | None = None,
         trt_optimization_level: int = 5,
-        trt_cache_dir: str = modelsDirectory(),
+        trt_cache_dir: str = None,
         trt_debug: bool = False,
         rife_trt_mode: str = "accurate",
         trt_static_shape: bool = True,
@@ -115,7 +115,7 @@ class InterpolateRifeTorch:
 
         printAndLog("Using device: " + str(device))
 
-        self.interpolateModel = interpolateModelPath
+        self.interpolateModel = modelPath
         self.width = width
         self.height = height
 
@@ -124,6 +124,8 @@ class InterpolateRifeTorch:
         self.trt_workspace_size = trt_workspace_size
         self.trt_max_aux_streams = trt_max_aux_streams
         self.trt_optimization_level = trt_optimization_level
+        if trt_cache_dir is None:
+            trt_cache_dir = os.path.dirname(modelPath) # use the model directory as the cache directory
         self.trt_cache_dir = trt_cache_dir
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -279,7 +281,6 @@ class InterpolateRifeTorch:
 
                     trtHandler = TorchTensorRTHandler(
                         trt_optimization_level=self.trt_optimization_level,
-                        trt_cache_dir=self.trt_cache_dir,
                     )
 
                     base_trt_engine_path = os.path.join(

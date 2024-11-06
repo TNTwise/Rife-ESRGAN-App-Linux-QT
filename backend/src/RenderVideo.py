@@ -324,7 +324,7 @@ class Render(FFMpegRender):
 
         if self.backend == "pytorch" or self.backend == "tensorrt":
             interpolateRifePytorch = InterpolateRifeTorch(
-                interpolateModelPath=self.interpolateModel,
+                modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
                 width=self.width,
                 height=self.height,
@@ -332,7 +332,6 @@ class Render(FFMpegRender):
                 dtype=self.precision,
                 backend=self.backend,
                 trt_optimization_level=self.trt_optimization_level,
-                rife_trt_mode=self.rife_trt_mode,
             )
             self.frameSetupFunction = interpolateRifePytorch.frame_to_tensor
             self.undoSetup = interpolateRifePytorch.uncacheFrame
