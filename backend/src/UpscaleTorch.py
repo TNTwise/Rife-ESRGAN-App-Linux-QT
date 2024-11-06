@@ -9,7 +9,6 @@ from time import sleep
 
 from src.Util import (
     currentDirectory,
-    modelsDirectory,
     printAndLog,
     check_bfloat16_support,
 )
@@ -65,7 +64,7 @@ class UpscalePytorch:
         backend: str = "pytorch",
         # trt options
         trt_workspace_size: int = 0,
-        trt_cache_dir: str = modelsDirectory(),
+        trt_cache_dir: str = None,
         trt_optimization_level: int = 3,
         trt_max_aux_streams: int | None = None,
         trt_debug: bool = False,
@@ -89,6 +88,8 @@ class UpscalePytorch:
         self.tile = [self.tilesize, self.tilesize]
         self.modelPath = modelPath
         self.backend = backend
+        if trt_cache_dir is None:
+            trt_cache_dir = os.path.dirname(modelPath) # use the model directory as the cache directory
         self.trt_cache_dir = trt_cache_dir
         self.trt_workspace_size = trt_workspace_size
         self.trt_optimization_level = trt_optimization_level
@@ -135,7 +136,7 @@ class UpscalePytorch:
                 from .TensorRTHandler import TorchTensorRTHandler
 
                 trtHandler = TorchTensorRTHandler(
-                    export_format="torchscript", trt_cache_dir=self.trt_cache_dir
+                    export_format="torchscript"
                 )
 
                 trt_engine_path = os.path.join(

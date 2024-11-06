@@ -3,7 +3,6 @@ import os
 import tensorrt
 import torch
 import torch_tensorrt
-from .Util import modelsDirectory
 from torch._decomp import get_decompositions
 
 
@@ -14,7 +13,6 @@ class TorchTensorRTHandler:
         trt_workspace_size: int = 0,
         max_aux_streams: int | None = None,
         trt_optimization_level: int = 3,
-        trt_cache_dir: str = modelsDirectory(),
         debug: bool = False,
         static_shape: bool = True,
     ):
@@ -24,7 +22,6 @@ class TorchTensorRTHandler:
         self.trt_workspace_size = trt_workspace_size
         self.max_aux_streams = max_aux_streams
         self.optimization_level = trt_optimization_level
-        self.cache_dir = trt_cache_dir
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
     
