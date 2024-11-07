@@ -318,7 +318,7 @@ class UpscalePytorch:
                 )
 
                 # process tile
-                output_tile = self.model(input_tile)
+                output_tile = self.model(input_tile.to(device=self.device, dtype=self.dtype))
 
                 output_tile = output_tile[:, :, : h * scale, : w * scale]
 
