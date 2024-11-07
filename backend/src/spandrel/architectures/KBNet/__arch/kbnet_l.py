@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import torch.nn.init as init
 from einops import rearrange
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 from .kb_utils import KBAFunction, LayerNorm2d, SimpleGate
 

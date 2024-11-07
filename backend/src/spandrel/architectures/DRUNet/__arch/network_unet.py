@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 from ...__arch_helpers.dpir_basic_block import (
     ResBlock,

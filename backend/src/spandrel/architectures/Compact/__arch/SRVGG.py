@@ -3,7 +3,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 
 @store_hyperparameters()

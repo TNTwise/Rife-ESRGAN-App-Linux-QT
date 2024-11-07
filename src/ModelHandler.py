@@ -181,6 +181,7 @@ pytorchUpscaleModels = {
         2,
         "SPAN",
     ),
+    
     "SPAN (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak.pth",
         "4xNomos8k_span_otf_weak.pth",
