@@ -464,12 +464,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 dir=self.homeDir,
                 filter=binFileFilter,
             )
+            if modelBinFile == "":
+                return
             modelParamFile, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption="Select NCNN Param",
-                dir=self.homeDir,
+                dir=os.path.dirname(modelBinFile),
                 filter=paramFileFilter,
             )
+            if modelParamFile == "":
+                return
             outputModelFolder = os.path.join(customModelsPath(), os.path.basename(modelBinFile).replace(".bin", ""))
             createDirectory(outputModelFolder)
             outputBinPath = os.path.join(outputModelFolder, os.path.basename(modelBinFile))

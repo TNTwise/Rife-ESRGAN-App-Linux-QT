@@ -101,6 +101,12 @@ tensorrtInterpolateModels = {
     ),
 }
 ncnnUpscaleModels = {
+    "Compact (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.tar.gz",
+        2,
+        "Compact",
+    ),
     "SPAN (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2",
         "2x_ModernSpanimationV2.tar.gz",
@@ -175,6 +181,12 @@ ncnnUpscaleModels = {
     "esrgan",
 ),"""
 pytorchUpscaleModels = {
+    "Compact (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        2,
+        "Compact",
+    ),
     "SPAN (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",
@@ -216,6 +228,12 @@ pytorchUpscaleModels = {
     ),
 """
 tensorrtUpscaleModels = {
+    "Compact (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        2,
+        "Compact",
+    ),
     "SPAN (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",
