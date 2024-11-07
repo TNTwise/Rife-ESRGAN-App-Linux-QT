@@ -288,8 +288,10 @@ class SPAN(nn.Module):
         return self.no_norm is None
 
     def forward(self, x):
+        device = x.device
+        dtype = x.dtype
         if self.is_norm:
-            self.mean = self.mean.type_as(x)
+            self.mean = self.mean.type_as(x).to(device=device,dtype=dtype)
             x = (x - self.mean) * self.img_range
 
         out_feature = self.conv_1(x)

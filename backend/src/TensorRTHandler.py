@@ -3,7 +3,7 @@ MIT License
 
 Copyright (c) 2024 TNTwise
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
+cPermission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -101,15 +101,14 @@ class TorchTensorRTHandler:
         device: torch.device,
         dtype: torch.dtype,
         trt_engine_path: str,
-        jit_export_shape:tuple = (1,3,32,32),
     ):
         """Exports a model using TorchScript."""
-        dummy_input_cpu_fp32 = [
-            torch.zeros(jit_export_shape, dtype=torch.float32, device="cpu")
-        ]
+        
         # maybe try to load it onto CUDA, and clear pytorch cache after.
-        module = torch.jit.trace(model.float().cpu(), dummy_input_cpu_fp32)
-        module.to(device=device, dtype=dtype)
+        
+        module = torch.jit.trace(model.to(device=device,dtype=dtype), example_inputs)
+        torch.cuda.empty_cache()
+        model = None
 
         module_trt = torch_tensorrt.compile(
             module,
@@ -131,7 +130,6 @@ class TorchTensorRTHandler:
         device: torch.device,
         example_inputs: list[torch.Tensor],
         trt_engine_path: str,
-        jit_export_shape:tuple = (1,3,32,32),
     ):
         """Builds a TensorRT engine from the provided model."""
         print(f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...", file=sys.stderr)
@@ -141,7 +139,7 @@ class TorchTensorRTHandler:
             )
         elif self.export_format == "torchscript":
             self.export_torchscript_model(
-                model, example_inputs, device, dtype, trt_engine_path, jit_export_shape
+                model, example_inputs, device, dtype, trt_engine_path
             )
         else:
             raise ValueError(f"Unsupported export format: {self.export_format}")
