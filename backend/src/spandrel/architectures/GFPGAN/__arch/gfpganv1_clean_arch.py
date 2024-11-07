@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from spandrel.util import store_hyperparameters
+from ....util import store_hyperparameters
 
 from .stylegan2_clean_arch import StyleGAN2GeneratorClean
 
