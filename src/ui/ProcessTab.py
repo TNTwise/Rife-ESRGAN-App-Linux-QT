@@ -245,7 +245,7 @@ class ProcessTab:
             self.discordRPC.start_discordRPC(
                 method, os.path.basename(self.inputFile), backend
             )
-        if self.modelArch != "custom": # custom models are not downloaded
+        if self.modelArch != "custom":  # custom models are not downloaded
             DownloadModel(
                 modelFile=self.modelFile,
                 downloadModelFile=self.downloadFile,

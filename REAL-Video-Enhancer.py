@@ -32,7 +32,7 @@ from src.Util import (
     getAvailableDiskSpace,
     copyFile,
     customModelsPath,
-    createDirectory
+    createDirectory,
 )
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
@@ -271,7 +271,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 + f"Bitrate: {self.videoBitrate}\n"
                 + f"Encoder: {self.videoEncoder}\n"
                 + f"Container: {self.videoContainer}\n"
-                
             )
             self.videoInfoTextEdit.setFontPointSize(10)
             self.videoInfoTextEdit.setText(text)
@@ -431,7 +430,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             filter=fileFilter,
         )
         self.loadVideo(inputFile)
-    
+
     def importCustomModel(self, format: str):
         """
         *args
@@ -441,17 +440,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if format == "pytorch":
             fileFilter = "PyTorch Model (*.pth)"
-            
+
             modelFile, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption="Select PyTorch Model",
                 dir=self.homeDir,
                 filter=fileFilter,
             )
-            outputModelPath = os.path.join(customModelsPath(), os.path.basename(modelFile))
+            outputModelPath = os.path.join(
+                customModelsPath(), os.path.basename(modelFile)
+            )
             copyFile(modelFile, customModelsPath())
             if os.path.isfile(outputModelPath):
-                RegularQTPopup("Model imported successfully!\nPlease restart the app for the changes to take effect.")
+                RegularQTPopup(
+                    "Model imported successfully!\nPlease restart the app for the changes to take effect."
+                )
             else:
                 RegularQTPopup("Failed to import model!\nPlease try again.")
 
@@ -474,18 +477,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             if modelParamFile == "":
                 return
-            outputModelFolder = os.path.join(customModelsPath(), os.path.basename(modelBinFile).replace(".bin", ""))
+            outputModelFolder = os.path.join(
+                customModelsPath(), os.path.basename(modelBinFile).replace(".bin", "")
+            )
             createDirectory(outputModelFolder)
-            outputBinPath = os.path.join(outputModelFolder, os.path.basename(modelBinFile))
+            outputBinPath = os.path.join(
+                outputModelFolder, os.path.basename(modelBinFile)
+            )
             copyFile(modelBinFile, outputModelFolder)
-            outputParamPath = os.path.join(outputModelFolder, os.path.basename(modelParamFile))
+            outputParamPath = os.path.join(
+                outputModelFolder, os.path.basename(modelParamFile)
+            )
             copyFile(modelParamFile, outputModelFolder)
 
             if os.path.isfile(outputBinPath) and os.path.isfile(outputParamPath):
-                RegularQTPopup("Model imported successfully!\nPlease restart the app for the changes to take effect.")
+                RegularQTPopup(
+                    "Model imported successfully!\nPlease restart the app for the changes to take effect."
+                )
             else:
                 RegularQTPopup("Failed to import model!\nPlease try again.")
-
 
     # output file button
     def openOutputFolder(self):

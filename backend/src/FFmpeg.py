@@ -94,6 +94,7 @@ class FFMpegRender:
         crf: str = "18",
         sharedMemoryID: str = None,
         channels=3,
+        upscale_output_resolution: str = None,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -123,6 +124,7 @@ class FFMpegRender:
         self.previewFrame = None
         self.crf = crf
         self.sharedMemoryID = sharedMemoryID
+        self.upscale_output_resolution = upscale_output_resolution
 
         self.subtitleFiles = []
         self.sharedMemoryThread = Thread(
@@ -261,6 +263,16 @@ class FFMpegRender:
                 "-loglevel",
                 "error",
             ]
+            if self.upscale_output_resolution is not None:
+                try:
+                    w,h = self.upscale_output_resolution.split("x")
+                except Exception:
+                    print("Invalid output resolution, please use something like 1920x1080. Exiting.")
+                    sys.exit()
+                command += [
+                    "-vf",
+                    f"scale={w}:{h}",
+                ]
             for i in self.encoder.split():
                 command.append(i)
 

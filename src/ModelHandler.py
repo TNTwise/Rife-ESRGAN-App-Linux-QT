@@ -193,7 +193,6 @@ pytorchUpscaleModels = {
         2,
         "SPAN",
     ),
-    
     "SPAN (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak.pth",
         "4xNomos8k_span_otf_weak.pth",
@@ -292,7 +291,7 @@ for model in os.listdir(customModelsPath()):
         upscaleFactor = int(
             matches[0].replace("x", "")
         )  # get the integer value of the upscale factor
-        model_path = os.path.join(customModelsPath(),model)
+        model_path = os.path.join(customModelsPath(), model)
         if os.path.exists(model_path):
             if not os.path.isfile(model_path):
                 customNCNNUpscaleModels[model] = (model, model, upscaleFactor, "custom")

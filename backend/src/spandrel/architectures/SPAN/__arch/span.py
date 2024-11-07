@@ -291,7 +291,7 @@ class SPAN(nn.Module):
         device = x.device
         dtype = x.dtype
         if self.is_norm:
-            self.mean = self.mean.type_as(x).to(device=device,dtype=dtype)
+            self.mean = self.mean.type_as(x).to(device=device, dtype=dtype)
             x = (x - self.mean) * self.img_range
 
         out_feature = self.conv_1(x)

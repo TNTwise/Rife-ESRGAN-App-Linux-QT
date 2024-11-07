@@ -43,6 +43,7 @@ class HandleApplication:
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 rife_trt_mode=self.args.rife_trt_mode,
+                upscale_output_resolution=self.args.upscale_output_resolution,
             )
         else:
             half_prec_supp = False
@@ -219,6 +220,12 @@ class HandleApplication:
             help="Rife TensorRT mode (accurate,fast, default=accurate)",
             type=str,
             default="accurate",
+        )
+        parser.add_argument(
+            "--upscale_output_resolution",
+            help="Resolution of output video, this is helpful for 4x models when you only want 2x upscaling. Ex: (1920x1080)",
+            type=str,
+            default=None,
         )
 
         return parser.parse_args()

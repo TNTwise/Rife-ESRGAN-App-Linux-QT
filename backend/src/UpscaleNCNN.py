@@ -7,7 +7,7 @@ try:
     from upscale_ncnn_py import UPSCALE
 
     method = "upscale_ncnn_py"
-except:
+except Exception:
     import ncnn
 
     method = "ncnn_vulkan"

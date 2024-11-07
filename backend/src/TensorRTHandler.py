@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import sys
 import os
 import tensorrt
@@ -39,7 +40,7 @@ class TorchTensorRTHandler:
         debug: bool = False,
         static_shape: bool = True,
     ):
-        self.tensorrt_version = tensorrt.__version__ # can just grab version from here instead of importing trt and torch trt in all related files
+        self.tensorrt_version = tensorrt.__version__  # can just grab version from here instead of importing trt and torch trt in all related files
         self.torch_tensorrt_version = torch_tensorrt.__version__
         self.export_format = export_format
         self.trt_workspace_size = trt_workspace_size
@@ -47,7 +48,7 @@ class TorchTensorRTHandler:
         self.optimization_level = trt_optimization_level
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
-    
+
     def prepare_inputs(
         self, example_inputs: list[torch.Tensor]
     ) -> list[torch_tensorrt.Input]:
@@ -103,10 +104,10 @@ class TorchTensorRTHandler:
         trt_engine_path: str,
     ):
         """Exports a model using TorchScript."""
-        
+
         # maybe try to load it onto CUDA, and clear pytorch cache after.
-        
-        module = torch.jit.trace(model.to(device=device,dtype=dtype), example_inputs)
+
+        module = torch.jit.trace(model.to(device=device, dtype=dtype), example_inputs)
         torch.cuda.empty_cache()
         model = None
 
@@ -132,7 +133,10 @@ class TorchTensorRTHandler:
         trt_engine_path: str,
     ):
         """Builds a TensorRT engine from the provided model."""
-        print(f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...", file=sys.stderr)
+        print(
+            f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...",
+            file=sys.stderr,
+        )
         if self.export_format == "dynamo":
             self.export_dynamo_model(
                 model, example_inputs, device, dtype, trt_engine_path
