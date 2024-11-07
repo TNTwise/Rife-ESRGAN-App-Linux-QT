@@ -6,7 +6,7 @@ from typing import Sequence
 import torch
 from typing_extensions import override
 
-from ...util import KeyCondition, get_seq_len
+from spandrel.util import KeyCondition, get_seq_len
 
 from ...__helpers.model_descriptor import (
     Architecture,

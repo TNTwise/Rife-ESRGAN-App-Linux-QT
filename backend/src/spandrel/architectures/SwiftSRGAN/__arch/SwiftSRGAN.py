@@ -6,7 +6,7 @@ import math
 import torch
 from torch import nn
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 
 class SeperableConv2d(nn.Module):

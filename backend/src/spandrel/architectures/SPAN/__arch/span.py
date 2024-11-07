@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn as nn
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 
 def _make_pair(value):
@@ -190,8 +190,13 @@ class Conv3XC(nn.Module):
         self.eval_conv.bias.data = self.bias_concat.contiguous()  # type: ignore
 
     def forward(self, x):
-        self.update_params()
-        out = self.eval_conv(x)
+        if self.training:
+            pad = 1
+            x_pad = F.pad(x, (pad, pad, pad, pad), "constant", 0)
+            out = self.conv(x_pad) + self.sk(x)
+        else:
+            self.update_params()
+            out = self.eval_conv(x)
 
         if self.has_relu:
             out = F.leaky_relu(out, negative_slope=0.05)
@@ -283,10 +288,7 @@ class SPAN(nn.Module):
         return self.no_norm is None
 
     def forward(self, x):
-        dtype = x.dtype
-        device = x.device
         if self.is_norm:
-            self.mean.to(device=device, dtype=dtype)
             self.mean = self.mean.type_as(x)
             x = (x - self.mean) * self.img_range
 

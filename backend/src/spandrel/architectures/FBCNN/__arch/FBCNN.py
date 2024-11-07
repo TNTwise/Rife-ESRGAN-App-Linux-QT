@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 """
 # --------------------------------------------

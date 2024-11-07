@@ -27,6 +27,7 @@ from ..architectures import (
     LaMa,
     MixDehazeNet,
     MMRealSR,
+    MoSR,
     NAFNet,
     OmniSR,
     RealCUGAN,
@@ -38,7 +39,6 @@ from ..architectures import (
     Swin2SR,
     SwinIR,
     Uformer,
-    sudo_SPANPlus,
 )
 from .registry import ArchRegistry, ArchSupport
 
@@ -87,5 +87,5 @@ MAIN_REGISTRY.add(
     ArchSupport.from_architecture(RetinexFormer.RetinexFormerArch()),
     ArchSupport.from_architecture(HVICIDNet.HVICIDNetArch()),
     ArchSupport.from_architecture(SeemoRe.SeemoReArch()),
-    ArchSupport.from_architecture(sudo_SPANPlus.sudo_SPANPlusArch()),
+    ArchSupport.from_architecture(MoSR.MoSRArch()),
 )

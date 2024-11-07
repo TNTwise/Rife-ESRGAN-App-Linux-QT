@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ....util import store_hyperparameters
+from spandrel.util import store_hyperparameters
 
 from .arch_util import LayerNorm2d
 
