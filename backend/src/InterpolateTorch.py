@@ -9,7 +9,6 @@ import gc
 from .Util import (
     printAndLog,
     errorAndLog,
-    modelsDirectory,
     check_bfloat16_support,
     log,
     warnAndLog,
@@ -125,7 +124,9 @@ class InterpolateRifeTorch:
         self.trt_max_aux_streams = trt_max_aux_streams
         self.trt_optimization_level = trt_optimization_level
         if trt_cache_dir is None:
-            trt_cache_dir = os.path.dirname(modelPath) # use the model directory as the cache directory
+            trt_cache_dir = os.path.dirname(
+                modelPath
+            )  # use the model directory as the cache directory
         self.trt_cache_dir = trt_cache_dir
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -276,7 +277,6 @@ class InterpolateRifeTorch:
                 self.flownet.load_state_dict(state_dict=state_dict, strict=False)
                 self.flownet.eval().to(device=self.device, dtype=self.dtype)
                 if self.backend == "tensorrt":
-                    
                     from .TensorRTHandler import TorchTensorRTHandler
 
                     trtHandler = TorchTensorRTHandler(

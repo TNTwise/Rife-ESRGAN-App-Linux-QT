@@ -89,7 +89,9 @@ class UpscalePytorch:
         self.modelPath = modelPath
         self.backend = backend
         if trt_cache_dir is None:
-            trt_cache_dir = os.path.dirname(modelPath) # use the model directory as the cache directory
+            trt_cache_dir = os.path.dirname(
+                modelPath
+            )  # use the model directory as the cache directory
         self.trt_cache_dir = trt_cache_dir
         self.trt_workspace_size = trt_workspace_size
         self.trt_optimization_level = trt_optimization_level
@@ -135,9 +137,7 @@ class UpscalePytorch:
             if self.backend == "tensorrt":
                 from .TensorRTHandler import TorchTensorRTHandler
 
-                trtHandler = TorchTensorRTHandler(
-                    export_format="torchscript"
-                )
+                trtHandler = TorchTensorRTHandler(export_format="torchscript")
 
                 trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
@@ -318,7 +318,9 @@ class UpscalePytorch:
                 )
 
                 # process tile
-                output_tile = self.model(input_tile.to(device=self.device, dtype=self.dtype))
+                output_tile = self.model(
+                    input_tile.to(device=self.device, dtype=self.dtype)
+                )
 
                 output_tile = output_tile[:, :, : h * scale, : w * scale]
 

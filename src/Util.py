@@ -227,6 +227,7 @@ def copy(prev: str, new: str):
     else:
         print("WARN tried to rename a folder to a folder that already exists")
 
+
 def copyFile(prev: str, new: str):
     """
     moves a file from prev to a new directory (new)
