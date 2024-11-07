@@ -96,7 +96,7 @@ class TorchTensorRTHandler:
 
     def export_torchscript_model(
         self,
-        model: torch.ScriptModule,
+        model: torch.nn.Module,
         example_inputs: list[torch.Tensor],
         device: torch.device,
         dtype: torch.dtype,
