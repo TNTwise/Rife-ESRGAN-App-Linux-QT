@@ -263,7 +263,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             method = self.methodComboBox.currentText()
             interpolateTimes = self.getInterpolateTimes(method, modelName)
             scale = self.getScale(method, modelName)
-
             text = (
                 f"FPS: {round(self.videoFps,0)} -> {round(self.videoFps*interpolateTimes,0)}\n"
                 + f"Resolution: {self.videoWidth}x{self.videoHeight} -> {self.videoWidth*scale}x{self.videoHeight*scale}\n"

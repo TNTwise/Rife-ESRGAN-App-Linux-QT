@@ -166,9 +166,10 @@ class ProcessTab:
                         self.parent.modelComboBox.model().item(i).setEnabled(
                             self.gmfssSupport
                         )
-        else:
+        elif method.lower() == "upscale":
             self.parent.interpolationContainer.setVisible(False)
             self.parent.upscaleContainer.setVisible(True)
+            
             self.animationHandler.dropDownAnimation(self.parent.upscaleContainer)
 
         self.parent.updateVideoGUIDetails()
@@ -216,7 +217,7 @@ class ProcessTab:
         # get video attributes
         self.outputVideoWidth = videoWidth * self.upscaleTimes
         self.outputVideoHeight = videoHeight * self.upscaleTimes
-
+        
         # set up pausing
         self.pausedFile = os.path.join(
             currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"

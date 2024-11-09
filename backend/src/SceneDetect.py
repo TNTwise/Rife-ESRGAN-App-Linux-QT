@@ -1,11 +1,10 @@
-import subprocess
-import os
-import time
-import re
 import numpy as np
 import cv2
+from collections import deque
 from .Util import bytesToImg
 
+
+import numpy as np
 
 class NPMeanSCDetect:
     """
@@ -123,85 +122,68 @@ class NPMeanDiffSCDetect:
 
 
 class FFMPEGSceneDetect:
-    def __init__(self, threshold=0.2):
+    def __init__(self, threshold=0.3, min_scene_length=15, history_size=30):
         self.threshold = threshold
-        self.pipe_name = "image_pipe"
-        self.ffmpeg_process = None
-        self.scene_changed = False
-        self._create_pipe()
-        self._start_ffmpeg()
+        self.min_scene_length = min_scene_length
+        self.history_size = history_size
+        self.frame_diffs = deque(maxlen=history_size)
+        self.hist_diffs = deque(maxlen=history_size)
+        self.prev_frame = None
+        self.frames_since_last_scene = 0
 
-    def _create_pipe(self):
-        """Create a named pipe (FIFO) for FFmpeg."""
-        try:
-            os.mkfifo(self.pipe_name)
-        except FileExistsError:
-            pass  # Ignore if the pipe already exists
+    def compute_frame_difference(self, frame1, frame2):
+        # Convert to YUV color space
+        yuv1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2YUV)
+        yuv2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2YUV)
 
-    def _start_ffmpeg(self):
-        """Start the FFmpeg process to read from the named pipe."""
-        cmd = [
-            "ffmpeg",
-            "-f",
-            "image2pipe",
-            "-i",
-            self.pipe_name,
-            "-f",
-            "image2pipe",
-            "-i",
-            self.pipe_name,
-            "-filter_complex",
-            f"blend=difference,select='gt(scene,{self.threshold})'",
-            "-f",
-            "null",
-            "-",
-        ]
-        self.ffmpeg_process = subprocess.Popen(
-            cmd, stderr=subprocess.PIPE, universal_newlines=True
+        # Compute difference in Y (luminance) channel
+        diff_y = cv2.absdiff(yuv1[:, :, 0], yuv2[:, :, 0])
+
+        # Compute histogram difference
+        hist1 = cv2.calcHist([yuv1], [0], None, [256], [0, 256])
+        hist2 = cv2.calcHist([yuv2], [0], None, [256], [0, 256])
+        hist_diff = cv2.compareHist(hist1, hist2, cv2.HISTCMP_BHATTACHARYYA)
+
+        return np.mean(diff_y), hist_diff
+
+    def sceneDetect(self, frame):
+        if self.prev_frame is None:
+            self.prev_frame = frame
+            return False
+
+        diff_y, hist_diff = self.compute_frame_difference(self.prev_frame, frame)
+        self.frame_diffs.append(diff_y)
+        self.hist_diffs.append(hist_diff)
+
+        self.prev_frame = frame
+        self.frames_since_last_scene += 1
+
+        if len(self.frame_diffs) < self.history_size:
+            return False
+
+        # Combine frame and histogram differences
+        combined_diff = np.array(self.frame_diffs) * np.array(self.hist_diffs)
+
+        # Normalize the differences
+        normalized_diff = (combined_diff - np.min(combined_diff)) / (
+            np.max(combined_diff) - np.min(combined_diff)
         )
 
-    def sceneDetect(self, img1):
-        """Send two images to the FFmpeg process through the named pipe."""
-        with open(self.pipe_name, "wb") as fifo:
-            fifo.write(img1)
+        # Apply moving average filter
+        window_size = 5
+        smoothed_diff = np.convolve(
+            normalized_diff, np.ones(window_size) / window_size, mode="valid"
+        )
 
-    def check_scene_change(self):
-        """Check if there has been a scene change."""
-        if self.ffmpeg_process.poll() is not None:
-            return self.scene_changed
+        # Check if the latest smoothed difference exceeds the threshold
+        if (
+            smoothed_diff[-1] > self.threshold
+            and self.frames_since_last_scene >= self.min_scene_length
+        ):
+            self.frames_since_last_scene = 0
+            return True
 
-        # Read stderr line by line
-        while True:
-            line = self.ffmpeg_process.stderr.readline()
-            if not line:
-                break
-            # Look for scene change output
-            if re.search(r"frame=\s*\d+\s+.*scene", line):
-                self.scene_changed = True
-                return True  # Scene change detected
-
-        return False  # No scene change detected
-
-    def monitor(self):
-        """Continuously monitor for scene changes."""
-        try:
-            while True:
-                self.send_images("image1.jpg", "image2.jpg")
-                if self.check_scene_change():
-                    print("Scene change detected!")
-                else:
-                    print("No scene change.")
-                time.sleep(1)  # Adjust as needed
-        except KeyboardInterrupt:
-            self.cleanup()
-
-    def cleanup(self):
-        """Clean up resources."""
-        if self.ffmpeg_process:
-            self.ffmpeg_process.terminate()
-            self.ffmpeg_process.wait()
-        if os.path.exists(self.pipe_name):
-            os.remove(self.pipe_name)
+        return False
 
 
 class SceneDetect:
@@ -233,6 +215,8 @@ class SceneDetect:
         elif sceneChangeMethod == "ffmpeg":
             self.detector = FFMPEGSceneDetect(
                 threshold=sceneChangeSensitivity / 10,
+                min_scene_length=15,
+                history_size=30,
             )
         else:
             raise ValueError("Invalid scene change method")
