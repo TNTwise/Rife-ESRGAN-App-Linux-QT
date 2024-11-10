@@ -999,6 +999,12 @@ QTabWidget::pane { /* The tab widget frame */
                  </item>
                  <item>
                   <widget class="QWidget" name="widget_2" native="true">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16000</width>
+                     <height>150</height>
+                    </size>
+                   </property>
                    <property name="styleSheet">
                     <string notr="true">QWidget{
 background-color:#1f232a;
@@ -1021,13 +1027,13 @@ border-radius:10px;
                       <property name="minimumSize">
                        <size>
                         <width>0</width>
-                        <height>120</height>
+                        <height>125</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
                         <width>16777215</width>
-                        <height>130</height>
+                        <height>125</height>
                        </size>
                       </property>
                       <property name="accessibleDescription">
