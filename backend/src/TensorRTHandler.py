@@ -68,6 +68,7 @@ class TorchTensorRTHandler:
     ):
         """Exports a model using TensorRT Dynamo."""
         model.to(device=device, dtype=dtype)
+        example_inputs = [input.to(device=device,dtype=dtype) for input in example_inputs]
         exported_program = torch.export.export(
             model, tuple(example_inputs), dynamic_shapes=None
         )
@@ -106,8 +107,9 @@ class TorchTensorRTHandler:
         """Exports a model using TorchScript."""
 
         # maybe try to load it onto CUDA, and clear pytorch cache after.
-
-        module = torch.jit.trace(model.to(device=device, dtype=dtype), example_inputs)
+        model.to(device=device,dtype=dtype)
+        example_inputs = [input.to(device=device,dtype=dtype) for input in example_inputs]
+        module = torch.jit.trace(model, example_inputs) # have to put both on same device or sum
         torch.cuda.empty_cache()
         model = None
 

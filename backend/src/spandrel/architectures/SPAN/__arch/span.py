@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import OrderedDict
 from typing import Literal
+import sys
 
 import torch
 import torch.nn.functional as F
@@ -258,7 +259,8 @@ class SPAN(nn.Module):
         self.in_channels = num_in_ch
         self.out_channels = num_out_ch
         self.img_range = img_range
-        self.mean = torch.Tensor(rgb_mean).view(1, 3, 1, 1)
+        self.mean_half = torch.Tensor(rgb_mean).view(1, 3, 1, 1).cuda().half()
+        self.mean_float = torch.Tensor(rgb_mean).view(1, 3, 1, 1).cuda().float()
 
         self.no_norm: torch.Tensor | None
         if not norm:
@@ -285,13 +287,18 @@ class SPAN(nn.Module):
 
     @property
     def is_norm(self):
+        
         return self.no_norm is None
 
     def forward(self, x):
-        device = x.device
-        dtype = x.dtype
+        self.device = x.device
+        self.dtype = x.dtype
+        if self.dtype == torch.float16:
+            self.mean = self.mean_half
+        else:
+            self.mean = self.mean_float
         if self.is_norm:
-            self.mean = self.mean.type_as(x).to(device=device, dtype=dtype)
+            self.mean = self.mean.type_as(x)
             x = (x - self.mean) * self.img_range
 
         out_feature = self.conv_1(x)
