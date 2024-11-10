@@ -191,9 +191,9 @@ class Settings:
             "tensorrt_optimization_level": "3",
             "encoder": "libx264",
             "preview_enabled": "True",
-            "scene_change_detection_method": "mean",
+            "scene_change_detection_method": "pyscenedetect",
             "scene_change_detection_enabled": "True",
-            "scene_change_detection_threshold": "2.0",
+            "scene_change_detection_threshold": "4.0",
             "discord_rich_presence": "True",
             "video_quality": "High",
             "output_folder_location": os.path.join(f"{homedir}", "Videos")
@@ -205,7 +205,7 @@ class Settings:
             "tensorrt_optimization_level": ("0", "1", "2", "3", "4", "5"),
             "encoder": ("libx264", "libx265", "vp9", "av1"),
             "preview_enabled": ("True", "False"),
-            "scene_change_detection_method": ("mean", "mean_segmented", "ffmpeg"),
+            "scene_change_detection_method": ("mean", "mean_segmented", "pyscenedetect"),
             "scene_change_detection_enabled": ("True", "False"),
             "scene_change_detection_threshold": [
                 str(num / 10) for num in range(1, 100)
