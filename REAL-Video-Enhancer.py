@@ -459,7 +459,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         elif format == "ncnn":
             binFileFilter = "NCNN Bin (*.bin)"
-            paramFileFilter = "NCNN Bin (*.param)"
             modelBinFile, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption="Select NCNN Bin",
@@ -467,14 +466,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 filter=binFileFilter,
             )
             if modelBinFile == "":
+                RegularQTPopup("Please select a bin file!")
                 return
             modelParamFile, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption="Select NCNN Param",
                 dir=os.path.dirname(modelBinFile),
-                filter=paramFileFilter,
+                filter=os.path.basename(modelBinFile).replace(".bin", ".param"),
             )
             if modelParamFile == "":
+                RegularQTPopup("Please select a param file!")
                 return
             outputModelFolder = os.path.join(
                 customModelsPath(), os.path.basename(modelBinFile).replace(".bin", "")
