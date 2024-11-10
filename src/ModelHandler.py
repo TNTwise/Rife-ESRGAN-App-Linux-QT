@@ -101,44 +101,32 @@ tensorrtInterpolateModels = {
     ),
 }
 ncnnUpscaleModels = {
-    "Compact (Animation) (2X) (Fast)": (
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k",
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.tar.gz",
-        2,
-        "Compact",
-    ),
-    "SPAN (Animation) (2X) (Fast)": (
+    
+    "SPAN Spanimation (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2",
         "2x_ModernSpanimationV2.tar.gz",
         2,
         "SPAN",
     ),
-    "SPAN (Realistic) (High Quality Source) (4X) (Fast)": (
+    "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak",
         "4xNomos8k_span_otf_weak.tar.gz",
         4,
         "SPAN",
     ),
-    "SPAN (Realistic) (Medium Quality Source) (4X) (Fast)": (
+    "SPAN Nomos8k (Realistic) (Medium Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_medium",
         "4xNomos8k_span_otf_medium.tar.gz",
         4,
         "SPAN",
     ),
-    "SPAN (Realistic) (Low Quality Source) (4X) (Fast)": (
+    "SPAN Nomos8k (Realistic) (Low Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_strong",
         "4xNomos8k_span_otf_strong.tar.gz",
         4,
         "SPAN",
     ),
-    "Compact (Realistic) (HD Input) (2X) (Fast)": (
-        "2x_OpenProteus_Compact_i2_70K",
-        "2x_OpenProteus_Compact_i2_70K.tar.gz",
-        2,
-        "Compact",
-    ),
-}
-""""RealCUGAN Pro (Animation) (2X) (Slow)": (
+    "RealCUGAN Pro (Animation) (2X) (Slow)": (
         "up2x-conservative",
         "up2x-conservative.tar.gz",
         2,
@@ -150,25 +138,37 @@ ncnnUpscaleModels = {
         3,
         "compact",
     ),
-    "RealESRGAN (Animation) (2X) (Fast)": (
+    "RealESRGAN OpenProteus (Realistic) (HD Input) (2X) (Fast)": (
+        "2x_OpenProteus_Compact_i2_70K",
+        "2x_OpenProteus_Compact_i2_70K.tar.gz",
+        2,
+        "Compact",
+    ),
+    "RealESRGAN JaNai (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.tar.gz",
+        2,
+        "Compact",
+    ),
+    "RealESRGAN AnimeVideo V3 (Animation) (2X) (Fast)": (
         "realesr-animevideov3-x2",
         "realesr-animevideov3-x2.tar.gz",
         2,
         "compact",
     ),
-    "RealESRGAN (Animation) (3X) (Fast)": (
+    "RealESRGAN AnimeVideo V3 (Animation) (3X) (Fast)": (
         "realesr-animevideov3-x3",
         "realesr-animevideov3-x3.tar.gz",
         3,
         "compact",
     ),
-    "RealESRGAN (Animation) (4X) (Fast)": (
+    "RealESRGAN AnimeVideo V3 (Animation) (4X) (Fast)": (
         "realesr-animevideov3-x4",
         "realesr-animevideov3-x4.tar.gz",
         4,
         "compact",
-    ),"""
-""""RealESRGAN Plus (General Model) (4X) (Slow)": (
+    ),
+    "RealESRGAN Plus (General Model) (4X) (Slow)": (
     "realesrgan-x4plus",
     "realesrgan-x4plus.tar.gz",
     4,
@@ -179,41 +179,43 @@ ncnnUpscaleModels = {
     "realesrgan-x4plus-anime.tar.gz",
     4,
     "esrgan",
-),"""
+),
+}
+
 pytorchUpscaleModels = {
-    "Compact (Animation) (2X) (Fast)": (
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+    "SPAN Spanimation (Animation) (2X) (Fast)": (
+        "2x_ModernSpanimationV2.pth",
+        "2x_ModernSpanimationV2.pth",
+        2,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_weak.pth",
+        "4xNomos8k_span_otf_weak.pth",
+        4,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (Medium Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_medium.pth",
+        "4xNomos8k_span_otf_medium.pth",
+        4,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (Low Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_strong.pth",
+        "4xNomos8k_span_otf_strong.pth",
+        4,
+        "SPAN",
+    ),
+    "RealESRGAN OpenProteus (Realistic) (HD Input) (2X) (Fast)": (
+        "2x_OpenProteus_Compact_i2_70K.pth",
+        "2x_OpenProteus_Compact_i2_70K.pth",
         2,
         "Compact",
     ),
-    "SPAN (Animation) (2X) (Fast)": (
-        "2x_ModernSpanimationV2.pth",
-        "2x_ModernSpanimationV2.pth",
-        2,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (High Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_weak.pth",
-        "4xNomos8k_span_otf_weak.pth",
-        4,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (Medium Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_medium.pth",
-        "4xNomos8k_span_otf_medium.pth",
-        4,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (Low Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_strong.pth",
-        "4xNomos8k_span_otf_strong.pth",
-        4,
-        "SPAN",
-    ),
-    "Compact (Realistic) (HD Input) (2X) (Fast)": (
-        "2x_OpenProteus_Compact_i2_70K.pth",
-        "2x_OpenProteus_Compact_i2_70K.pth",
+    "RealESRGAN JaNai (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
         2,
         "Compact",
     ),
@@ -227,39 +229,39 @@ pytorchUpscaleModels = {
     ),
 """
 tensorrtUpscaleModels = {
-    "Compact (Animation) (2X) (Fast)": (
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
-        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+    "SPAN Spanimation (Animation) (2X) (Fast)": (
+        "2x_ModernSpanimationV2.pth",
+        "2x_ModernSpanimationV2.pth",
+        2,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_weak.pth",
+        "4xNomos8k_span_otf_weak.pth",
+        4,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (Medium Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_medium.pth",
+        "4xNomos8k_span_otf_medium.pth",
+        4,
+        "SPAN",
+    ),
+    "SPAN Nomos8k (Realistic) (Low Quality Source) (4X) (Fast)": (
+        "4xNomos8k_span_otf_strong.pth",
+        "4xNomos8k_span_otf_strong.pth",
+        4,
+        "SPAN",
+    ),
+    "RealESRGAN OpenProteus (Realistic) (HD Input) (2X) (Fast)": (
+        "2x_OpenProteus_Compact_i2_70K.pth",
+        "2x_OpenProteus_Compact_i2_70K.pth",
         2,
         "Compact",
     ),
-    "SPAN (Animation) (2X) (Fast)": (
-        "2x_ModernSpanimationV2.pth",
-        "2x_ModernSpanimationV2.pth",
-        2,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (High Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_weak.pth",
-        "4xNomos8k_span_otf_weak.pth",
-        4,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (Medium Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_medium.pth",
-        "4xNomos8k_span_otf_medium.pth",
-        4,
-        "SPAN",
-    ),
-    "SPAN (Realistic) (Low Quality Source) (4X) (Fast)": (
-        "4xNomos8k_span_otf_strong.pth",
-        "4xNomos8k_span_otf_strong.pth",
-        4,
-        "SPAN",
-    ),
-    "Compact (Realistic) (HD Input) (2X) (Fast)": (
-        "2x_OpenProteus_Compact_i2_70K.pth",
-        "2x_OpenProteus_Compact_i2_70K.pth",
+    "RealESRGAN JaNai (Animation) (2X) (Fast)": (
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
+        "2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.pth",
         2,
         "Compact",
     ),
