@@ -436,7 +436,7 @@ QTabWidget::pane { /* The tab widget frame */
                  <item>
                   <widget class="QTabWidget" name="processSettingsContainer">
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <widget class="QWidget" name="processSettingsContainerPage1">
                     <attribute name="title">
@@ -963,6 +963,19 @@ QTabWidget::pane { /* The tab widget frame */
                            </item>
                           </layout>
                          </widget>
+                        </item>
+                        <item>
+                         <spacer name="verticalSpacer_6">
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>20</width>
+                            <height>40</height>
+                           </size>
+                          </property>
+                         </spacer>
                         </item>
                        </layout>
                       </widget>
