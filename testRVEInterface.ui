@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>906</width>
-    <height>647</height>
+    <height>692</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -436,7 +436,7 @@ QTabWidget::pane { /* The tab widget frame */
                  <item>
                   <widget class="QTabWidget" name="processSettingsContainer">
                    <property name="currentIndex">
-                    <number>0</number>
+                    <number>1</number>
                    </property>
                    <widget class="QWidget" name="processSettingsContainerPage1">
                     <attribute name="title">
@@ -1452,8 +1452,8 @@ QDoubleSpinBox::down-button {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>706</width>
-                   <height>672</height>
+                   <width>692</width>
+                   <height>622</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -2020,7 +2020,7 @@ QDoubleSpinBox::down-button {
                           </item>
                           <item>
                            <property name="text">
-                            <string>ffmpeg</string>
+                            <string>pyscenedetect</string>
                            </property>
                           </item>
                          </widget>
