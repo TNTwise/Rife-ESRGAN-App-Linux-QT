@@ -1,3 +1,8 @@
+
+# RVE 2.1.5
+### Changed
+ - Make RVE smaller by switching to pyside6-essentials (thanks zeptofine!) 
+
 # RVE 2.1.0
 ### Added
  - Custom Upscale Model Support (TensorRT/Pytorch/NCNN)
