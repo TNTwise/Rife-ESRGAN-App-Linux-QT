@@ -41,7 +41,7 @@
 <h1>Features: </h1>
 <ul>
   <li> <strong>NEW!</strong> Windows support. <strong>!!! NOTICE !!!</strong> The bin can be detected as a trojan. This is a false positive caused by pyinstaller.</li>
-  <li> Support for Ubuntu 20.04+ on Executable and Flatpak. </li>
+  <li> Support for Ubuntu 20.04+ on Executable and Flatpak. **(XCB-Cursor Required to launch!)** </li>
   <li> Discord RPC support for Discord system package and Discord flatpak. </li>
   <li> Scene change detection to preserve sharp transitions. </li>
   <li> Preview that shows latest frame that has been rendered. </li>
