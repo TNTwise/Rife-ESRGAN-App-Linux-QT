@@ -25,12 +25,6 @@ jobs:
           sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
       - name: Build
         run: python3 build.py --build_exe
-        
-      - name: copy backend
-        run: | 
-          mv dist/ bin/
-          cp -r backend bin/
-          
       
       - name: compress archive
         run: |
@@ -58,9 +52,6 @@ jobs:
           python3 -m pip install -r requirements.txt
       - name: Build
         run: python3 build.py --build_exe
-        
-      - name: copy backend
-        run: cp -r backend dist/REAL-Video-Enhancer/
       
       - name: compress archive
         run: |

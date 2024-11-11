@@ -104,10 +104,16 @@ def build_executable():
             "cx_Freeze",
             "REAL-Video-Enhancer.py",
             "--target-dir",
-            "dist",
+            "bin",
         ]
     subprocess.run(command)
 
+def copy_backend():
+    print("Copying backend")
+    if getPlatform() == "win32":
+        os.system("cp -r backend dist/REAL-Video-Enhancer/")
+    if getPlatform() == "linux":
+        os.system("cp -r backend bin/")
 
 def clean():
     print("Cleaning up")
@@ -136,3 +142,4 @@ build_resources()
 if len(sys.argv) > 1:
     if sys.argv[1] == "--build_exe":
         build_executable()
+        copy_backend()
