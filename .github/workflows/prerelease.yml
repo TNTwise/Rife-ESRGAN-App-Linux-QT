@@ -28,13 +28,13 @@ jobs:
       
       - name: compress archive
         run: |
-          zip -r REAL-Video-Enhancer-2.0-Linux.zip bin/
+          zip -r REAL-Video-Enhancer-2.1.5-Linux.zip bin/
 
       - name: Save Archive as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: REAL-Video-Enhancer-2.0-Linux.zip
-          path: REAL-Video-Enhancer-2.0-Linux.zip
+          name: REAL-Video-Enhancer-2.1.5-Linux.zip
+          path: REAL-Video-Enhancer-2.1.5-Linux.zip
           
   build-Windows:
     runs-on: windows-2019
@@ -56,15 +56,15 @@ jobs:
       - name: compress archive
         run: |
             cd dist
-            tar -a -c -f REAL-Video-Enhancer-2.0-Windows.zip REAL-Video-Enhancer
+            tar -a -c -f REAL-Video-Enhancer-2.1.5-Windows.zip REAL-Video-Enhancer
             cd ..
-            cp dist/REAL-Video-Enhancer-2.0-Windows.zip REAL-Video-Enhancer-2.0-Windows.zip
+            cp dist/REAL-Video-Enhancer-2.1.5-Windows.zip REAL-Video-Enhancer-2.1.5-Windows.zip
 
       - name: Save Archive as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: REAL-Video-Enhancer-2.0-Windows.zip
-          path: REAL-Video-Enhancer-2.0-Windows.zip
+          name: REAL-Video-Enhancer-2.1.5-Windows.zip
+          path: REAL-Video-Enhancer-2.1.5-Windows.zip
 
   Release:
     needs: [build-Windows, build-Linux]
@@ -89,15 +89,15 @@ jobs:
       - name: Create Release and Upload Release Asset
         uses: softprops/action-gh-release@v1        
         with:
-          name: REAL Video Enhancer 2.1.0 Pre-Release
-          tag_name: prerelease_2.1.0
+          name: REAL Video Enhancer 2.1.5 Pre-Release
+          tag_name: prerelease_2.1.5
           body: ${{ steps.version_tag.outputs.tag }}
           draft: false
           prerelease: true
           
           files: |
-              artifacts/REAL-Video-Enhancer-2.0-Windows.zip/REAL-Video-Enhancer-2.0-Windows.zip
-              artifacts/REAL-Video-Enhancer-2.0-Linux.zip/REAL-Video-Enhancer-2.0-Linux.zip
+              artifacts/REAL-Video-Enhancer-2.1.5-Windows.zip/REAL-Video-Enhancer-2.1.5-Windows.zip
+              artifacts/REAL-Video-Enhancer-2.1.5-Linux.zip/REAL-Video-Enhancer-2.1.5-Linux.zip
 
               
               
