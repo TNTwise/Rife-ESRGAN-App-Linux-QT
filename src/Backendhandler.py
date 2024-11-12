@@ -19,10 +19,10 @@ class BackendHandler:
         if getPlatform() == "darwin":
             self.parent.downloadTorchCUDABtn.setEnabled(False)
             self.parent.downloadTensorRTBtn.setEnabled(False)
-        if isFlatpak():
+        """if isFlatpak():
             self.parent.downloadTorchCUDABtn.setEnabled(False)
             self.parent.downloadTorchROCmBtn.setEnabled(False)
-            self.parent.downloadTensorRTBtn.setEnabled(False)
+            self.parent.downloadTensorRTBtn.setEnabled(False)"""
 
         # disable as it is not complete
         try:
