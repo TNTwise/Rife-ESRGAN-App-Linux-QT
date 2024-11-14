@@ -3,7 +3,7 @@ import os
 import logging
 from src.RenderVideo import Render
 
-from src.Util import (
+from src.utils.Util import (
     checkForPytorch,
     checkForNCNN,
     checkForTensorRT,

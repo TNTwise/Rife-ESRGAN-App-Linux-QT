@@ -55,7 +55,7 @@ from PySide6.QtWidgets import (
 )
 
 from .QTstyle import styleSheet
-from ..Util import printAndLog, getPlatform, networkCheck
+from ..Util import printAndLog, networkCheck
 from ..Backendhandler import BackendHandler
 
 

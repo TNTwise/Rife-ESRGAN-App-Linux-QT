@@ -31,9 +31,9 @@ from src.Util import (
     checkForWritePermissions,
     getAvailableDiskSpace,
     copyFile,
-    customModelsPath,
     createDirectory,
 )
+from src.constants import CUSTOM_MODELS_PATH
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
 from src.ui.SettingsTab import SettingsTab, Settings
@@ -447,9 +447,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 filter=fileFilter,
             )
             outputModelPath = os.path.join(
-                customModelsPath(), os.path.basename(modelFile)
+                CUSTOM_MODELS_PATH, os.path.basename(modelFile)
             )
-            copyFile(modelFile, customModelsPath())
+            copyFile(modelFile, CUSTOM_MODELS_PATH)
             if os.path.isfile(outputModelPath):
                 RegularQTPopup(
                     "Model imported successfully!\nPlease restart the app for the changes to take effect."
@@ -478,7 +478,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 RegularQTPopup("Please select a param file!")
                 return
             outputModelFolder = os.path.join(
-                customModelsPath(), os.path.basename(modelBinFile).replace(".bin", "")
+                CUSTOM_MODELS_PATH, os.path.basename(modelBinFile).replace(".bin", "")
             )
             createDirectory(outputModelFolder)
             outputBinPath = os.path.join(

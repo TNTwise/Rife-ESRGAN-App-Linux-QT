@@ -1,7 +1,8 @@
 import os
 import re
 
-from .Util import customModelsPath, createDirectory, printAndLog
+from .Util import createDirectory, printAndLog
+from .constants import CUSTOM_MODELS_PATH
 
 """
 Key value pairs of the model name in the GUI
@@ -282,17 +283,17 @@ onnxUpscaleModels = {
     ),
 }
 # detect custom models
-createDirectory(customModelsPath())
+createDirectory(CUSTOM_MODELS_PATH)
 customPytorchUpscaleModels = {}
 customNCNNUpscaleModels = {}
-for model in os.listdir(customModelsPath()):
+for model in os.listdir(CUSTOM_MODELS_PATH):
     pattern = r"\d+x|x+\d"
     matches = re.findall(pattern, model)
     if len(matches) > 0:
         upscaleFactor = int(
             matches[0].replace("x", "")
         )  # get the integer value of the upscale factor
-        model_path = os.path.join(customModelsPath(), model)
+        model_path = os.path.join(CUSTOM_MODELS_PATH, model)
         if os.path.exists(model_path):
             if not os.path.isfile(model_path):
                 customNCNNUpscaleModels[model] = (model, model, upscaleFactor, "custom")

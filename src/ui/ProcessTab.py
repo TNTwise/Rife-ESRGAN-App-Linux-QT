@@ -10,15 +10,12 @@ from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler
 from .QTcustom import UpdateGUIThread, RegularQTPopup
+from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PATH
 from ..Util import (
-    pythonPath,
     currentDirectory,
-    modelsPath,
     printAndLog,
     log,
     errorAndLog,
-    backendDirectory,
-    customModelsPath,
 )
 from ..DownloadModels import DownloadModel
 from .SettingsTab import Settings
@@ -300,10 +297,10 @@ class ProcessTab:
         # builds command
 
         command = [
-            f"{pythonPath()}",
+            f"{PYTHON_PATH}",
             "-W",
             "ignore",
-            os.path.join(backendDirectory(), "rve-backend.py"),
+            os.path.join(BACKEND_PATH, "rve-backend.py"),
             "-i",
             self.inputFile,
             "-o",
@@ -320,9 +317,9 @@ class ProcessTab:
             f"{self.pausedFile}",
         ]
         if method == "Upscale":
-            modelPath = os.path.join(modelsPath(), self.modelFile)
+            modelPath = os.path.join(MODELS_PATH, self.modelFile)
             if self.modelArch == "custom":
-                modelPath = os.path.join(customModelsPath(), self.modelFile)
+                modelPath = os.path.join(CUSTOM_MODELS_PATH, self.modelFile)
             command += [
                 "--upscaleModel",
                 modelPath,
@@ -338,7 +335,7 @@ class ProcessTab:
             command += [
                 "--interpolateModel",
                 os.path.join(
-                    modelsPath(),
+                    MODELS_PATH,
                     self.modelFile,
                 ),
                 "--interpolateFactor",
@@ -445,8 +442,6 @@ class ProcessTab:
             scrollbar.setValue(scrollbar.maximum())
             self.parent.progressBar.setValue(self.currentFrame)
         if not qimage.isNull():
-            width = self.parent.width()
-            height = self.parent.height()
             label_width = self.parent.previewLabel.width()
             label_height = self.parent.previewLabel.height()
 

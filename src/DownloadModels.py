@@ -1,7 +1,7 @@
 import os
 
-
-from .Util import createDirectory, modelsPath, extractTarGZ
+from .constants import MODELS_PATH
+from .Util import createDirectory, extractTarGZ
 from .ui.QTcustom import DownloadProgressPopup, NetworkCheckPopup
 
 
@@ -17,7 +17,7 @@ class DownloadModel:
         modelFile: str,
         downloadModelFile: str,
         backend: str,
-        modelPath: str = modelsPath(),
+        modelPath: str = MODELS_PATH,
     ):
         self.modelPath = modelPath
         self.downloadModelFile = downloadModelFile

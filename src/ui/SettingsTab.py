@@ -1,7 +1,8 @@
 import os
 
 from PySide6.QtWidgets import QMainWindow, QFileDialog
-from ..Util import currentDirectory, getPlatform, homedir, checkForWritePermissions
+from ..constants import PLATFORM, HOME_PATH
+from ..Util import currentDirectory, checkForWritePermissions
 from .QTcustom import RegularQTPopup
 
 
@@ -126,7 +127,7 @@ class SettingsTab:
         self.parent.switchToSettingsPage()
 
     def connectSettingText(self):
-        if getPlatform() == "darwin":
+        if PLATFORM == "darwin":
             index = self.parent.encoder.findText("av1")
             self.parent.encoder.removeItem(index)
 
@@ -196,9 +197,9 @@ class Settings:
             "scene_change_detection_threshold": "4.0",
             "discord_rich_presence": "True",
             "video_quality": "High",
-            "output_folder_location": os.path.join(f"{homedir}", "Videos")
-            if getPlatform() != "darwin"
-            else os.path.join(f"{homedir}", "Desktop"),
+            "output_folder_location": os.path.join(f"{HOME_PATH}", "Videos")
+            if PLATFORM != "darwin"
+            else os.path.join(f"{HOME_PATH}", "Desktop"),
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),

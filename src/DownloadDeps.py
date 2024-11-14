@@ -1,16 +1,12 @@
+from .constants import PLATFORM, PYTHON_PATH, FFMPEG_PATH, BACKEND_PATH, TEMP_DOWNLOAD_PATH, CWD
 from .Util import (
-    getPlatform,
     printAndLog,
-    pythonPath,
-    ffmpegPath,
-    currentDirectory,
     createDirectory,
     makeExecutable,
     move,
     extractTarGZ,
-    downloadTempDirectory,
     downloadFile,
-    backendDirectory,
+    removeFolder
 )
 from .ui.QTcustom import (
     DownloadProgressPopup,
@@ -58,8 +54,8 @@ class DownloadDependencies:
     """
 
     def __init__(self):
-        createDirectory(os.path.join(currentDirectory(), "python"))
-        createDirectory(os.path.join(currentDirectory(), "bin"))
+        createDirectory(os.path.join(CWD, "python"))
+        createDirectory(os.path.join(CWD, "bin"))
 
     def downloadBackend(self, tag):
         """
@@ -69,10 +65,10 @@ class DownloadDependencies:
         tag is unused for now, as still in active development. just downloads the latest backend.
         """
 
-        if not os.path.exists(backendDirectory()):
-            print(str(backendDirectory()) + " Does not exist!")
+        if not os.path.exists(BACKEND_PATH):
+            print(str(BACKEND_PATH) + " Does not exist!")
             backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.1.0.tar.gz"
-            main_zip = os.path.join(currentDirectory(), "backend.tar.gz")
+            main_zip = os.path.join(CWD, "backend.tar.gz")
 
             printAndLog("Downloading backend")
             downloadFile(link=backend_url, downloadLocation=main_zip)
@@ -80,7 +76,7 @@ class DownloadDependencies:
             extractTarGZ(main_zip)
 
     def downloadVCREDLIST(self):
-        vcTempPath = os.path.join(currentDirectory(), "bin", "VC_redist.x64.exe")
+        vcTempPath = os.path.join(CWD, "bin", "VC_redist.x64.exe")
         link = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 
         printAndLog(
@@ -103,11 +99,11 @@ class DownloadDependencies:
     def downloadPython(self):
         link = "https://github.com/indygreg/python-build-standalone/releases/download/20240814/cpython-3.11.9+20240814-"
         pyDir = os.path.join(
-            currentDirectory(),
+            CWD,
             "python",
             "python.tar.gz",
         )
-        match getPlatform():
+        match PLATFORM:
             case "linux":
                 link += "x86_64-unknown-linux-gnu-install_only.tar.gz"
             case "win32":
@@ -127,12 +123,13 @@ class DownloadDependencies:
         extractTarGZ(pyDir)
 
         # give executable permissions to python
-        makeExecutable(pythonPath())
+        makeExecutable(PYTHON_PATH)
 
     def downloadFFMpeg(self):
-        ffmpegTempPath = os.path.join(downloadTempDirectory(), "ffmpeg")
+        createDirectory(TEMP_DOWNLOAD_PATH)
+        ffmpegTempPath = os.path.join(TEMP_DOWNLOAD_PATH, "ffmpeg")
         link = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/"
-        match getPlatform():
+        match PLATFORM:
             case "linux":
                 link += "ffmpeg"
             case "win32":
@@ -145,7 +142,9 @@ class DownloadDependencies:
         )
         # give executable permissions to ffmpeg
         makeExecutable(ffmpegTempPath)
-        move(ffmpegTempPath, ffmpegPath())
+        move(ffmpegTempPath, FFMPEG_PATH)
+        removeFolder(TEMP_DOWNLOAD_PATH)
+        
 
     def pip(
         self,
@@ -153,7 +152,7 @@ class DownloadDependencies:
         install: bool = True,
     ):  # going to have to make this into a qt module pop up
         command = [
-            pythonPath(),
+            PYTHON_PATH,
             "-m",
             "pip",
             "install" if install else "uninstall",
@@ -180,7 +179,7 @@ class DownloadDependencies:
             progressBarLength=totalDeps,
         )
         command = [
-            pythonPath(),
+            PYTHON_PATH,
             "-m",
             "pip",
             "cache",
@@ -295,7 +294,7 @@ class DownloadDependencies:
             "https://download.pytorch.org/whl/rocm5.7/torch-2.3.1%2Brocm5.7-cp311-cp311-linux_x86_64.whl",
             "https://download.pytorch.org/whl/rocm5.7/torchvision-0.18.1%2Brocm5.7-cp311-cp311-linux_x86_64.whl",
         ]
-        if getPlatform() == "linux":
+        if PLATFORM == "linux":
             self.pip(rocmLinuxDeps, install)
 
 
