@@ -1,8 +1,29 @@
 from PySide6.QtWidgets import QMainWindow
 from .QTcustom import RegularQTPopup, NetworkCheckPopup
 from ..DownloadDeps import DownloadDependencies
-from ..ModelHandler import downloadModelsBasedOnInstalledBackend
-
+from ..DownloadModels import DownloadModel
+from ..ModelHandler import ncnnInterpolateModels, pytorchInterpolateModels, ncnnUpscaleModels, pytorchUpscaleModels 
+def downloadModelsBasedOnInstalledBackend(installed_backends: list):
+    if NetworkCheckPopup():
+        for backend in installed_backends:
+            match backend:
+                case "ncnn":
+                    for model in ncnnInterpolateModels:
+                        DownloadModel(model, ncnnInterpolateModels[model][1], "ncnn")
+                    for model in ncnnUpscaleModels:
+                        DownloadModel(model, ncnnUpscaleModels[model][1], "ncnn")
+                case "pytorch":  # no need for tensorrt as it uses pytorch models
+                    for model in pytorchInterpolateModels:
+                        DownloadModel(
+                            model, pytorchInterpolateModels[model][1], "pytorch"
+                        )
+                    for model in pytorchUpscaleModels:
+                        DownloadModel(model, pytorchUpscaleModels[model][1], "pytorch")
+        """case "directml":
+            for model in onnxInterpolateModels:
+                DownloadModel(model, onnxInterpolateModels[model][1], "onnx")
+            for model in onnxUpscaleModels:
+                DownloadModel(model, onnxUpscaleModels[model][1], "onnx")"""
 
 class DownloadTab:
     def __init__(
