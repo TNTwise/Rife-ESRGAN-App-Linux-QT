@@ -4,25 +4,9 @@ import math
 from time import sleep
 
 from .FFmpeg import FFMpegRender
-from .SceneDetect import SceneDetect
-from .Util import printAndLog, log, removeFile
+from .utils.SceneDetect import SceneDetect
+from .utils.Util import printAndLog, log, removeFile
 
-# try/except imports
-try:
-    from .UpscaleNCNN import UpscaleNCNN, getNCNNScale
-    from .InterpolateNCNN import InterpolateRIFENCNN
-except ImportError:
-    log("WARN: unable to import ncnn.")
-
-try:
-    from .InterpolateTorch import InterpolateRifeTorch
-    from .UpscaleTorch import UpscalePytorch
-except ImportError:
-    log("WARN: unable to import pytorch.")
-try:
-    from .UpscaleONNX import UpscaleONNX
-except ImportError:
-    log("WARN: unable to import directml.")
 
 
 class Render(FFMpegRender):
@@ -247,6 +231,7 @@ class Render(FFMpegRender):
         """
         printAndLog("Setting up Upscale")
         if self.backend == "pytorch" or self.backend == "tensorrt":
+            from .pytorch.UpscaleTorch import UpscalePytorch
             upscalePytorch = UpscalePytorch(
                 self.upscaleModel,
                 device=self.device,
@@ -264,6 +249,7 @@ class Render(FFMpegRender):
             self.hotReload = upscalePytorch.hotReload
 
         if self.backend == "ncnn":
+            from .ncnn.UpscaleNCNN import UpscaleNCNN, getNCNNScale
             path, last_folder = os.path.split(self.upscaleModel)
 
             self.upscaleModel = os.path.join(path, last_folder, last_folder)
@@ -283,6 +269,7 @@ class Render(FFMpegRender):
             self.hotUnload = upscaleNCNN.hotUnload
             self.hotReload = upscaleNCNN.hotReload
         if self.backend == "directml":
+            from .onnx.UpscaleONNX import UpscaleONNX
             upscaleONNX = UpscaleONNX(
                 modelPath=self.upscaleModel,
                 precision=self.precision,
@@ -311,6 +298,7 @@ class Render(FFMpegRender):
             printAndLog("Scene Detection Disabled")
             self.scDetectFunc = lambda x: False
         if self.backend == "ncnn":
+            from .ncnn.InterpolateNCNN import InterpolateRIFENCNN
             interpolateRifeNCNN = InterpolateRIFENCNN(
                 interpolateModelPath=self.interpolateModel,
                 width=self.width,
@@ -325,6 +313,7 @@ class Render(FFMpegRender):
             self.doEncodingOnFrame = False
 
         if self.backend == "pytorch" or self.backend == "tensorrt":
+            from .pytorch.InterpolateTorch import InterpolateRifeTorch
             interpolateRifePytorch = InterpolateRifeTorch(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
