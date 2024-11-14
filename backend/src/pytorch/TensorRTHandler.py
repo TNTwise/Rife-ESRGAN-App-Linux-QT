@@ -106,8 +106,8 @@ class TorchTensorRTHandler:
         """Exports a model using TorchScript."""
 
         # maybe try to load it onto CUDA, and clear pytorch cache after.
-        model.to(device=device,dtype=dtype)
-        module = torch.jit.trace(model, example_inputs) 
+        model.to(device=device, dtype=dtype)
+        module = torch.jit.trace(model, example_inputs)
         torch.cuda.empty_cache()
         model = None
 

@@ -8,7 +8,7 @@ import time
 import math
 from multiprocessing import shared_memory
 from .constants import CWD, FFMPEG_PATH, FFMPEG_LOG_FILE
-from .utils.Util import ( 
+from .utils.Util import (
     log,
     printAndLog,
 )
@@ -154,9 +154,7 @@ class FFMpegRender:
             return None
 
     def extract_subtitles(self, video_file, stream_index, subtitle_file):
-        self.videoPropertiesLocation = os.path.join(
-            CWD, self.inputFile + "_VIDEODATA"
-        )
+        self.videoPropertiesLocation = os.path.join(CWD, self.inputFile + "_VIDEODATA")
         if not os.path.exists(self.videoPropertiesLocation):
             os.makedirs(self.videoPropertiesLocation)
         """Extract a specific subtitle stream from the video file."""
@@ -263,9 +261,11 @@ class FFMpegRender:
             ]
             if self.upscale_output_resolution is not None:
                 try:
-                    w,h = self.upscale_output_resolution.split("x")
+                    w, h = self.upscale_output_resolution.split("x")
                 except Exception:
-                    print("Invalid output resolution, please use something like 1920x1080. Exiting.")
+                    print(
+                        "Invalid output resolution, please use something like 1920x1080. Exiting."
+                    )
                     sys.exit()
                 command += [
                     "-vf",

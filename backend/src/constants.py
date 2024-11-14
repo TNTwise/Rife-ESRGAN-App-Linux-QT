@@ -1,4 +1,5 @@
 import os
+
 IS_FLATPAK = "FLATPAK_ID" in os.environ
 
 if IS_FLATPAK:

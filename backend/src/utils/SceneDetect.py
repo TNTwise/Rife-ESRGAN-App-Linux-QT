@@ -4,6 +4,7 @@ from collections import deque
 from .Util import bytesToImg
 from .PySceneDetectUtils import ContentDetector
 
+
 class NPMeanSCDetect:
     """
     takes in an image as np array and calculates the mean, with ability to use it for scene detect and upscale skip
@@ -183,9 +184,10 @@ class FFMPEGSceneDetect:
 
         return False
 
+
 class PySceneDetect:
     def __init__(self, threshold=2, min_scene_length=30):
-        self.detector = ContentDetector(threshold=threshold*10,min_scene_len=1)
+        self.detector = ContentDetector(threshold=threshold * 10, min_scene_len=1)
         self.frameNum = 0
 
     def sceneDetect(self, frame: np.ndarray):
@@ -193,11 +195,10 @@ class PySceneDetect:
         frameList = self.detector.process_frame(self.frameNum, frame)
         self.frameNum += 1
         if len(frameList) > 0:
-            if self.frameNum !=  frameList[0] + 1:
+            if self.frameNum != frameList[0] + 1:
                 print("-------" + f"{self.frameNum}, {frameList[0]}")
 
         return len(frameList) > 0
-        
 
 
 class SceneDetect:
