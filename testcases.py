@@ -54,6 +54,8 @@ def downloadModel(modelFile, downloadModelPath: str = None):
             + modelFile
         )
         model_on_filesystem = os.path.join(downloadModelPath,modelFile)
+        if os.path.isfile(model_on_filesystem) or os.path.exists(model_on_filesystem.replace(".tar.gz","")):
+            return
         download_file(url, model_on_filesystem)
         print("Done")
         if "tar.gz" in modelFile:
