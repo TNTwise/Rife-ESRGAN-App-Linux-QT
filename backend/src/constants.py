@@ -1,7 +1,6 @@
 import os
 IS_FLATPAK = "FLATPAK_ID" in os.environ
 
-
 if IS_FLATPAK:
     CWD = os.path.join(
         os.path.expanduser("~"), ".var", "app", "io.github.tntwise.REAL-Video-Enhancer"
@@ -15,3 +14,7 @@ if IS_FLATPAK:
         )
 else:
     CWD = os.getcwd()
+
+FFMPEG_PATH = os.path.join(CWD, "bin", "ffmpeg")
+FFMPEG_LOG_FILE = os.path.join(CWD, "ffmpeg_log.txt")
+MODELS_DIRECTORY = os.path.join(CWD, "models")
