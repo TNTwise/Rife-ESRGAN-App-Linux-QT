@@ -7,8 +7,8 @@ import sys
 import time
 import math
 from multiprocessing import shared_memory
-from .Util import (
-    currentDirectory,
+from .constants import CWD
+from .utils.Util import (
     log,
     printAndLog,
     ffmpegPath,
@@ -157,7 +157,7 @@ class FFMpegRender:
 
     def extract_subtitles(self, video_file, stream_index, subtitle_file):
         self.videoPropertiesLocation = os.path.join(
-            currentDirectory(), self.inputFile + "_VIDEODATA"
+            CWD, self.inputFile + "_VIDEODATA"
         )
         if not os.path.exists(self.videoPropertiesLocation):
             os.makedirs(self.videoPropertiesLocation)

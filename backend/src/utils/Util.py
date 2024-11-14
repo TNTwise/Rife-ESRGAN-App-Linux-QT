@@ -3,26 +3,10 @@ import warnings
 import numpy as np
 import cv2
 import shutil
+from ..constants import CWD
 
 
-def isFlatpak():
-    return "FLATPAK_ID" in os.environ
-
-
-if isFlatpak():
-    cwd = os.path.join(
-        os.path.expanduser("~"), ".var", "app", "io.github.tntwise.REAL-Video-Enhancer"
-    )
-    if not os.path.exists(cwd):
-        cwd = os.path.join(
-            os.path.expanduser("~"),
-            ".var",
-            "app",
-            "io.github.tntwise.REAL-Video-EnhancerV2",
-        )
-else:
-    cwd = os.getcwd()
-with open(os.path.join(cwd, "backend_log.txt"), "w") as f:
+with open(os.path.join(CWD, "backend_log.txt"), "w") as f:
     pass
 
 
@@ -45,12 +29,9 @@ def warnAndLog(message: str):
     log("WARN: " + message)
 
 
-def currentDirectory():
-    return cwd
-
 
 def ffmpegLogFile() -> str:
-    return os.path.join(currentDirectory(), "ffmpeg_log.txt")
+    return os.path.join(CWD, "ffmpeg_log.txt")
 
 
 def errorAndLog(message: str):
@@ -70,7 +51,7 @@ def printAndLog(message: str, separate=False):
 
 
 def log(message: str):
-    with open(os.path.join(cwd, "backend_log.txt"), "a") as f:
+    with open(os.path.join(CWD, "backend_log.txt"), "a") as f:
         f.write(message + "\n")
 
 
@@ -84,11 +65,11 @@ def bytesToImg(
 
 
 def ffmpegPath() -> str:
-    return str(os.path.join(currentDirectory(), "bin", "ffmpeg"))
+    return str(os.path.join(CWD, "bin", "ffmpeg"))
 
 
 def modelsDirectory():
-    return os.path.join(cwd, "models")
+    return os.path.join(CWD, "models")
 
 
 def checkForPytorch() -> bool:
