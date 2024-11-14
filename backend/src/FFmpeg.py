@@ -7,12 +7,10 @@ import sys
 import time
 import math
 from multiprocessing import shared_memory
-from .constants import CWD
-from .utils.Util import (
+from .constants import CWD, FFMPEG_PATH, FFMPEG_LOG_FILE
+from .utils.Util import ( 
     log,
     printAndLog,
-    ffmpegPath,
-    ffmpegLogFile,
 )
 from threading import Thread
 
@@ -148,7 +146,7 @@ class FFMpegRender:
         """Get a list of streams from the video file using FFmpeg."""
         try:
             result = subprocess.run(
-                [ffmpegPath(), "-i", video_file], stderr=subprocess.PIPE, text=True
+                [FFMPEG_PATH, "-i", video_file], stderr=subprocess.PIPE, text=True
             )
             return result.stderr
         except Exception as e:
@@ -165,7 +163,7 @@ class FFMpegRender:
         try:
             subprocess.run(
                 [
-                    ffmpegPath(),
+                    FFMPEG_PATH,
                     "-i",
                     video_file,
                     "-map",
@@ -219,7 +217,7 @@ class FFMpegRender:
     def getFFmpegReadCommand(self):
         log("Generating FFmpeg READ command...")
         command = [
-            f"{ffmpegPath()}",
+            f"{FFMPEG_PATH}",
             "-i",
             f"{self.inputFile}",
             "-f",
@@ -239,7 +237,7 @@ class FFMpegRender:
         if not self.benchmark:
             # maybe i can split this so i can just use ffmpeg normally like with vspipe
             command = [
-                f"{ffmpegPath()}",
+                f"{FFMPEG_PATH}",
                 "-f",
                 "rawvideo",
                 "-pix_fmt",
@@ -284,7 +282,7 @@ class FFMpegRender:
                 command.append("-y")
         else:
             command = [
-                f"{ffmpegPath()}",
+                f"{FFMPEG_PATH}",
                 "-y",
                 "-hide_banner",
                 "-v",
@@ -400,7 +398,7 @@ class FFMpegRender:
         self.startTime = time.time()
         self.framesRendered: int = 1
         self.last_length: int = 0
-        with open(ffmpegLogFile(), "w") as f:
+        with open(FFMPEG_LOG_FILE, "w") as f:
             with subprocess.Popen(
                 self.getFFmpegWriteCommand(),
                 stdin=subprocess.PIPE,

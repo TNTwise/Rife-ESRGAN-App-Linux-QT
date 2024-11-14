@@ -29,11 +29,6 @@ def warnAndLog(message: str):
     log("WARN: " + message)
 
 
-
-def ffmpegLogFile() -> str:
-    return os.path.join(CWD, "ffmpeg_log.txt")
-
-
 def errorAndLog(message: str):
     log("ERROR: " + message)
     raise os.error("ERROR: " + message)
@@ -62,14 +57,6 @@ def bytesToImg(
     if outputHeight and outputWidth:
         frame = cv2.resize(frame, dsize=(100, 100))
     return frame
-
-
-def ffmpegPath() -> str:
-    return str(os.path.join(CWD, "bin", "ffmpeg"))
-
-
-def modelsDirectory():
-    return os.path.join(CWD, "models")
 
 
 def checkForPytorch() -> bool:
