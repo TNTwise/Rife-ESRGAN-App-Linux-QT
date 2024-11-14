@@ -1,11 +1,7 @@
 import os
+from .constants import BACKEND_PATH, PYTHON_PATH, PLATFORM, IS_INSTALLED, IS_FLATPAK
 from .Util import (
-    getPlatform,
-    checkIfDeps,
     printAndLog,
-    pythonPath,
-    backendDirectory,
-    isFlatpak,
 )
 from .version import version
 
@@ -15,11 +11,11 @@ class BackendHandler:
         self.parent = parent
 
     def enableCorrectBackends(self):
-        self.parent.downloadTorchROCmBtn.setEnabled(getPlatform() == "linux")
-        if getPlatform() == "darwin":
+        self.parent.downloadTorchROCmBtn.setEnabled(PLATFORM == "linux")
+        if PLATFORM == "darwin":
             self.parent.downloadTorchCUDABtn.setEnabled(False)
             self.parent.downloadTensorRTBtn.setEnabled(False)
-        if isFlatpak():
+        if IS_FLATPAK:
             self.parent.downloadTorchCUDABtn.setEnabled(False)
             self.parent.downloadTorchROCmBtn.setEnabled(False)
             self.parent.downloadTensorRTBtn.setEnabled(False)
@@ -27,7 +23,7 @@ class BackendHandler:
         # disable as it is not complete
         try:
             self.parent.downloadDirectMLBtn.setEnabled(False)
-            if getPlatform() != "win32":
+            if PLATFORM != "win32":
                 self.parent.downloadDirectMLBtn.setEnabled(False)
         except Exception as e:
             print(e)
@@ -55,7 +51,7 @@ class BackendHandler:
         # disable as it is not complete
         try:
             self.parent.downloadDirectMLBtn.setEnabled(False)
-            if getPlatform() != "win32":
+            if PLATFORM != "win32":
                 self.parent.downloadDirectMLBtn.setEnabled(False)
         except Exception as e:
             print(e)
@@ -66,14 +62,14 @@ class BackendHandler:
 
         downloadDependencies = DownloadDependencies()
         downloadDependencies.downloadBackend(version)
-        if not checkIfDeps():
+        if not IS_INSTALLED:
             from .ui.QTcustom import NetworkCheckPopup
 
             if NetworkCheckPopup():
                 # Dont flip these due to shitty code!
                 downloadDependencies.downloadFFMpeg()
                 downloadDependencies.downloadPython()
-                if getPlatform() == "win32":
+                if PLATFORM == "win32":
                     downloadDependencies.downloadVCREDLIST()
 
     def recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
@@ -114,10 +110,10 @@ class BackendHandler:
 
         output = SettingUpBackendPopup(
             [
-                pythonPath(),
+                PYTHON_PATH,
                 "-W",
                 "ignore",
-                os.path.join(backendDirectory(), "rve-backend.py"),
+                os.path.join(BACKEND_PATH, "rve-backend.py"),
                 "--list_backends",
             ]
         )

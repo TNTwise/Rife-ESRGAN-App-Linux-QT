@@ -1,7 +1,6 @@
 import cv2
 import os
 import warnings
-import sys
 import requests
 import stat
 import tarfile
@@ -12,42 +11,15 @@ import psutil
 import cpuinfo
 import distro
 import webbrowser
-
-homedir = os.path.expanduser("~")
-
-
-def getPlatform() -> str:
-    """
-    Returns the current OS that the app is running on
-    Windows: win32
-    MacOS: darwin
-    Linux: linux
-    """
-    return sys.platform
-
-
-def isFlatpak():
-    return "FLATPAK_ID" in os.environ
-
-
-if isFlatpak():
-    cwd = os.path.join(
-        os.path.expanduser("~"), ".var", "app", "io.github.tntwise.REAL-Video-Enhancer"
-    )
-    if not os.path.exists(cwd):
-        cwd = os.path.join(
-            os.path.expanduser("~"),
-            ".var",
-            "app",
-            "io.github.tntwise.REAL-Video-EnhancerV2",
-        )
-else:
-    cwd = os.getcwd()
+from .constants import CWD, IS_FLATPAK, PLATFORM, HOME_PATH
 
 
 def log(message: str):
-    with open(os.path.join(cwd, "frontend_log.txt"), "a") as f:
+    with open(os.path.join(CWD, "frontend_log.txt"), "a") as f:
         f.write(message + "\n")
+    
+with open(os.path.join(CWD, "frontend_log.txt"), "w") as f:
+    pass
 
 
 def printAndLog(message: str, separate=False):
@@ -72,28 +44,7 @@ def getAvailableDiskSpace() -> float:
     except Exception as e:
         printAndLog(f"An error occurred while getting available disk space: {e}")
         return "Unknown"
-
-
-with open(os.path.join(cwd, "frontend_log.txt"), "w") as f:
-    pass
-
-
-def backendDirectory():
-    """
-    returns cwd except when running in flatpak, then it returns the flatpak bin directory
-    """
-
-    if isFlatpak():
-        return "/app/bin/backend"
-    else:
-        return os.path.join(cwd, "backend")
-
-
-def downloadTempDirectory() -> str:
-    tmppath = os.path.join(cwd, "temp")
-    createDirectory(tmppath)
-    return tmppath
-
+    
 
 def networkCheck(hostname="https://raw.githubusercontent.com") -> bool:
     """
@@ -138,13 +89,18 @@ def getRAMAmount() -> str:
         printAndLog(f"An error occurred while getting RAM amount: {e}")
         return "Unknown"
 
+def removeFolder(folder):
+    """
+    Removes the folder of the current working directory
+    """
+    shutil.rmtree(folder)
 
 def getCPUInfo() -> str:
     """
     Returns the CPU information of the system.
     """
     # return platform.processor() + " " + str(psutil.cpu_count(logical=False)) + " cores" + platform.
-    if getPlatform() == "win32":
+    if PLATFORM == "win32":
         try:
             # Run the 'wmic' command to get CPU information
             result = subprocess.run(
@@ -160,60 +116,6 @@ def getCPUInfo() -> str:
             return "X86_64 CPU"
     else:
         return cpuinfo.get_cpu_info()["brand_raw"]
-
-
-def pythonPath() -> str:
-    return (
-        os.path.join(cwd, "python", "python", "python.exe")
-        if getPlatform() == "win32"
-        else os.path.join(cwd, "python", "python", "bin", "python3")
-    )
-
-
-def customModelsPath() -> str:
-    """
-    Returns the file path for the custom models directory.
-
-    :return: The file path for the custom models directory.
-    :rtype: str
-    """
-    return os.path.join(cwd, "custom_models")
-
-
-def modelsPath() -> str:
-    """
-    Returns the file path for the models directory.
-
-    :return: The file path for the models directory.
-    :rtype: str
-    """
-    return os.path.join(cwd, "models")
-
-
-def videosPath() -> str:
-    """
-    Returns the file path for the videos directory.
-
-    :return: The file path for the videos directory.
-    :rtype: str
-    """
-    if getPlatform() == "darwin":
-        return os.path.join(homedir, "Desktop")
-    else:
-        return os.path.join(homedir, "Videos")
-
-
-def ffmpegPath() -> str:
-    match getPlatform():
-        case "linux":
-            return os.path.join(cwd, "bin", "ffmpeg")
-        case "win32":
-            return os.path.join(cwd, "bin", "ffmpeg.exe")
-        case "darwin":
-            return os.path.join(cwd, "bin", "ffmpeg")
-        case _:
-            return os.path.join(cwd, "bin", "ffmpeg")
-
 
 def copy(prev: str, new: str):
     """
@@ -267,7 +169,7 @@ def createDirectory(dir: str):
 
 
 def currentDirectory():
-    return cwd
+    return CWD
 
 
 def removeFile(file):
@@ -276,14 +178,6 @@ def removeFile(file):
     except Exception:
         print("Failed to remove file!")
 
-
-def checkIfDeps() -> bool:
-    """
-    Checks if python or ffmpeg is installed, and if not returns false.
-    """
-    if not os.path.isfile(ffmpegPath()) or not os.path.isfile(pythonPath()):
-        return False
-    return True
 
 
 def downloadFile(link, downloadLocation):
@@ -378,11 +272,6 @@ def getVideoFPS(video_path) -> float:
 
     return fps
 
-
-def getDefaultOutputVideo(outputPath):
-    pass
-
-
 def getVideoLength(video_path) -> int:
     cap = cv2.VideoCapture(video_path)
 
@@ -420,17 +309,14 @@ def extractTarGZ(file):
     dir_path = os.path.dirname(os.path.realpath(file))
     os.chdir(dir_path)
     printAndLog("Extracting: " + file)
-    tar = tarfile.open(file, "r:gz")
-    tar.extractall()
-    tar.close()
+    with tarfile.open(file, "r:gz") as f:
+        f.extractall()
     removeFile(file)
     os.chdir(origCWD)
 
 
 def get_gpu_info():
-    system = getPlatform()
-
-    if system == "win32":
+    if PLATFORM == "win32":
         try:
             output = subprocess.check_output(
                 "wmic path win32_VideoController get name", shell=True
@@ -439,7 +325,7 @@ def get_gpu_info():
         except Exception:
             return "Unable to retrieve GPU info on Windows"
 
-    elif system == "darwin":  # macOS
+    elif PLATFORM == "darwin":  # macOS
         try:
             output = subprocess.check_output(
                 "system_profiler SPDisplaysDataType | grep Vendor", shell=True
@@ -448,7 +334,7 @@ def get_gpu_info():
         except Exception:
             return "Unable to retrieve GPU info on macOS"
 
-    elif system == "linux":
+    elif PLATFORM == "linux":
         try:
             # Try lspci command first
             output = subprocess.check_output("lspci | grep -i vga", shell=True).decode()
@@ -503,7 +389,7 @@ def checkForWritePermissions(dir):
     """
 
     i = 2  # change this to 1 to debug flatpak
-    if "FLATPAK_ID" in os.environ or i == 1:
+    if IS_FLATPAK or i == 1:
         with open("/.flatpak-info", "r") as f:
             result = f.readlines()
 
@@ -518,9 +404,9 @@ def checkForWritePermissions(dir):
                 for j in s:
                     j = j.replace("filesystems=", "")
                     if j == "xdg-download":
-                        j = f"{homedir}/Downloads"
-                    j = j.replace("xdg-", f"{homedir}/")
-                    j = j.replace("~", f"{homedir}")
+                        j = f"{HOME_PATH}/Downloads"
+                    j = j.replace("xdg-", f"{HOME_PATH}/")
+                    j = j.replace("~", f"{HOME_PATH}")
                     directories_with_permissions.append(j)
         for i in directories_with_permissions:
             if dir[-1] != "/":
@@ -542,8 +428,8 @@ def checkForWritePermissions(dir):
                     for index in range(len(dir)):
                         if index != 0:
                             permissions_dir += f"{dir[index]}/"
-                    if homedir not in permissions_dir:
-                        dir = f"{homedir}/{permissions_dir}"
+                    if HOME_PATH not in permissions_dir:
+                        dir = f"{HOME_PATH}/{permissions_dir}"
                     else:
                         dir = f"/{permissions_dir}"
 
