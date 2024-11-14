@@ -1,7 +1,6 @@
 import os
 import re
-from .DownloadModels import DownloadModel
-from .ui.QTcustom import NetworkCheckPopup
+
 from .Util import customModelsPath, createDirectory, printAndLog
 
 """
@@ -318,24 +317,4 @@ totalModels = (
 )  # this doesnt include all models due to overwriting, but includes every case of every unique model name
 
 
-def downloadModelsBasedOnInstalledBackend(installed_backends: list):
-    if NetworkCheckPopup():
-        for backend in installed_backends:
-            match backend:
-                case "ncnn":
-                    for model in ncnnInterpolateModels:
-                        DownloadModel(model, ncnnInterpolateModels[model][1], "ncnn")
-                    for model in ncnnUpscaleModels:
-                        DownloadModel(model, ncnnUpscaleModels[model][1], "ncnn")
-                case "pytorch":  # no need for tensorrt as it uses pytorch models
-                    for model in pytorchInterpolateModels:
-                        DownloadModel(
-                            model, pytorchInterpolateModels[model][1], "pytorch"
-                        )
-                    for model in pytorchUpscaleModels:
-                        DownloadModel(model, pytorchUpscaleModels[model][1], "pytorch")
-        """case "directml":
-            for model in onnxInterpolateModels:
-                DownloadModel(model, onnxInterpolateModels[model][1], "onnx")
-            for model in onnxUpscaleModels:
-                DownloadModel(model, onnxUpscaleModels[model][1], "onnx")"""
+
