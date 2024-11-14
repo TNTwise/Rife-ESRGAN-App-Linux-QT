@@ -86,7 +86,9 @@ class FrameTimecode:
             self.framerate = timecode.framerate
             self.frame_num = timecode.frame_num
             if fps is not None:
-                raise TypeError("Framerate cannot be overwritten when copying a FrameTimecode.")
+                raise TypeError(
+                    "Framerate cannot be overwritten when copying a FrameTimecode."
+                )
         else:
             # Ensure other arguments are consistent with API.
             if fps is None:
@@ -221,12 +223,16 @@ class FrameTimecode:
         # Exact number of frames N
         if isinstance(timecode, int):
             if timecode < 0:
-                raise ValueError("Timecode frame number must be positive and greater than zero.")
+                raise ValueError(
+                    "Timecode frame number must be positive and greater than zero."
+                )
             return timecode
         # Number of seconds S
         elif isinstance(timecode, float):
             if timecode < 0.0:
-                raise ValueError("Timecode value must be positive and greater than zero.")
+                raise ValueError(
+                    "Timecode value must be positive and greater than zero."
+                )
             return self._seconds_to_frames(timecode)
         # FrameTimecode
         elif isinstance(timecode, FrameTimecode):
@@ -269,51 +275,67 @@ class FrameTimecode:
                 mins = int(values[0])
                 secs = float(values[1]) if "." in values[1] else int(values[1])
             if not (hrs >= 0 and mins >= 0 and secs >= 0 and mins < 60 and secs < 60):
-                raise ValueError("Invalid timecode range (values outside allowed range).")
+                raise ValueError(
+                    "Invalid timecode range (values outside allowed range)."
+                )
             secs += (hrs * 60 * 60) + (mins * 60)
             return self._seconds_to_frames(secs)
         # Try to parse the number as seconds in the format 1234.5 or 1234s
         if input.endswith("s"):
             input = input[:-1]
         if not input.replace(".", "").isdigit():
-            raise ValueError("All characters in timecode seconds string must be digits.")
+            raise ValueError(
+                "All characters in timecode seconds string must be digits."
+            )
         as_float = float(input)
         if as_float < 0.0:
             raise ValueError("Timecode seconds value must be positive.")
         return self._seconds_to_frames(as_float)
 
-    def __iadd__(self, other: Union[int, float, str, "FrameTimecode"]) -> "FrameTimecode":
+    def __iadd__(
+        self, other: Union[int, float, str, "FrameTimecode"]
+    ) -> "FrameTimecode":
         if isinstance(other, int):
             self.frame_num += other
         elif isinstance(other, FrameTimecode):
             if self.equal_framerate(other.framerate):
                 self.frame_num += other.frame_num
             else:
-                raise ValueError("FrameTimecode instances require equal framerate for addition.")
+                raise ValueError(
+                    "FrameTimecode instances require equal framerate for addition."
+                )
         # Check if value to add is in number of seconds.
         elif isinstance(other, float):
             self.frame_num += self._seconds_to_frames(other)
         elif isinstance(other, str):
             self.frame_num += self._parse_timecode_string(other)
         else:
-            raise TypeError("Unsupported type for performing addition with FrameTimecode.")
+            raise TypeError(
+                "Unsupported type for performing addition with FrameTimecode."
+            )
         if self.frame_num < 0:  # Required to allow adding negative seconds/frames.
             self.frame_num = 0
         return self
 
-    def __add__(self, other: Union[int, float, str, "FrameTimecode"]) -> "FrameTimecode":
+    def __add__(
+        self, other: Union[int, float, str, "FrameTimecode"]
+    ) -> "FrameTimecode":
         to_return = FrameTimecode(timecode=self)
         to_return += other
         return to_return
 
-    def __isub__(self, other: Union[int, float, str, "FrameTimecode"]) -> "FrameTimecode":
+    def __isub__(
+        self, other: Union[int, float, str, "FrameTimecode"]
+    ) -> "FrameTimecode":
         if isinstance(other, int):
             self.frame_num -= other
         elif isinstance(other, FrameTimecode):
             if self.equal_framerate(other.framerate):
                 self.frame_num -= other.frame_num
             else:
-                raise ValueError("FrameTimecode instances require equal framerate for subtraction.")
+                raise ValueError(
+                    "FrameTimecode instances require equal framerate for subtraction."
+                )
         # Check if value to add is in number of seconds.
         elif isinstance(other, float):
             self.frame_num -= self._seconds_to_frames(other)
@@ -321,13 +343,16 @@ class FrameTimecode:
             self.frame_num -= self._parse_timecode_string(other)
         else:
             raise TypeError(
-                "Unsupported type for performing subtraction with FrameTimecode: %s" % type(other)
+                "Unsupported type for performing subtraction with FrameTimecode: %s"
+                % type(other)
             )
         if self.frame_num < 0:
             self.frame_num = 0
         return self
 
-    def __sub__(self, other: Union[int, float, str, "FrameTimecode"]) -> "FrameTimecode":
+    def __sub__(
+        self, other: Union[int, float, str, "FrameTimecode"]
+    ) -> "FrameTimecode":
         to_return = FrameTimecode(timecode=self)
         to_return -= other
         return to_return
@@ -350,7 +375,8 @@ class FrameTimecode:
             return False
         else:
             raise TypeError(
-                "Unsupported type for performing == with FrameTimecode: %s" % type(other)
+                "Unsupported type for performing == with FrameTimecode: %s"
+                % type(other)
             )
 
     def __ne__(self, other: Union[int, float, str, "FrameTimecode"]) -> bool:
@@ -391,7 +417,8 @@ class FrameTimecode:
                 )
         else:
             raise TypeError(
-                "Unsupported type for performing <= with FrameTimecode: %s" % type(other)
+                "Unsupported type for performing <= with FrameTimecode: %s"
+                % type(other)
             )
 
     def __gt__(self, other: Union[int, float, str, "FrameTimecode"]) -> bool:
@@ -429,7 +456,8 @@ class FrameTimecode:
                 )
         else:
             raise TypeError(
-                "Unsupported type for performing >= with FrameTimecode: %s" % type(other)
+                "Unsupported type for performing >= with FrameTimecode: %s"
+                % type(other)
             )
 
     # TODO(v1.0): __int__ and __float__ should be removed. Mark as deprecated, and indicate
@@ -445,10 +473,16 @@ class FrameTimecode:
         return self.get_timecode()
 
     def __repr__(self) -> str:
-        return "%s [frame=%d, fps=%.3f]" % (self.get_timecode(), self.frame_num, self.framerate)
+        return "%s [frame=%d, fps=%.3f]" % (
+            self.get_timecode(),
+            self.frame_num,
+            self.framerate,
+        )
 
     def __hash__(self) -> int:
         return self.frame_num
+
+
 COLUMN_NAME_FRAME_NUMBER = "Frame Number"
 """Name of column containing frame numbers in the statsfile CSV."""
 
@@ -482,9 +516,11 @@ class StatsFileCorrupt(Exception):
     """Raised when frame metrics/stats could not be loaded from a provided CSV file."""
 
     def __init__(
-        self, message: str = "Could not load frame metric data data from passed CSV file."
+        self,
+        message: str = "Could not load frame metric data data from passed CSV file.",
     ):
         super().__init__(message)
+
 
 class StatsManager:
     """Provides a key-value store for frame metrics/calculations which can be used
@@ -511,7 +547,9 @@ class StatsManager:
         # of each frame metric key and the value it represents (usually float).
         self._frame_metrics: Dict[FrameTimecode, Dict[str, float]] = dict()
         self._metric_keys: Set[str] = set()
-        self._metrics_updated: bool = False  # Flag indicating if metrics require saving.
+        self._metrics_updated: bool = (
+            False  # Flag indicating if metrics require saving.
+        )
         self._base_timecode: Optional[FrameTimecode] = (
             base_timecode  # Used for timing calculations.
         )
@@ -539,7 +577,9 @@ class StatsManager:
             in the same order as the input list of metric keys. If a metric could
             not be found, None is returned for that particular metric.
         """
-        return [self._get_metric(frame_number, metric_key) for metric_key in metric_keys]
+        return [
+            self._get_metric(frame_number, metric_key) for metric_key in metric_keys
+        ]
 
     def set_metrics(self, frame_number: int, metric_kv_dict: Dict[str, Any]) -> None:
         """Set Metrics: Sets the provided statistics/metrics for a given frame.
@@ -558,7 +598,12 @@ class StatsManager:
         Returns:
             bool: True if the given metric keys exist for the frame, False otherwise.
         """
-        return all([self._metric_exists(frame_number, metric_key) for metric_key in metric_keys])
+        return all(
+            [
+                self._metric_exists(frame_number, metric_key)
+                for metric_key in metric_keys
+            ]
+        )
 
     def is_save_required(self) -> bool:
         """Is Save Required: Checks if the stats have been updated since loading.
@@ -602,7 +647,9 @@ class StatsManager:
 
         csv_writer = csv.writer(csv_file, lineterminator="\n")
         metric_keys = sorted(list(self._metric_keys))
-        csv_writer.writerow([COLUMN_NAME_FRAME_NUMBER, COLUMN_NAME_TIMECODE] + metric_keys)
+        csv_writer.writerow(
+            [COLUMN_NAME_FRAME_NUMBER, COLUMN_NAME_TIMECODE] + metric_keys
+        )
         frame_keys = sorted(self._frame_metrics.keys())
         print("Writing %d frames to CSV...", len(frame_keys))
         for frame_key in frame_keys:
@@ -687,7 +734,9 @@ class StatsManager:
         for row in csv_reader:
             metric_dict = {}
             if not len(row) == num_cols:
-                raise StatsFileCorrupt("Wrong number of columns detected in stats file row.")
+                raise StatsFileCorrupt(
+                    "Wrong number of columns detected in stats file row."
+                )
             frame_number = int(row[0])
             # Switch from 1-based to 0-based frame numbers.
             if frame_number > 0:
@@ -714,7 +763,9 @@ class StatsManager:
             return self._frame_metrics[frame_number][metric_key]
         return None
 
-    def _set_metric(self, frame_number: int, metric_key: str, metric_value: Any) -> None:
+    def _set_metric(
+        self, frame_number: int, metric_key: str, metric_value: Any
+    ) -> None:
         self._metrics_updated = True
         if frame_number not in self._frame_metrics:
             self._frame_metrics[frame_number] = dict()
@@ -722,8 +773,11 @@ class StatsManager:
 
     def _metric_exists(self, frame_number: int, metric_key: str) -> bool:
         return (
-            frame_number in self._frame_metrics and metric_key in self._frame_metrics[frame_number]
+            frame_number in self._frame_metrics
+            and metric_key in self._frame_metrics[frame_number]
         )
+
+
 class SceneDetector:
     """Base class to inherit from when implementing a scene detection algorithm.
 
@@ -860,9 +914,13 @@ class FlashFilter:
 
     def __init__(self, mode: Mode, length: int):
         self._mode = mode
-        self._filter_length = length  # Number of frames to use for activating the filter.
+        self._filter_length = (
+            length  # Number of frames to use for activating the filter.
+        )
         self._last_above = None  # Last frame above threshold.
-        self._merge_enabled = False  # Used to disable merging until at least one cut was found.
+        self._merge_enabled = (
+            False  # Used to disable merging until at least one cut was found.
+        )
         self._merge_triggered = False  # True when the merge filter is active.
         self._merge_start = None  # Frame number where we started the merge filter.
 
@@ -877,9 +935,13 @@ class FlashFilter:
         if self._last_above is None:
             self._last_above = frame_num
         if self._mode == FlashFilter.Mode.MERGE:
-            return self._filter_merge(frame_num=frame_num, above_threshold=above_threshold)
+            return self._filter_merge(
+                frame_num=frame_num, above_threshold=above_threshold
+            )
         elif self._mode == FlashFilter.Mode.SUPPRESS:
-            return self._filter_suppress(frame_num=frame_num, above_threshold=above_threshold)
+            return self._filter_suppress(
+                frame_num=frame_num, above_threshold=above_threshold
+            )
         raise RuntimeError("Unhandled FlashFilter mode.")
 
     def _filter_suppress(self, frame_num: int, above_threshold: bool) -> ty.List[int]:
@@ -899,7 +961,11 @@ class FlashFilter:
         if self._merge_triggered:
             # This frame was under the threshold, see if enough frames passed to disable the filter.
             num_merged_frames = self._last_above - self._merge_start
-            if min_length_met and not above_threshold and num_merged_frames >= self._filter_length:
+            if (
+                min_length_met
+                and not above_threshold
+                and num_merged_frames >= self._filter_length
+            ):
                 self._merge_triggered = False
                 return [self._last_above]
             # Keep merging until enough frames pass below the threshold.
@@ -917,6 +983,8 @@ class FlashFilter:
             self._merge_triggered = True
             self._merge_start = frame_num
         return []
+
+
 def _mean_pixel_distance(left: numpy.ndarray, right: numpy.ndarray) -> float:
     """Return the mean average distance in pixel values between `left` and `right`.
     Both `left and `right` should be 2 dimensional 8-bit images of the same shape.
@@ -924,7 +992,10 @@ def _mean_pixel_distance(left: numpy.ndarray, right: numpy.ndarray) -> float:
     assert len(left.shape) == 2 and len(right.shape) == 2
     assert left.shape == right.shape
     num_pixels: float = float(left.shape[0] * left.shape[1])
-    return numpy.sum(numpy.abs(left.astype(numpy.int32) - right.astype(numpy.int32))) / num_pixels
+    return (
+        numpy.sum(numpy.abs(left.astype(numpy.int32) - right.astype(numpy.int32)))
+        / num_pixels
+    )
 
 
 def _estimated_kernel_size(frame_width: int, frame_height: int) -> int:
@@ -1049,7 +1120,9 @@ class ContentDetector(SceneDetector):
         hue, sat, lum = cv2.split(cv2.cvtColor(frame_img, cv2.COLOR_BGR2HSV))
 
         # Performance: Only calculate edges if we have to.
-        calculate_edges: bool = (self._weights.delta_edges > 0.0) or self.stats_manager is not None
+        calculate_edges: bool = (
+            self._weights.delta_edges > 0.0
+        ) or self.stats_manager is not None
         edges = self._detect_edges(lum) if calculate_edges else None
 
         if self._last_frame is None:
@@ -1062,12 +1135,15 @@ class ContentDetector(SceneDetector):
             delta_sat=_mean_pixel_distance(sat, self._last_frame.sat),
             delta_lum=_mean_pixel_distance(lum, self._last_frame.lum),
             delta_edges=(
-                0.0 if edges is None else _mean_pixel_distance(edges, self._last_frame.edges)
+                0.0
+                if edges is None
+                else _mean_pixel_distance(edges, self._last_frame.edges)
             ),
         )
 
         frame_score: float = sum(
-            component * weight for (component, weight) in zip(score_components, self._weights)
+            component * weight
+            for (component, weight) in zip(score_components, self._weights)
         ) / sum(abs(weight) for weight in self._weights)
 
         # Record components and frame score if needed for analysis.
@@ -1097,7 +1173,9 @@ class ContentDetector(SceneDetector):
             return []
 
         above_threshold: bool = self._frame_score >= self._threshold
-        return self._flash_filter.filter(frame_num=frame_num, above_threshold=above_threshold)
+        return self._flash_filter.filter(
+            frame_num=frame_num, above_threshold=above_threshold
+        )
 
     def _detect_edges(self, lum: numpy.ndarray) -> numpy.ndarray:
         """Detect edges using the luma channel of a frame.
@@ -1221,7 +1299,9 @@ class AdaptiveDetector(ContentDetector):
         """Not required for AdaptiveDetector."""
         return False
 
-    def process_frame(self, frame_num: int, frame_img: Optional[np.ndarray]) -> List[int]:
+    def process_frame(
+        self, frame_num: int, frame_img: Optional[np.ndarray]
+    ) -> List[int]:
         """Process the next frame. `frame_num` is assumed to be sequential.
 
         Args:
@@ -1249,7 +1329,9 @@ class AdaptiveDetector(ContentDetector):
         self._buffer = self._buffer[-required_frames:]
         (target_frame, target_score) = self._buffer[self.window_width]
         average_window_score = sum(
-            score for i, (_frame, score) in enumerate(self._buffer) if i != self.window_width
+            score
+            for i, (_frame, score) in enumerate(self._buffer)
+            if i != self.window_width
         ) / (2.0 * self.window_width)
 
         average_is_zero = abs(average_window_score) < 0.00001
@@ -1261,12 +1343,15 @@ class AdaptiveDetector(ContentDetector):
             # if we would have divided by zero, set adaptive_ratio to the max (255.0)
             adaptive_ratio = 255.0
         if self.stats_manager is not None:
-            self.stats_manager.set_metrics(target_frame, {self._adaptive_ratio_key: adaptive_ratio})
+            self.stats_manager.set_metrics(
+                target_frame, {self._adaptive_ratio_key: adaptive_ratio}
+            )
 
         # Check to see if adaptive_ratio exceeds the adaptive_threshold as well as there
         # being a large enough content_val to trigger a cut
         threshold_met: bool = (
-            adaptive_ratio >= self.adaptive_threshold and target_score >= self.min_content_val
+            adaptive_ratio >= self.adaptive_threshold
+            and target_score >= self.min_content_val
         )
         min_length_met: bool = (frame_num - self._last_cut) >= self.min_scene_len
         if threshold_met and min_length_met:
@@ -1282,7 +1367,9 @@ class AdaptiveDetector(ContentDetector):
             " using a StatsManager with ContentDetector.FRAME_SCORE_KEY."
         )
         if self.stats_manager is not None:
-            return self.stats_manager.get_metrics(frame_num, [ContentDetector.FRAME_SCORE_KEY])[0]
+            return self.stats_manager.get_metrics(
+                frame_num, [ContentDetector.FRAME_SCORE_KEY]
+            )[0]
         return 0.0
 
     def post_process(self, _unused_frame_num: int):

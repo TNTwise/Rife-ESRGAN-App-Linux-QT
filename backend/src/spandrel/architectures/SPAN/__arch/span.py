@@ -287,7 +287,6 @@ class SPAN(nn.Module):
 
     @property
     def is_norm(self):
-        
         return self.no_norm is None
 
     def forward(self, x):

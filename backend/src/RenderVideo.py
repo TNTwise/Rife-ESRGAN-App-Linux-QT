@@ -8,7 +8,6 @@ from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log, removeFile
 
 
-
 class Render(FFMpegRender):
     """
     Subclass of FFmpegRender
@@ -232,6 +231,7 @@ class Render(FFMpegRender):
         printAndLog("Setting up Upscale")
         if self.backend == "pytorch" or self.backend == "tensorrt":
             from .pytorch.UpscaleTorch import UpscalePytorch
+
             upscalePytorch = UpscalePytorch(
                 self.upscaleModel,
                 device=self.device,
@@ -250,6 +250,7 @@ class Render(FFMpegRender):
 
         if self.backend == "ncnn":
             from .ncnn.UpscaleNCNN import UpscaleNCNN, getNCNNScale
+
             path, last_folder = os.path.split(self.upscaleModel)
 
             self.upscaleModel = os.path.join(path, last_folder, last_folder)
@@ -270,6 +271,7 @@ class Render(FFMpegRender):
             self.hotReload = upscaleNCNN.hotReload
         if self.backend == "directml":
             from .onnx.UpscaleONNX import UpscaleONNX
+
             upscaleONNX = UpscaleONNX(
                 modelPath=self.upscaleModel,
                 precision=self.precision,
@@ -299,6 +301,7 @@ class Render(FFMpegRender):
             self.scDetectFunc = lambda x: False
         if self.backend == "ncnn":
             from .ncnn.InterpolateNCNN import InterpolateRIFENCNN
+
             interpolateRifeNCNN = InterpolateRIFENCNN(
                 interpolateModelPath=self.interpolateModel,
                 width=self.width,
@@ -314,6 +317,7 @@ class Render(FFMpegRender):
 
         if self.backend == "pytorch" or self.backend == "tensorrt":
             from .pytorch.InterpolateTorch import InterpolateRifeTorch
+
             interpolateRifePytorch = InterpolateRifeTorch(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
