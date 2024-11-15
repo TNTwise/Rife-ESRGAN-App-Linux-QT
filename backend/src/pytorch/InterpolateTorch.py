@@ -99,7 +99,6 @@ class InterpolateRifeTorch:
         trt_optimization_level: int = 5,
         trt_cache_dir: str = None,
         trt_debug: bool = False,
-        rife_trt_mode: str = "accurate",
         trt_static_shape: bool = True,
     ):
         if device == "default":
@@ -137,7 +136,6 @@ class InterpolateRifeTorch:
         self.rife46 = False
         self.gmfss = False
         self.trt_debug = trt_debug  # too much output, i would like a progress bar tho
-        self.rife_trt_mode = rife_trt_mode
         self.trt_static_shape = trt_static_shape
 
         if UHDMode:

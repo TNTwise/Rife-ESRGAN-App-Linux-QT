@@ -188,7 +188,7 @@ class FFMPEGSceneDetect:
 
 class PySceneDetect:
     def __init__(self, threshold=2, min_scene_length=30):
-        self.detector = ContentDetector(threshold=threshold * 10, min_scene_len=1)
+        self.detector = ContentDetector(threshold=threshold * 10, min_scene_len=1) # has to be 1 to stay synced
         self.frameNum = 0
 
     def sceneDetect(self, frame: np.ndarray):

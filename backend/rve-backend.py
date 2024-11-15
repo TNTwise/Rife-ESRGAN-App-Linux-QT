@@ -42,7 +42,6 @@ class HandleApplication:
                 sceneDetectSensitivity=self.args.sceneDetectSensitivity,
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
-                rife_trt_mode=self.args.rife_trt_mode,
                 upscale_output_resolution=self.args.upscale_output_resolution,
             )
         else:
@@ -214,12 +213,6 @@ class HandleApplication:
             help="File to store paused state (True means paused, False means unpaused)",
             type=str,
             default=None,
-        )
-        parser.add_argument(
-            "--rife_trt_mode",
-            help="Rife TensorRT mode (accurate,fast, default=accurate)",
-            type=str,
-            default="accurate",
         )
         parser.add_argument(
             "--upscale_output_resolution",

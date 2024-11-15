@@ -58,7 +58,6 @@ class Render(FFMpegRender):
         sceneDetectSensitivity: float = 3.0,
         sharedMemoryID: str = None,
         trt_optimization_level: int = 3,
-        rife_trt_mode: str = "accurate",
         upscale_output_resolution: str = None,
     ):
         if pausedFile is None:
@@ -87,7 +86,6 @@ class Render(FFMpegRender):
         self.sceneDetectSensitivty = sceneDetectSensitivity
         self.sharedMemoryID = sharedMemoryID
         self.trt_optimization_level = trt_optimization_level
-        self.rife_trt_mode = rife_trt_mode
         self.uncacheNextFrame = False
         # get video properties early
         self.getVideoProperties(inputFile)
