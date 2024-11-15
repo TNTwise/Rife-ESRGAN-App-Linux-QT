@@ -145,21 +145,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.renderOutput.setText(printOut)
         printAndLog(printOut)
 
-        halfPrecisionSupport = re.search(
-            "half precision support: \s*(true|false)", self.fullOutput.lower()
-        )
-        if halfPrecisionSupport:
-            halfPrecisionSupport = halfPrecisionSupport.group(1) == "true"
-        else:
-            halfPrecisionSupport = False
-
-        gmfssSupport = re.search(
-            "gmfss support: \s*(true|false)", self.fullOutput.lower()
-        )
-        if gmfssSupport:
-            gmfssSupport = gmfssSupport.group(1) == "true"
-        else:
-            gmfssSupport = False
+        # process the output
+        for line in self.fullOutput.lower().split("\n"):
+            if "half precision support:" in line:
+                halfPrecisionSupport = "true" in line
+            if "gmfss support:" in line:
+                gmfssSupport = "true" in line
         settings = Settings()
         settings.readSettings()
         self.settings = settings
@@ -237,9 +228,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         videoHeight: int,
         outputDirectory: str,
     ):
-        print(
-            f"inputVideo: {inputVideo}\ninterpolationTimes: {interpolationTimes}\nupscaleTimes: {upscaleTimes}\nvideoFps: {videoFps}\nvideoWidth: {videoWidth}\nvideoHeight: {videoHeight}\noutputDirectory: {outputDirectory}"
-        )
         """
         Generates the default output file name based on the input file and the current settings
         """
@@ -300,7 +288,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 outputDirectory=outputDirectory,
             )
             self.outputFileText.setText(outputText)
-            print(outputText)
             return outputText
 
     def updateVideoGUIDetails(self):
