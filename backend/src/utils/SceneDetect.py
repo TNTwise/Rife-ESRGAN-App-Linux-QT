@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from collections import deque
+import sys
 from .Util import bytesToImg
 from .PySceneDetectUtils import ContentDetector
 
@@ -196,7 +197,8 @@ class PySceneDetect:
         self.frameNum += 1
         if len(frameList) > 0:
             if self.frameNum != frameList[0] + 1:
-                print("-------" + f"{self.frameNum}, {frameList[0]}")
+                print(f"Transition Mismatch {self.frameNum} is not equal to {frameList[0] + 1}, skipping", file=sys.stderr)
+                return False
 
         return len(frameList) > 0
 
