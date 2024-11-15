@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt, QSize
 from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler
-from .QTcustom import UpdateGUIThread, RegularQTPopup
+from .QTcustom import UpdateGUIThread, RegularQTPopup, show_layout_widgets, hide_layout_widgets
 from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PATH
 from ..Util import (
     currentDirectory,
@@ -124,7 +124,7 @@ class ProcessTab:
             self.parent.updateVideoGUIDetails
         )
         # connect up pausing
-        self.parent.pauseRenderButton.setVisible(False)
+        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.pauseRenderButton.clicked.connect(self.pauseRender)
 
     def killRenderProcess(self):
@@ -219,7 +219,7 @@ class ProcessTab:
         self.pausedFile = os.path.join(
             currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
         )
-        self.parent.pauseRenderButton.setVisible(
+        self.parent.onRenderButtonsContiainer.setVisible(
             True
         )  # switch to pause button on render
         self.parent.startRenderButton.setVisible(False)
@@ -262,15 +262,15 @@ class ProcessTab:
     def pauseRender(self):
         with open(self.pausedFile, "w") as f:
             f.write("True")
-        self.parent.pauseRenderButton.setVisible(False)
+        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
 
     def resumeRender(self):
         with open(self.pausedFile, "w") as f:
             f.write("False")
-        self.parent.pauseRenderButton.setVisible(True)
-        self.parent.pauseRenderButton.setEnabled(True)
+        show_layout_widgets(self.parent.onRenderButtonsContiainer)
+        self.parent.onRenderButtonsContiainer.setEnabled(True)
         self.parent.startRenderButton.setVisible(False)
 
     def startGUIUpdate(self):
@@ -388,7 +388,7 @@ class ProcessTab:
         self.renderProcess.wait()
         # done with render
         # Have to swap the visibility of these here otherwise crash for some reason
-        self.parent.pauseRenderButton.setVisible(False)
+        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
         if self.settings["discord_rich_presence"] == "True":  # only close if it exists
