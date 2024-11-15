@@ -172,7 +172,6 @@ class UpscalePytorch:
                         trt_engine_path=trt_engine_path,
                     )
 
-                printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
                 model = trtHandler.load_engine(trt_engine_path=trt_engine_path)
 
             self.model = model

@@ -377,11 +377,7 @@ class InterpolateRifeTorch:
 
                             if not os.path.isfile(encode_trt_engine_path):
                                 # build encode engine
-                                printAndLog(
-                                    "Building TensorRT engine {}".format(
-                                        encode_trt_engine_path
-                                    )
-                                )
+                               
                                 encodedExampleInputs = [
                                     torch.zeros(
                                         (1, 3, self.ph, self.pw),
@@ -397,15 +393,9 @@ class InterpolateRifeTorch:
                                     trt_engine_path=encode_trt_engine_path,
                                 )
 
-                            printAndLog(
-                                f"Loading TensorRT engine from {encode_trt_engine_path}"
-                            )
+                            
                             self.encode = trtHandler.load_engine(encode_trt_engine_path)
 
-                        # export flow engine
-                        printAndLog(
-                            "Building TensorRT engine {}".format(trt_engine_path)
-                        )
                         trtHandler.build_engine(
                             model=self.flownet,
                             dtype=self.dtype,
@@ -414,7 +404,6 @@ class InterpolateRifeTorch:
                             trt_engine_path=trt_engine_path,
                         )
 
-                    printAndLog(f"Loading TensorRT engine from {trt_engine_path}")
                     self.flownet = trtHandler.load_engine(trt_engine_path)
         self.prepareStream.synchronize()
 

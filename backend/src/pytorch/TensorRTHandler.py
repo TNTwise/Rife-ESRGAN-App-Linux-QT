@@ -105,7 +105,6 @@ class TorchTensorRTHandler:
     ):
         """Exports a model using TorchScript."""
 
-        # maybe try to load it onto CUDA, and clear pytorch cache after.
         model.to(device=device, dtype=dtype)
         module = torch.jit.trace(model, example_inputs)
         torch.cuda.empty_cache()
@@ -150,4 +149,5 @@ class TorchTensorRTHandler:
 
     def load_engine(self, trt_engine_path: str) -> torch.jit.ScriptModule:
         """Loads a TensorRT engine from the specified path."""
+        print(f"Loading TensorRT engine from {trt_engine_path}.")
         return torch.jit.load(trt_engine_path).eval()
