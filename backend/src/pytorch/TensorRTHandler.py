@@ -149,5 +149,5 @@ class TorchTensorRTHandler:
 
     def load_engine(self, trt_engine_path: str) -> torch.jit.ScriptModule:
         """Loads a TensorRT engine from the specified path."""
-        print(f"Loading TensorRT engine from {trt_engine_path}.")
+        print(f"Loading TensorRT engine from {trt_engine_path}.", file=sys.stderr)
         return torch.jit.load(trt_engine_path).eval()
