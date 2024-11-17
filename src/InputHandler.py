@@ -1,65 +1,63 @@
 import yt_dlp
 import validators
 import os
-from src.Util import (
-    checkValidVideo,
-    getVideoFPS,
-    getVideoRes,
-    getVideoLength,
-    getVideoFrameCount,
-    getVideoEncoder,
-    getVideoBitrate,
-)
-
+import cv2
 
 class VideoLoader:
+
     def __init__(self, inputFile):
         self.inputFile = inputFile
+        if self.checkValidVideo():
+            self.capture = cv2.VideoCapture(inputFile, cv2.CAP_FFMPEG)
 
-    def getDataFromLocalVideo(self):
-        if checkValidVideo(self.inputFile):
-            self.isVideoLoaded = True
-            # gets width and height from the res
-            self.videoWidth, self.videoHeight = getVideoRes(self.inputFile)
-            # get fps
-            self.videoFps = getVideoFPS(self.inputFile)
-            # get video length
-            self.videoLength = getVideoLength(self.inputFile)
-            # get video frame count
-            self.videoFrameCount = getVideoFrameCount(self.inputFile)
-            # get video encoder
-            self.videoEncoder = getVideoEncoder(self.inputFile)
-            # get video bitrate
-            self.videoBitrate = getVideoBitrate(self.inputFile)
-            # get video codec
-            self.videoCodec = getVideoEncoder(self.inputFile)
-            self.videoContainer = os.path.splitext(self.inputFile)[1]
+    def checkValidVideo(self):
+        cap = cv2.VideoCapture(self.inputFile, cv2.CAP_FFMPEG)
+        if not cap.isOpened():
+            print(f"Error: Couldn't open the video file '{self.inputFile}'")
+            return False
+        ret, frame = cap.read()
+        cap.release()
+        return True
 
-    def getDataFromYoutubeVideo(self):
-        ydl_opts = {"format": "bestvideo+bestaudio/best"}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(self.inputFile, download=False)
-        self.videoContainer = info_dict["ext"]
-        self.inputFile = info_dict["title"] + self.videoContainer
-        self.videoWidth = info_dict["width"]
-        self.videoHeight = info_dict["height"]
-        self.videoFps = info_dict["fps"]
-        self.videoEncoder = info_dict["vcodec"]
-        self.videoBitrate = info_dict["vbr"]
-        self.videoFrameCount = int(info_dict["duration"] * info_dict["fps"])
+    def getVideoContainer(self):
+        return os.path.splitext(self.inputFile)[1]
+    
+    def getVideoRes(self) -> list[int, int]:
+        width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        resolution = [width, height]
+        return resolution
 
-    def getData(self):
-        return (
-            self.videoWidth,
-            self.videoHeight,
-            self.videoFps,
-            self.videoLength,
-            self.videoFrameCount,
-            self.videoEncoder,
-            self.videoBitrate,
-            self.videoContainer,
+    def getVideoBitrate(self) -> int:
+        bitrate = int(self.capture.get(cv2.CAP_PROP_BITRATE))
+        return bitrate
+
+
+    def getVideoEncoder(self):
+        codec = int(self.capture.get(cv2.CAP_PROP_FOURCC))
+        codec_str = (
+            chr(codec & 0xFF)
+            + chr((codec >> 8) & 0xFF)
+            + chr((codec >> 16) & 0xFF)
+            + chr((codec >> 24) & 0xFF)
         )
+        return codec_str
+    
+    def getVideoFPS(self) -> float:
+        return self.capture.get(cv2.CAP_PROP_FPS)
+    
+    def getVideoLength(self) -> int:
+        total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = self.capture.get(cv2.CAP_PROP_FPS)
+        duration = total_frames / fps
+        return duration
+    
+    def getVideoFrameCount(self) -> int:
+        total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        return total_frames
 
+    def releaseCapture(self):
+        self.capture.release()  
 
 class VideoInputHandler(VideoLoader):
     def __init__(self, inputText):
@@ -70,8 +68,6 @@ class VideoInputHandler(VideoLoader):
         url = self.inputText
         return validators.url(url) and "youtube.com" in url or "youtu.be" in url
 
-    def isValidVideoFile(self):
-        return checkValidVideo(self.inputText)
 
     def isValidYoutubeLink(self):
         ydl_opts = {

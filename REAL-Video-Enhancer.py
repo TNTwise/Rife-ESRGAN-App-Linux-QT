@@ -6,7 +6,6 @@ if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     # this goes one step up, and goes into the actual directory. This is where backend will be copied to.
     os.chdir("..")
-import re
 import math
 from PySide6.QtWidgets import (
     QApplication,
@@ -19,7 +18,7 @@ from src.Util import printAndLog
 from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
-from src.InputHandler import VideoInputHandler
+from src.InputHandler import VideoLoader
 
 # other imports
 from src.Util import (
@@ -368,25 +367,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processSettingsContainer.setEnabled(True)
 
     def loadVideo(self, inputFile):
-        videoHandler = VideoInputHandler(inputText=inputFile)
-        if videoHandler.isYoutubeLink() and videoHandler.isValidYoutubeLink():
-            videoHandler.getDataFromYoutubeVideo()
-        elif videoHandler.isValidVideoFile():
-            videoHandler.getDataFromLocalVideo()
-        else:
+        videoHandler = VideoLoader(inputFile)
+        if not videoHandler.checkValidVideo():
             RegularQTPopup("Not a valid input!")
             return
-        (
-            self.videoWidth,
-            self.videoHeight,
-            self.videoFps,
-            self.videoLength,
-            self.videoFrameCount,
-            self.videoEncoder,
-            self.videoBitrate,
-            self.videoContainer,
-        ) = videoHandler.getData()
-
+        self.videoWidth, self.videoHeight = videoHandler.getVideoRes()
+        self.videoFps = videoHandler.getVideoFPS()
+        self.videoLength = videoHandler.getVideoLength()
+        self.videoFrameCount = videoHandler.getVideoFrameCount()
+        self.videoEncoder = videoHandler.getVideoEncoder()
+        self.videoBitrate = videoHandler.getVideoBitrate()
+        self.videoContainer = videoHandler.getVideoContainer()
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
         self.outputFileSelectButton.setEnabled(True)
