@@ -282,17 +282,21 @@ onnxUpscaleModels = {
         "SPAN",
     ),
 }
+def getCustomModelScale(model):
+    pattern = r"\d+x|x+\d"
+    matches = re.findall(pattern, model)
+    if len(matches) > 0:
+        upscaleFactor = int(matches[0].replace("x", ""))  
+        return upscaleFactor
+    return None
 # detect custom models
 createDirectory(CUSTOM_MODELS_PATH)
 customPytorchUpscaleModels = {}
 customNCNNUpscaleModels = {}
 for model in os.listdir(CUSTOM_MODELS_PATH):
-    pattern = r"\d+x|x+\d"
-    matches = re.findall(pattern, model)
-    if len(matches) > 0:
-        upscaleFactor = int(
-            matches[0].replace("x", "")
-        )  # get the integer value of the upscale factor
+
+    upscaleFactor = getCustomModelScale(model)
+    if upscaleFactor:
         model_path = os.path.join(CUSTOM_MODELS_PATH, model)
         if os.path.exists(model_path):
             if not os.path.isfile(model_path):
@@ -303,6 +307,7 @@ for model in os.listdir(CUSTOM_MODELS_PATH):
         printAndLog(
             f"Custom model {model} does not have a valid upscale factor in the name, example: 2x or x2. Skipping import..."
         )
+    
 pytorchUpscaleModels = pytorchUpscaleModels | customPytorchUpscaleModels
 tensorrtUpscaleModels = tensorrtUpscaleModels | customPytorchUpscaleModels
 ncnnUpscaleModels = ncnnUpscaleModels | customNCNNUpscaleModels

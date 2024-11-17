@@ -19,6 +19,7 @@ from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
 from src.InputHandler import VideoLoader
+from src.ModelHandler import getCustomModelScale
 
 # other imports
 from src.Util import (
@@ -425,16 +426,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 dir=self.homeDir,
                 filter=fileFilter,
             )
-            outputModelPath = os.path.join(
-                CUSTOM_MODELS_PATH, os.path.basename(modelFile)
-            )
-            copyFile(modelFile, CUSTOM_MODELS_PATH)
-            if os.path.isfile(outputModelPath):
-                RegularQTPopup(
-                    "Model imported successfully!\nPlease restart the app for the changes to take effect."
+            if getCustomModelScale(os.path.basename(modelFile)):
+                outputModelPath = os.path.join(
+                    CUSTOM_MODELS_PATH, os.path.basename(modelFile)
                 )
+                copyFile(modelFile, CUSTOM_MODELS_PATH)
+                if os.path.isfile(outputModelPath):
+                    RegularQTPopup(
+                        "Model imported successfully!\nPlease restart the app for the changes to take effect."
+                    )
+                else:
+                    RegularQTPopup("Failed to import model!\nPlease try again.")
             else:
-                RegularQTPopup("Failed to import model!\nPlease try again.")
+                RegularQTPopup(
+                    "Custom model does not have a valid\nupscale factor in the name.\nExample: 2x or x2. Skipping import..."
+                )
 
         elif format == "ncnn":
             binFileFilter = "NCNN Bin (*.bin)"
@@ -444,37 +450,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 dir=self.homeDir,
                 filter=binFileFilter,
             )
-            if modelBinFile == "":
-                RegularQTPopup("Please select a bin file!")
-                return
-            modelParamFile, _ = QFileDialog.getOpenFileName(
-                parent=self,
-                caption="Select NCNN Param",
-                dir=os.path.dirname(modelBinFile),
-                filter=os.path.basename(modelBinFile).replace(".bin", ".param"),
-            )
-            if modelParamFile == "":
-                RegularQTPopup("Please select a param file!")
-                return
-            outputModelFolder = os.path.join(
-                CUSTOM_MODELS_PATH, os.path.basename(modelBinFile).replace(".bin", "")
-            )
-            createDirectory(outputModelFolder)
-            outputBinPath = os.path.join(
-                outputModelFolder, os.path.basename(modelBinFile)
-            )
-            copyFile(modelBinFile, outputModelFolder)
-            outputParamPath = os.path.join(
-                outputModelFolder, os.path.basename(modelParamFile)
-            )
-            copyFile(modelParamFile, outputModelFolder)
-
-            if os.path.isfile(outputBinPath) and os.path.isfile(outputParamPath):
-                RegularQTPopup(
-                    "Model imported successfully!\nPlease restart the app for the changes to take effect."
+            if getCustomModelScale(os.path.basename(modelFile)):
+                if modelBinFile == "":
+                    RegularQTPopup("Please select a bin file!")
+                    return
+                modelParamFile, _ = QFileDialog.getOpenFileName(
+                    parent=self,
+                    caption="Select NCNN Param",
+                    dir=os.path.dirname(modelBinFile),
+                    filter=os.path.basename(modelBinFile).replace(".bin", ".param"),
                 )
+                if modelParamFile == "":
+                    RegularQTPopup("Please select a param file!")
+                    return
+                outputModelFolder = os.path.join(
+                    CUSTOM_MODELS_PATH, os.path.basename(modelBinFile).replace(".bin", "")
+                )
+                createDirectory(outputModelFolder)
+                outputBinPath = os.path.join(
+                    outputModelFolder, os.path.basename(modelBinFile)
+                )
+                copyFile(modelBinFile, outputModelFolder)
+                outputParamPath = os.path.join(
+                    outputModelFolder, os.path.basename(modelParamFile)
+                )
+                copyFile(modelParamFile, outputModelFolder)
+
+                if os.path.isfile(outputBinPath) and os.path.isfile(outputParamPath):
+                    RegularQTPopup(
+                        "Model imported successfully!\nPlease restart the app for the changes to take effect."
+                    )
+                else:
+                    RegularQTPopup("Failed to import model!\nPlease try again.")
             else:
-                RegularQTPopup("Failed to import model!\nPlease try again.")
+                RegularQTPopup(
+                    "Custom model does not have a valid\nupscale factor in the name.\nExample: 2x or x2. Skipping import..."
+                )
 
     # output file button
     def openOutputFolder(self):

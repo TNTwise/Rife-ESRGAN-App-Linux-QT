@@ -717,7 +717,7 @@ class RegularQTPopup(QtWidgets.QDialog):
     def __init__(self, message):
         super().__init__()
         self.setWindowTitle("REAL Video Enhancer")
-        self.setFixedSize(300, 100)
+        self.setFixedSize(400, 100)
         layout = QtWidgets.QVBoxLayout()
         label = QtWidgets.QLabel(message)
         layout.addWidget(label)
