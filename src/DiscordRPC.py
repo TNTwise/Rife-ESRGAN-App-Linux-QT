@@ -55,7 +55,7 @@ class DiscordRPC:
                         details=f"Backend: {backend}",
                         large_image="logo-v2",
                     )
-                except exceptions.DiscordNotFound:
+                except Exception:
                     pass
 
         # The presence will stay on as long as the program is running

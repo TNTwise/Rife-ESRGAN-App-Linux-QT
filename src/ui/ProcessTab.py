@@ -126,6 +126,7 @@ class ProcessTab:
         # connect up pausing
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.pauseRenderButton.clicked.connect(self.pauseRender)
+        self.parent.killRenderButton.clicked.connect(self.killRenderProcess)
 
     def killRenderProcess(self):
         try:  # kills  render process if necessary
@@ -219,9 +220,7 @@ class ProcessTab:
         self.pausedFile = os.path.join(
             currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
         )
-        self.parent.onRenderButtonsContiainer.setVisible(
-            True
-        )  # switch to pause button on render
+        show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
@@ -239,10 +238,13 @@ class ProcessTab:
 
         # discord rpc
         if self.settings["discord_rich_presence"] == "True":
-            self.discordRPC = DiscordRPC()
-            self.discordRPC.start_discordRPC(
-                method, os.path.basename(self.inputFile), backend
-            )
+            try:
+                self.discordRPC = DiscordRPC()
+                self.discordRPC.start_discordRPC(
+                    method, os.path.basename(self.inputFile), backend
+                )
+            except Exception:
+                pass
         if self.modelArch != "custom":  # custom models are not downloaded
             DownloadModel(
                 modelFile=self.modelFile,
@@ -385,16 +387,29 @@ class ProcessTab:
             if "Time to complete render" in line:
                 break
         log(str(textOutput))
+        self.onRenderCompletion()
+
+    def onRenderCompletion(self):
         self.renderProcess.wait()
-        # done with render
         # Have to swap the visibility of these here otherwise crash for some reason
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
         if self.settings["discord_rich_presence"] == "True":  # only close if it exists
             self.discordRPC.closeRPC()
+        try:
+            self.workerThread.stop()
+            self.workerThread.quit()
+            self.workerThread.wait()
+        except Exception:
+            pass  # pass just incase internet error caused a skip
+        # reset image preview
+        self.parent.previewLabel.clear()
+        self.parent.startRenderButton.clicked.disconnect()
 
-        self.parent.onRenderCompletion()
+        self.parent.startRenderButton.clicked.connect(self.parent.startRender)
+
+        self.parent.enableProcessPage()
 
     def getRoundedPixmap(self, pixmap, corner_radius):
         size = pixmap.size()
