@@ -398,28 +398,31 @@ class FFMpegRender:
         self.startTime = time.time()
         self.framesRendered: int = 1
         self.last_length: int = 0
-        with open(FFMPEG_LOG_FILE, "w") as f:
-            with subprocess.Popen(
-                self.getFFmpegWriteCommand(),
-                stdin=subprocess.PIPE,
-                stderr=f,
-                stdout=f,
-                text=True,
-                universal_newlines=True,
-            ) as self.writeProcess:
-                while True:
-                    frame = self.writeQueue.get()
-                    if frame is None:
-                        break
-                    self.previewFrame = frame
-                    # self.mpv_process.stdin.buffer.write(frame)
-                    self.writeProcess.stdin.buffer.write(frame)
-                    self.framesRendered += 1
+        try:
+            with open(FFMPEG_LOG_FILE, "w") as f:
+                with subprocess.Popen(
+                    self.getFFmpegWriteCommand(),
+                    stdin=subprocess.PIPE,
+                    stderr=f,
+                    stdout=f,
+                    text=True,
+                    universal_newlines=True,
+                ) as self.writeProcess:
+                    while True:
+                        frame = self.writeQueue.get()
+                        if frame is None:
+                            break
+                        self.previewFrame = frame
+                        
+                        self.writeProcess.stdin.buffer.write(frame)
+                        self.framesRendered += 1
 
-                self.writeProcess.stdin.close()
-                self.writeProcess.wait()
+                    self.writeProcess.stdin.close()
+                    self.writeProcess.wait()
 
-                renderTime = time.time() - self.startTime
-                self.writingDone = True
+                    renderTime = time.time() - self.startTime
+                    self.writingDone = True
 
-                printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
+                    printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
+        except Exception as e:
+            print(f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos.")
