@@ -989,12 +989,27 @@ QTabWidget::pane { /* The tab widget frame */
                             <widget class="QComboBox" name="tileSizeComboBox">
                              <item>
                               <property name="text">
+                               <string>512</string>
+                              </property>
+                             </item>
+                             <item>
+                              <property name="text">
+                               <string>384</string>
+                              </property>
+                             </item>
+                             <item>
+                              <property name="text">
                                <string>256</string>
                               </property>
                              </item>
                              <item>
                               <property name="text">
                                <string>128</string>
+                              </property>
+                             </item>
+                             <item>
+                              <property name="text">
+                               <string>64</string>
                               </property>
                              </item>
                             </widget>
@@ -1586,8 +1601,8 @@ QTabWidget::pane { /* The tab widget frame */
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>729</width>
-                   <height>682</height>
+                   <width>506</width>
+                   <height>357</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
