@@ -378,6 +378,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.videoEncoder = videoHandler.getVideoEncoder()
         self.videoBitrate = videoHandler.getVideoBitrate()
         self.videoContainer = videoHandler.getVideoContainer()
+        videoHandler.releaseCapture()
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
         self.outputFileSelectButton.setEnabled(True)
