@@ -7,17 +7,10 @@ class VideoLoader:
 
     def __init__(self, inputFile):
         self.inputFile = inputFile
-        if self.checkValidVideo():
-            self.capture = cv2.VideoCapture(inputFile, cv2.CAP_FFMPEG)
+        self.capture = cv2.VideoCapture(inputFile, cv2.CAP_FFMPEG)
 
     def checkValidVideo(self):
-        cap = cv2.VideoCapture(self.inputFile, cv2.CAP_FFMPEG)
-        if not cap.isOpened():
-            print(f"Error: Couldn't open the video file '{self.inputFile}'")
-            return False
-        ret, frame = cap.read()
-        cap.release()
-        return True
+        return self.capture.isOpened()
 
     def getVideoContainer(self):
         return os.path.splitext(self.inputFile)[1]
