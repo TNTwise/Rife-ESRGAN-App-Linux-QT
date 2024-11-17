@@ -2,6 +2,7 @@
 # RVE 2.1.5
 ### Added
  - Stopping render, instead of having to kill the entire app.
+ - More tiling options.
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials (thanks zeptofine!) 
  - Make GUI more compact
