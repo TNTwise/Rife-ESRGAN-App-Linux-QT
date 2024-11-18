@@ -3,11 +3,17 @@ import validators
 import os
 import cv2
 
+def isYoutubeVideo(url):
+    return validators.url(url) and "youtube.com" in url or "youtu.be" in url
+
+
 class VideoLoader:
 
     def __init__(self, inputFile):
         self.inputFile = inputFile
-        self.capture = cv2.VideoCapture(inputFile, cv2.CAP_FFMPEG)
+
+    def loadVideo(self):
+        self.capture = cv2.VideoCapture(self.inputFile, cv2.CAP_FFMPEG)
 
     def checkValidVideo(self):
         return self.capture.isOpened()
@@ -49,34 +55,75 @@ class VideoLoader:
         total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
         return total_frames
 
+    def getVideoTitle(self)-> str:
+        return self.inputFile
+
+
     def releaseCapture(self):
         self.capture.release()  
 
-class VideoInputHandler(VideoLoader):
-    def __init__(self, inputText):
-        self.inputText = inputText
-        super().__init__(inputText)
+class YouTubeVideoLoader:
 
-    def isYoutubeLink(self):
-        url = self.inputText
-        return validators.url(url) and "youtube.com" in url or "youtu.be" in url
+    def __init__(self, inputLink):
+        self.inputFile = inputLink
+        
+    def loadVideo(self):
+        self.infoDict = self.getInfoDict()
+    
+    def getStreams(self):
+        return [item['format'] for item in self.infoDict['formats']] # this gets the available streams based on resolution
 
-
-    def isValidYoutubeLink(self):
+    def getInfoDict(self):
         ydl_opts = {
             "quiet": True,  # Suppress output
             "noplaylist": True,  # Only check single video, not playlists
         }
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
                 # Extract info about the video
-                info_dict = ydl.extract_info(self.inputText, download=False)
+                info_dict = ydl.extract_info(self.inputFile, download=False)
                 # Check if there are available formats
                 if info_dict.get("formats"):
-                    return True  # Video is downloadable
+                    return info_dict  # Video is downloadable
                 else:
                     return False  # No formats available
             except Exception as e:
                 print(f"Error occurred: {e}")
                 return False
+
+
+    def checkValidVideo(self):
+        return self.infoDict is not False # info dict will be false if no formats are available
+
+    def getVideoContainer(self):
+        return self.infoDict['ext']
+    
+    def getVideoRes(self) -> list[int, int]:
+        width = self.infoDict['width']
+        height = self.infoDict['height']
+        resolution = [width, height]
+        return resolution
+
+    def getVideoBitrate(self) -> int:
+        return self.infoDict['vbr']
+
+
+    def getVideoEncoder(self):
+        return self.infoDict['vcodec']
+    
+    def getVideoFPS(self) -> float:
+        return self.infoDict['fps']
+    
+    def getVideoLength(self) -> int:
+        
+        return self.infoDict['duration']
+    
+    def getVideoFrameCount(self) -> int:
+        
+        return self.infoDict['fps'] * self.infoDict['duration']
+
+    def getVideoTitle(self):
+        return self.infoDict['title']
+
+    def releaseCapture(self):
+        return

@@ -18,7 +18,7 @@ from src.Util import printAndLog
 from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
-from src.InputHandler import VideoLoader
+from src.InputHandler import VideoLoader, YouTubeVideoLoader, isYoutubeVideo
 from src.ModelHandler import getCustomModelScale
 
 # other imports
@@ -355,10 +355,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processSettingsContainer.setEnabled(True)
 
     def loadVideo(self, inputFile):
-        videoHandler = VideoLoader(inputFile)
-        if not videoHandler.checkValidVideo():
-            RegularQTPopup("Not a valid input!")
-            return
+        videoHandler = None
+        if isYoutubeVideo(inputFile):
+            videoHandler = YouTubeVideoLoader(inputFile)
+        elif videoHandler is None: # has to be set up like this or qt freaks out?
+            videoHandler = VideoLoader(inputFile)
+            if not videoHandler.checkValidVideo(): # this handles case for invalid youtube link and invalid video file
+                RegularQTPopup("Not a valid input!")
+                return
+        videoHandler.loadVideo()
         self.videoWidth, self.videoHeight = videoHandler.getVideoRes()
         self.videoFps = videoHandler.getVideoFPS()
         self.videoLength = videoHandler.getVideoLength()
