@@ -217,7 +217,7 @@ class UpscalePytorch:
         return model
 
     @torch.inference_mode()
-    def bytesToFrame(self, frame):
+    def frame_to_tensor(self, frame):
         with torch.cuda.stream(self.prepareStream):
             output = (
                 torch.frombuffer(frame, dtype=torch.uint8)
@@ -231,17 +231,12 @@ class UpscalePytorch:
         return output
 
     @torch.inference_mode()
-    def renderImage(self, image: torch.Tensor) -> torch.Tensor:
-        upscaledImage = self.model(image)
-        return upscaledImage
-
-    @torch.inference_mode()
-    def renderToNPArray(self, image: torch.Tensor) -> torch.Tensor:
+    def process(self, image: torch.Tensor) -> torch.Tensor:
         with torch.cuda.stream(self.stream):
             while self.model is None:
                 sleep(1)
             if self.tilesize == 0:
-                output = self.renderImage(image)
+                output = self.model(image)
             else:
                 output = self.renderTiledImage(image)
             output = (

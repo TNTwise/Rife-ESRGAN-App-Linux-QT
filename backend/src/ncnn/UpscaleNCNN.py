@@ -154,8 +154,11 @@ class UpscaleNCNN:
         frame = frame.transpose(1, 2, 0) * 255
         frame = self.ClampNPArray(frame)
         return np.ascontiguousarray(frame, dtype=np.uint8)
+    
+    def frame_to_tensor(self, frame: np.array) -> np.array:
+        return frame
 
-    def Upscale(self, imageChunk):
+    def process(self, imageChunk):
         while self.net is None:
             sleep(1)
         if method == "ncnn_vulkan":
