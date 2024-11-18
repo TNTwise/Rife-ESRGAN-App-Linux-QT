@@ -25,6 +25,7 @@ from ..ModelHandler import (
     ncnnUpscaleModels,
     pytorchInterpolateModels,
     pytorchUpscaleModels,
+    pytorchDenoiseModels,
     tensorrtInterpolateModels,
     tensorrtUpscaleModels,
     onnxUpscaleModels,
@@ -89,6 +90,22 @@ class ProcessTab:
                     )
                     errorAndLog("Failed to import any backends!")
                     models = None
+        if method == "Denoise":
+            match backend:
+                case "ncnn":
+                    models = None
+                case "pytorch":
+                    models = pytorchDenoiseModels
+                case "tensorrt":
+                    models = None
+                case "directml":
+                    models = None
+                case _:
+                    RegularQTPopup(
+                        "Failed to import any backends!, please try to reinstall the app!"
+                    )
+                    errorAndLog("Failed to import any backends!")
+                    models = None
         return models
 
     def onTilingSwitch(self):
@@ -144,7 +161,10 @@ class ProcessTab:
         method = self.parent.methodComboBox.currentText()
         backend = self.parent.backendComboBox.currentText()
         models = self.getTotalModels(method=method, backend=backend)
-
+        if backend != "pytorch":
+            self.parent.methodComboBox.removeItem(2)
+        else:
+            self.parent.methodComboBox.addItem("Denoise")
         self.parent.modelComboBox.addItems(models)
         total_items = self.parent.modelComboBox.count()
         if total_items > 0 and method.lower() == "interpolate":
@@ -164,7 +184,7 @@ class ProcessTab:
                         self.parent.modelComboBox.model().item(i).setEnabled(
                             self.gmfssSupport
                         )
-        elif method.lower() == "upscale":
+        elif method.lower() == "upscale" or method.lower() == "denoise":
             self.parent.interpolationContainer.setVisible(False)
             self.parent.upscaleContainer.setVisible(True)
             
@@ -318,7 +338,7 @@ class ProcessTab:
             "--pausedFile",
             f"{self.pausedFile}",
         ]
-        if method == "Upscale":
+        if method == "Upscale" or method == "Denoise":
             modelPath = os.path.join(MODELS_PATH, self.modelFile)
             if self.modelArch == "custom":
                 modelPath = os.path.join(CUSTOM_MODELS_PATH, self.modelFile)
