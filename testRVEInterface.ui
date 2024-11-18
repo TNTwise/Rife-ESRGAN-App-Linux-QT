@@ -688,6 +688,11 @@ QTabWidget::pane { /* The tab widget frame */
                             <string>Upscale</string>
                            </property>
                           </item>
+                          <item>
+                           <property name="text">
+                            <string>Denoise</string>
+                           </property>
+                          </item>
                          </widget>
                         </item>
                        </layout>

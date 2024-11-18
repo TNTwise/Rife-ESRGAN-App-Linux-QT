@@ -220,6 +220,14 @@ pytorchUpscaleModels = {
         "Compact",
     ),
 }
+pytorchDenoiseModels = {
+    "SCUNet Color (1x) (Slow)": (
+        "scunet_color_real_psnr.pth",
+        "scunet_color_real_psnr.pth",
+        1,
+        "scunet",
+    )
+}
 """
     "Sudo Shuffle SPAN (Animation) (2X) (Fast)": (
         "2xSudoShuffleSPAN.pth",
@@ -316,6 +324,7 @@ totalModels = (
     | onnxUpscaleModels
     | pytorchInterpolateModels
     | pytorchUpscaleModels
+    | pytorchDenoiseModels
     | ncnnInterpolateModels
     | ncnnUpscaleModels
     | tensorrtInterpolateModels

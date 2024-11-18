@@ -1,5 +1,5 @@
 import os
-
+__version__ = "2.1.5"
 IS_FLATPAK = "FLATPAK_ID" in os.environ
 
 if IS_FLATPAK:

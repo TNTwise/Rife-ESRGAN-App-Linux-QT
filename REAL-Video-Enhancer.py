@@ -270,6 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Returns:
         None
         """
+        
         # check if there is a video loaded
         if self.isVideoLoaded:
             inputFile = self.inputFileText.text()
@@ -296,14 +297,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateVideoGUIText()
 
     def getScale(self, method, modelName):
-        if method == "Upscale":
+        if method == "Upscale" or method == "Denoise":
             scale = totalModels[modelName][2]
         elif method == "Interpolate":
             scale = 1
         return scale
 
     def getInterpolateTimes(self, method, modelName):
-        if method == "Upscale":
+        if method == "Upscale" or method == "Denoise":
             interpolateTimes = 1
         elif method == "Interpolate":
             interpolateTimes = self.interpolationMultiplierSpinBox.value()

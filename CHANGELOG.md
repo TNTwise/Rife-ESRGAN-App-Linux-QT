@@ -4,6 +4,7 @@
  - Stopping render, instead of having to kill the entire app.
  - More tiling options.
  - Better checks on imported models.
+ - Denoise for pytorch backend
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials (thanks zeptofine!) 
  - Make GUI more compact
