@@ -18,7 +18,7 @@ from src.Util import printAndLog
 from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
-from src.InputHandler import VideoLoader, YouTubeVideoLoader, isYoutubeVideo
+from src.InputHandler import VideoLoader
 from src.ModelHandler import getCustomModelScale
 
 # other imports
@@ -253,10 +253,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateTimes = self.getInterpolateTimes(method, modelName)
             scale = self.getScale(method, modelName)
 
-            if isYoutubeVideo(inputFile):
-                file_name = self.videoTitle
-            else:
-                file_name = os.path.splitext(os.path.basename(inputFile))[0]
+            
+            file_name = os.path.splitext(os.path.basename(inputFile))[0]
             output_file = os.path.join(
                 outputDirectory,
                 f"{file_name}_{interpolateTimes*self.videoFps}fps_{scale*self.videoWidth}x{scale*self.videoHeight}.mkv",
@@ -293,15 +291,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def startRender(self):
         if self.isVideoLoaded:
             if checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
-                if isYoutubeVideo(self.inputFileText.text()):
-                    v =Thread(target=self.videoHandler.downloadVideo)
-                    a = Thread(target=self.videoHandler.downloadAudio)
-                    v.start()
-                    a.start()
-                    q = RegularQTPopup("Downloading video from YouTube...")
-                    v.join()
-                    a.join()
-                    q.close()
                 self.startRenderButton.setEnabled(False)
                 method = self.methodComboBox.currentText()
                 self.progressBar.setRange(
@@ -344,26 +333,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processSettingsContainer.setEnabled(True)
 
     def loadVideo(self, inputFile):
-        self.videoHandler = None
-        if isYoutubeVideo(inputFile):
-            self.videoHandler = YouTubeVideoLoader(inputFile)
-            self.videoHandler.loadVideo()
-        elif self.videoHandler is None: # has to be set up like this or qt freaks out?
-            self.videoHandler = VideoLoader(inputFile)
-            self.videoHandler.loadVideo()
-            if not self.videoHandler.checkValidVideo(): # this handles case for invalid youtube link and invalid video file
-                RegularQTPopup("Not a valid input!")
-                return
         
-        self.videoWidth, self.videoHeight = self.videoHandler.getVideoRes()
-        self.videoFps = self.videoHandler.getVideoFPS()
-        self.videoLength = self.videoHandler.getVideoLength()
-        self.videoFrameCount = self.videoHandler.getVideoFrameCount()
-        self.videoEncoder = self.videoHandler.getVideoEncoder()
-        self.videoBitrate = self.videoHandler.getVideoBitrate()
-        self.videoContainer = self.videoHandler.getVideoContainer()
-        self.videoTitle = self.videoHandler.getVideoTitle()
-        self.videoHandler.releaseCapture()
+        videoHandler = VideoLoader(inputFile)
+        videoHandler.loadVideo()
+        if not videoHandler.isValidVideo(): # this handles case for invalid youtube link and invalid video file
+            RegularQTPopup("Not a valid input!")
+            return
+        videoHandler.getData()
+        self.videoWidth = videoHandler.width
+        self.videoHeight = videoHandler.height
+        self.videoFps = videoHandler.fps
+        self.videoLength = videoHandler.duration
+        self.videoFrameCount = videoHandler.total_frames
+        self.videoEncoder = videoHandler.codec_str
+        self.videoBitrate = videoHandler.bitrate
+        self.videoContainer = videoHandler.videoContainer
         
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
