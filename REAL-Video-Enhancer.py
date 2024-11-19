@@ -218,32 +218,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setButtonsUnchecked(self.downloadBtn)
         self.animationHandler.fadeInAnimation(self.stackedWidget)
 
-    def generateDefaultOutputFile(
-        self,
-        inputVideo: str,
-        interpolationTimes: int,
-        upscaleTimes: int,
-        videoFps: float,
-        videoWidth: int,
-        videoHeight: int,
-        outputDirectory: str,
-    ):
-        """
-        Generates the default output file name based on the input file and the current settings
-        """
-        file_name = os.path.splitext(os.path.basename(inputVideo))[0]
-        self.output_file = os.path.join(
-            outputDirectory,
-            f"{file_name}_{interpolationTimes*videoFps}fps_{upscaleTimes*videoWidth}x{upscaleTimes*videoHeight}.mkv",
-        )
-        iteration = 0
-        while os.path.isfile(self.output_file):
-            self.output_file = os.path.join(
-                outputDirectory,
-                f"{file_name}_{interpolationTimes*videoFps}fps_{upscaleTimes*videoWidth}x{upscaleTimes*videoHeight}_({iteration}).mkv",
-            )
-            iteration += 1
-        return self.output_file
 
     def updateVideoGUIText(self):
         if self.isVideoLoaded:
@@ -279,17 +253,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateTimes = self.getInterpolateTimes(method, modelName)
             scale = self.getScale(method, modelName)
 
-            outputText = self.generateDefaultOutputFile(
-                inputFile,
-                interpolateTimes,
-                int(scale),
-                round(self.videoFps, 0),
-                int(self.videoWidth),
-                int(self.videoHeight),
-                outputDirectory=outputDirectory,
+            if isYoutubeVideo(inputFile):
+                file_name = self.videoTitle
+            else:
+                file_name = os.path.splitext(os.path.basename(inputFile))[0]
+            output_file = os.path.join(
+                outputDirectory,
+                f"{file_name}_{interpolateTimes*self.videoFps}fps_{scale*self.videoWidth}x{scale*self.videoHeight}.mkv",
             )
-            self.outputFileText.setText(outputText)
-            return outputText
+            iteration = 0
+            while os.path.isfile(output_file):
+                output_file = os.path.join(
+                    outputDirectory,
+                    f"{file_name}_{interpolateTimes*self.videoFps}fps_{scale*self.videoWidth}x{scale*self.videoHeight}_({iteration}).mkv",
+                )
+                iteration += 1
+            self.outputFileText.setText(output_file)
+            return output_file
 
     def updateVideoGUIDetails(self):
         self.settings.readSettings()
@@ -371,6 +351,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.videoEncoder = videoHandler.getVideoEncoder()
         self.videoBitrate = videoHandler.getVideoBitrate()
         self.videoContainer = videoHandler.getVideoContainer()
+        self.videoTitle = videoHandler.getVideoTitle()
         videoHandler.releaseCapture()
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
