@@ -127,3 +127,20 @@ class YouTubeVideoLoader:
 
     def releaseCapture(self):
         return
+
+    def downloadVideo(self):
+        ydl_opts = {
+            "quiet": True,  # Suppress output
+            "noplaylist": True,  # Only check single video, not playlists
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([self.inputFile])
+
+    def downloadAudio(self):
+        ydl_opts = {
+            "quiet": True,  # Suppress output
+            "noplaylist": True,  # Only check single video, not playlists
+            "format": "bestaudio"
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([self.inputFile])

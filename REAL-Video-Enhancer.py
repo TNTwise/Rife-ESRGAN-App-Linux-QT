@@ -1,6 +1,6 @@
 import sys
 import os
-
+from threading import Thread
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -293,6 +293,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def startRender(self):
         if self.isVideoLoaded:
             if checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
+                if isYoutubeVideo(self.inputFileText.text()):
+                    v =Thread(target=self.videoHandler.downloadVideo)
+                    a = Thread(target=self.videoHandler.downloadAudio)
+                    v.start()
+                    a.start()
+                    q = RegularQTPopup("Downloading video from YouTube...")
+                    v.join()
+                    a.join()
+                    q.close()
                 self.startRenderButton.setEnabled(False)
                 method = self.methodComboBox.currentText()
                 self.progressBar.setRange(
@@ -335,24 +344,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processSettingsContainer.setEnabled(True)
 
     def loadVideo(self, inputFile):
-        videoHandler = None
+        self.videoHandler = None
         if isYoutubeVideo(inputFile):
-            videoHandler = YouTubeVideoLoader(inputFile)
-        elif videoHandler is None: # has to be set up like this or qt freaks out?
-            videoHandler = VideoLoader(inputFile)
-            if not videoHandler.checkValidVideo(): # this handles case for invalid youtube link and invalid video file
+            self.videoHandler = YouTubeVideoLoader(inputFile)
+            self.videoHandler.loadVideo()
+        elif self.videoHandler is None: # has to be set up like this or qt freaks out?
+            self.videoHandler = VideoLoader(inputFile)
+            self.videoHandler.loadVideo()
+            if not self.videoHandler.checkValidVideo(): # this handles case for invalid youtube link and invalid video file
                 RegularQTPopup("Not a valid input!")
                 return
-        videoHandler.loadVideo()
-        self.videoWidth, self.videoHeight = videoHandler.getVideoRes()
-        self.videoFps = videoHandler.getVideoFPS()
-        self.videoLength = videoHandler.getVideoLength()
-        self.videoFrameCount = videoHandler.getVideoFrameCount()
-        self.videoEncoder = videoHandler.getVideoEncoder()
-        self.videoBitrate = videoHandler.getVideoBitrate()
-        self.videoContainer = videoHandler.getVideoContainer()
-        self.videoTitle = videoHandler.getVideoTitle()
-        videoHandler.releaseCapture()
+        
+        self.videoWidth, self.videoHeight = self.videoHandler.getVideoRes()
+        self.videoFps = self.videoHandler.getVideoFPS()
+        self.videoLength = self.videoHandler.getVideoLength()
+        self.videoFrameCount = self.videoHandler.getVideoFrameCount()
+        self.videoEncoder = self.videoHandler.getVideoEncoder()
+        self.videoBitrate = self.videoHandler.getVideoBitrate()
+        self.videoContainer = self.videoHandler.getVideoContainer()
+        self.videoTitle = self.videoHandler.getVideoTitle()
+        self.videoHandler.releaseCapture()
+        
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
         self.outputFileSelectButton.setEnabled(True)
