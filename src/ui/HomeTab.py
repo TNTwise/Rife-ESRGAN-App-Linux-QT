@@ -12,7 +12,7 @@ class HomeTab:
         releaseTags = [release['tag_name'] for release in releases]
         releaseBodies = [release['body'].replace(r"\r\n","") for release in releases]   
         for releaseTag, releaseBody in zip(releaseTags, releaseBodies):
-            changeLog += '\n'+'='*20 + '\n'  + releaseTag + '\n' 
+            changeLog += '\n# '+releaseTag 
             changeLog +=   '\n' +releaseBody
         return changeLog
 
@@ -24,4 +24,4 @@ class HomeTab:
         if networkCheck("https://api.github.com/repos/tntwise/real-video-enhancer/releases"):
             self.parent.changeLogText.setVisible(True)
             changelog = self.getChangelog()
-            self.parent.changeLogText.setText(changelog)
+            self.parent.changeLogText.setMarkdown(changelog)
