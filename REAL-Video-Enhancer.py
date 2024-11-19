@@ -37,6 +37,7 @@ from src.constants import CUSTOM_MODELS_PATH
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
 from src.ui.SettingsTab import SettingsTab, Settings
+from src.ui.HomeTab import HomeTab
 from src.Backendhandler import BackendHandler
 from src.ModelHandler import totalModels
 from src.ui.AnimationHandler import AnimationHandler
@@ -158,7 +159,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             parent=self,
             gmfssSupport=gmfssSupport,
         )
-
+        self.homeTab = HomeTab(parent=self)
         self.downloadTab = DownloadTab(parent=self, installed_backends=self.backends)
         self.settingsTab = SettingsTab(
             parent=self, halfPrecisionSupport=halfPrecisionSupport
@@ -175,10 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settingsBtn.clicked.connect(self.switchToSettingsPage)
         self.downloadBtn.clicked.connect(self.switchToDownloadPage)
         # connect getting default output file
-        self.githubBtn.clicked.connect(
-            lambda: openLink("https://github.com/tntwise/REAL-Video-Enhancer")
-        )
-        self.kofiBtn.clicked.connect(lambda: openLink("https://ko-fi.com/tntwise"))
+        
 
     def setButtonsUnchecked(self, buttonToIgnore):
         buttons = [
