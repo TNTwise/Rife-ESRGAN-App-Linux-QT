@@ -5,6 +5,7 @@
  - More tiling options.
  - Better checks on imported models.
  - Denoise for pytorch backend
+ - Subtitle passthrough
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials (thanks zeptofine!) 
  - Make GUI more compact
