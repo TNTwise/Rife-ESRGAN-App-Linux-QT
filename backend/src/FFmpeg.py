@@ -250,12 +250,17 @@ class FFMpegRender:
                 "-",
                 "-i",
                 f"{self.inputFile}",
+                "-map", "0:v",                   # Map video stream from input 0
+                "-map", "1:a?",                  # Map all audio streams from input 1
+                "-map", "1:s?",                  # Map all subtitle streams from input 1 
                 "-crf",
                 f"{self.crf}",
                 "-pix_fmt",
                 self.pixelFormat,
                 "-c:a",
                 "copy",
+                "-c:s", 
+                "copy", 
                 "-loglevel",
                 "error",
             ]
