@@ -1,7 +1,7 @@
 import os
 from .constants import BACKEND_PATH, PYTHON_PATH, PLATFORM, IS_INSTALLED, IS_FLATPAK
 from .Util import (
-    printAndLog,
+    log,
 )
 from .version import version
 
@@ -86,7 +86,7 @@ class BackendHandler:
             if not len(self.availableBackends) == 0:
                 return self.availableBackends, self.fullOutput
         except SyntaxError as e:
-            printAndLog(str(e))
+            log(str(e))
         if not firstIter:
             RegularQTPopup("Please install at least 1 backend!")
         downloadDependencies = DownloadDependencies()

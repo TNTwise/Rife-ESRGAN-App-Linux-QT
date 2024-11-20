@@ -1,6 +1,6 @@
 from .constants import PLATFORM, PYTHON_PATH, FFMPEG_PATH, BACKEND_PATH, TEMP_DOWNLOAD_PATH, CWD
 from .Util import (
-    printAndLog,
+    log,
     createDirectory,
     makeExecutable,
     move,
@@ -70,16 +70,16 @@ class DownloadDependencies:
             backend_url = "https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/backend-v2.1.0.tar.gz"
             main_zip = os.path.join(CWD, "backend.tar.gz")
 
-            printAndLog("Downloading backend")
+            log("Downloading backend")
             downloadFile(link=backend_url, downloadLocation=main_zip)
-            printAndLog("Extracting backend")
+            log("Extracting backend")
             extractTarGZ(main_zip)
 
     def downloadVCREDLIST(self):
         vcTempPath = os.path.join(CWD, "bin", "VC_redist.x64.exe")
         link = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 
-        printAndLog(
+        log(
             "Downloading VC_redlist.x64.exe\nClick yes after download is complete."
         )
         DownloadProgressPopup(
@@ -114,7 +114,7 @@ class DownloadDependencies:
                 else:
                     link += "x86_64-apple-darwin-install_only.tar.gz"
         # probably can add macos support later
-        printAndLog("Downloading Python")
+        log("Downloading Python")
         DownloadProgressPopup(
             link=link, downloadLocation=pyDir, title="Downloading Python"
         )
@@ -136,7 +136,7 @@ class DownloadDependencies:
                 link += "ffmpeg.exe"
             case "darwin":
                 link += "ffmpeg-macos-bin"
-        printAndLog("Downloading FFMpeg")
+        log("Downloading FFMpeg")
         DownloadProgressPopup(
             link=link, downloadLocation=ffmpegTempPath, title="Downloading FFMpeg"
         )
@@ -170,8 +170,8 @@ class DownloadDependencies:
         command += deps
         # totalDeps = self.get_total_dependencies(deps)
         totalDeps = len(deps)
-        printAndLog("Downloading Deps: " + str(command))
-        printAndLog("Total Dependencies: " + str(totalDeps))
+        log("Downloading Deps: " + str(command))
+        log("Total Dependencies: " + str(totalDeps))
 
         DisplayCommandOutputPopup(
             command=command,

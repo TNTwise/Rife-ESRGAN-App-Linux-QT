@@ -13,7 +13,7 @@ from .QTcustom import UpdateGUIThread, RegularQTPopup, show_layout_widgets, hide
 from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PATH
 from ..Util import (
     currentDirectory,
-    printAndLog,
+    log,
     log,
     errorAndLog,
 )
@@ -56,7 +56,7 @@ class ProcessTab:
         returns
         the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
         """
-        printAndLog("Getting total models, method: " + method + " backend: " + backend)
+        log("Getting total models, method: " + method + " backend: " + backend)
         if method == "Interpolate":
             match backend:
                 case "ncnn":
@@ -149,7 +149,7 @@ class ProcessTab:
         try:  # kills  render process if necessary
             self.renderProcess.terminate()
         except AttributeError:
-            printAndLog("No render process!")
+            log("No render process!")
 
     def switchInterpolationAndUpscale(self):
         """

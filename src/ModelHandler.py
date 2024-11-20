@@ -1,7 +1,7 @@
 import os
 import re
 
-from .Util import createDirectory, printAndLog
+from .Util import createDirectory, log
 from .constants import CUSTOM_MODELS_PATH
 
 """
@@ -312,7 +312,7 @@ for model in os.listdir(CUSTOM_MODELS_PATH):
         if model.endswith(".pth"):
             customPytorchUpscaleModels[model] = (model, model, upscaleFactor, "custom")
     else:
-        printAndLog(
+        log(
             f"Custom model {model} does not have a valid upscale factor in the name, example: 2x or x2. Skipping import..."
         )
     

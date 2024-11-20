@@ -55,7 +55,7 @@ from PySide6.QtWidgets import (
 )
 
 from .QTstyle import styleSheet
-from ..Util import printAndLog, networkCheck
+from ..Util import log, networkCheck
 from ..Backendhandler import BackendHandler
 
 def hide_layout_widgets(layout):
@@ -139,7 +139,7 @@ class UpdateGUIThread(QThread):
             self.shm.close()
             print("Closed Read Memory")
         except AttributeError as e:
-            printAndLog("No read memory", str(e))  # type: ignore
+            log("No read memory", str(e))  # type: ignore
 
 
 # custom threads
@@ -161,7 +161,7 @@ class DownloadAndReportToQTThread(QThread):
             self.link,
             stream=True,
         )
-        printAndLog("Downloading: " + self.link)
+        log("Downloading: " + self.link)
         if "Content-Length" in response.headers:
             totalByteSize = int(response.headers["Content-Length"])
 
@@ -204,7 +204,7 @@ class SubprocessThread(QThread):
         for line in iter(self.process.stdout.readline, ""):
             totalOutput += line
             self.output.emit(line.strip())
-            printAndLog(line.strip())
+            log(line.strip())
         self.fullOutput.emit(totalOutput)
         self.process.stdout.close()
         return_code = self.process.wait()
