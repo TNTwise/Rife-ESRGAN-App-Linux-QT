@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from PySide6.QtGui import QIcon
-from src.Util import printAndLog
+from src.Util import log
 from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             + self.fullOutput
         )
         self.renderOutput.setText(printOut)
-        printAndLog(printOut)
+        log(printOut)
 
         # process the output
         for line in self.fullOutput.lower().split("\n"):
