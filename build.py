@@ -7,6 +7,13 @@ import sys
 import shutil
 
 import urllib.request
+linux_and_mac_py_ver = "python3.10"
+def checkIfExeExists(exe):
+    path = shutil.which(exe)
+    return path is not None
+
+def getPlatform():
+    return sys.platform
 
 
 def python_path():
@@ -14,24 +21,32 @@ def python_path():
         "venv\\Scripts\\python.exe" if getPlatform() == "win32" else "venv/bin/python3"
     )
 
+python_version = (
+    linux_and_mac_py_ver
+    if getPlatform() != "win32" and checkIfExeExists(linux_and_mac_py_ver)
+    else "python3"
+)
+
+def get_site_packages():
+    command = [
+        python_path(),
+        '-c',
+        'import site; print("\\n".join(site.getsitepackages()))'
+    ]
+    result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
+    site_packages = result.stdout.strip()
+    return site_packages
+
 
 def download_file(url, destination):
     print(f"Downloading file from {url}")
     urllib.request.urlretrieve(url, destination)
     print("File downloaded successfully")
 
-
-# Rest of the code...
-
-
-def getPlatform():
-    return sys.platform
-
-
 def build_gui():
     print("Building GUI")
     if getPlatform() == "darwin" or getPlatform() == "linux":
-        os.system("pyside6-uic -g python testRVEInterface.ui > mainwindow.py")
+        os.system(f"{get_site_packages()}/PySide6/Qt/libexec/uic -g python testRVEInterface.ui > mainwindow.py")
     if getPlatform() == "win32":
         os.system(
             r".\venv\Lib\site-packages\PySide6\uic.exe -g python testRVEInterface.ui > mainwindow.py"
@@ -55,7 +70,7 @@ def install_pip_in_venv():
 def build_resources():
     print("Building resources.rc")
     if getPlatform() == "darwin" or getPlatform() == "linux":
-        os.system("pyside6-rcc -g python resources.qrc > resources_rc.py")
+        os.system(f"{get_site_packages()}/PySide6/Qt/libexec/rcc -g python resources.qrc > resources_rc.py")
     if getPlatform() == "win32":
         os.system(
             r".\venv\Lib\site-packages\PySide6\rcc.exe -g python resources.qrc > resources_rc.py"
@@ -120,20 +135,11 @@ def clean():
     os.remove("get-pip.py")
 
 
-def checkIfExeExists(exe):
-    path = shutil.which(exe)
-    return path is not None
 
 
-linux_and_mac_py_ver = "python3.10"
-python_version = (
-    linux_and_mac_py_ver
-    if getPlatform() != "win32" and checkIfExeExists(linux_and_mac_py_ver)
-    else "python3"
-)
+
 if len(sys.argv) > 1:
     if sys.argv[1] == "--create_venv" or sys.argv[1] == "--build_exe":
-        install_pip()
         create_venv(python_version=python_version)
         install_pip_in_venv()
         install_requirements_in_venv()
