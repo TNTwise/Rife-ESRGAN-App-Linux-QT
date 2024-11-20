@@ -2702,7 +2702,7 @@ QScrollBar:horizontal{
                     <property name="geometry">
                      <rect>
                       <x>0</x>
-                      <y>0</y>
+                      <y>-74</y>
                       <width>757</width>
                       <height>332</height>
                      </rect>
@@ -2722,7 +2722,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2751,7 +2751,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2793,7 +2793,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2822,7 +2822,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2864,7 +2864,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2893,7 +2893,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2935,7 +2935,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -2964,7 +2964,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -3006,7 +3006,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -3035,7 +3035,7 @@ QScrollBar:horizontal{
                           <property name="maximumSize">
                            <size>
                             <width>50</width>
-                            <height>16777215</height>
+                            <height>45</height>
                            </size>
                           </property>
                           <property name="text">
@@ -3163,7 +3163,7 @@ QScrollBar:horizontal{
                       <property name="maximumSize">
                        <size>
                         <width>50</width>
-                        <height>16777215</height>
+                        <height>45</height>
                        </size>
                       </property>
                       <property name="text">
@@ -3205,7 +3205,7 @@ QScrollBar:horizontal{
                       <property name="maximumSize">
                        <size>
                         <width>50</width>
-                        <height>16777215</height>
+                        <height>45</height>
                        </size>
                       </property>
                       <property name="text">
