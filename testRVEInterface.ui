@@ -140,94 +140,161 @@ background-color:#2c313c;
 border-radius: 10px;
 padding:5px 10px;
 }
-</string>
+
+QScrollBar::handle:vertical {
+            background: #fff;
+			color: black;
+            min-height: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background: gray;
+        }
+
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            border: none;
+            background: transparent;
+            width: 0px;
+            height: 0px;
+        }
+
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+            border: none;
+            background: none;
+        }
+
+        /* Horizontal scrollbar */
+        QScrollBar:horizontal {
+            border: 1px solid #bbb;
+            background: #f0f0f0;
+            height: 12px;
+            margin: 0px, 0px, 0px, 0px;
+        }
+
+        QScrollBar::handle:horizontal {
+            background: #4285f4;
+            min-width: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:horizontal:hover {
+            background: #0c66c2;
+        }
+
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            border: none;
+            background: #f0f0f0;
+            height: 0px;
+            width: 0px;
+        }
+
+        QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+            border: none;
+            background: none;
+        }
+
+QScrollBar:vertical{
+		background:#2c313c; /*change background here*/
+		color:transparent;
+}
+QScrollBar:horizontal{
+		background:#2c313c; /*change background here*/
+		color:transparent;
+}</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_2">
               <item row="3" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_28">
                 <item>
-                 <spacer name="horizontalSpacer_14">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>Support Me!</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="kofiBtn">
-                  <property name="maximumSize">
-                   <size>
-                    <width>55</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Support Me!</string>
-                  </property>
-                  <property name="statusTip">
-                   <string>&quot;Support Me!&quot;</string>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="resources.qrc">
-                    <normaloff>:/icons/icons/coffee.svg</normaloff>:/icons/icons/coffee.svg</iconset>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>35</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="checkable">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_16">
-                  <property name="text">
-                   <string>GitHub Page</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="githubBtn">
-                  <property name="maximumSize">
-                   <size>
-                    <width>55</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset resource="resources.qrc">
-                    <normaloff>:/icons/icons/github.svg</normaloff>:/icons/icons/github.svg</iconset>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>35</width>
-                    <height>35</height>
-                   </size>
-                  </property>
-                  <property name="checkable">
-                   <bool>false</bool>
-                  </property>
+                 <widget class="QWidget" name="widget_11" native="true">
+                  <layout class="QHBoxLayout" name="horizontalLayout_29">
+                   <item>
+                    <spacer name="horizontalSpacer_14">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>466</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_13">
+                     <property name="text">
+                      <string>Support Me!</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="kofiBtn">
+                     <property name="maximumSize">
+                      <size>
+                       <width>55</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="toolTip">
+                      <string>Support Me!</string>
+                     </property>
+                     <property name="statusTip">
+                      <string>&quot;Support Me!&quot;</string>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="resources.qrc">
+                       <normaloff>:/icons/icons/coffee.svg</normaloff>:/icons/icons/coffee.svg</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>35</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="checkable">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_16">
+                     <property name="text">
+                      <string>GitHub Page</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="githubBtn">
+                     <property name="maximumSize">
+                      <size>
+                       <width>55</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="resources.qrc">
+                       <normaloff>:/icons/icons/github.svg</normaloff>:/icons/icons/github.svg</iconset>
+                     </property>
+                     <property name="iconSize">
+                      <size>
+                       <width>35</width>
+                       <height>35</height>
+                      </size>
+                     </property>
+                     <property name="checkable">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </widget>
                 </item>
                </layout>
@@ -274,6 +341,16 @@ padding:5px 10px;
                <widget class="QTextEdit" name="changeLogText">
                 <property name="readOnly">
                  <bool>true</bool>
+                </property>
+                <property name="html">
+                 <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>
@@ -445,7 +522,68 @@ QTabWidget::pane { /* The tab widget frame */
 
             QTabBar::tab:only-one {
                 margin: 0; /* if there is only one tab, it should not overlap */
-            }</string>
+            }
+QScrollBar::handle:vertical {
+            background: #fff;
+			color: black;
+            min-height: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background: gray;
+        }
+
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            border: none;
+            background: transparent;
+            width: 0px;
+            height: 0px;
+        }
+
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+            border: none;
+            background: none;
+        }
+
+        /* Horizontal scrollbar */
+        QScrollBar:horizontal {
+            border: 1px solid #bbb;
+            background: #f0f0f0;
+            height: 12px;
+            margin: 0px, 0px, 0px, 0px;
+        }
+
+        QScrollBar::handle:horizontal {
+            background: #4285f4;
+            min-width: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:horizontal:hover {
+            background: #0c66c2;
+        }
+
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            border: none;
+            background: #f0f0f0;
+            height: 0px;
+            width: 0px;
+        }
+
+        QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+            border: none;
+            background: none;
+        }
+
+QScrollBar:vertical{
+		background:#2c313c; /*change background here*/
+		color:transparent;
+}
+QScrollBar:horizontal{
+		background:#2c313c; /*change background here*/
+		color:transparent;
+}</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
               <item row="0" column="0">
@@ -1473,6 +1611,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
 background-color:#16191d
 
 }
+QScrollArea{
+	background:transparent;
+}
 QLineEdit{
 background-color:#2c313c;
 border-radius: 10px;
@@ -1625,8 +1766,8 @@ QTabWidget::pane { /* The tab widget frame */
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>729</width>
-                   <height>682</height>
+                   <width>787</width>
+                   <height>622</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -2425,6 +2566,9 @@ QTabWidget::pane { /* The tab widget frame */
 background-color:#16191d
 
 }
+QScrollArea{
+	background:transparent;
+}
 QCheckBox{
 color:white;
 
@@ -2462,7 +2606,63 @@ color:white;
 background-color:white;
 }
 
-</string>
+QScrollBar::handle:vertical {
+            background: #fff;
+			color: black;
+            min-height: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background: gray;
+        }
+
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            border: none;
+            background: transparent;
+            width: 0px;
+            height: 0px;
+        }
+
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+            border: none;
+            background: none;
+        }
+
+        /* Horizontal scrollbar */
+
+
+        QScrollBar::handle:horizontal {
+            background: #fff;
+			color: black;
+            min-height: 30px;
+            border-radius: 6px;
+        }
+
+        QScrollBar::handle:horizontal:hover {
+            background: gray;
+        }
+
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            border: none;
+            background: transparent;
+            width: 0px;
+            height: 0px;
+        }
+
+        QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+            border: none;
+            background: none;
+        }
+
+QScrollBar:vertical{
+		background:#16191d; /*change background here*/
+		color:transparent;
+}
+QScrollBar:horizontal{
+		background:#16191d; /*change background here*/
+		color:transparent;
+}</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
               <item row="0" column="0">
@@ -2492,6 +2692,9 @@ background-color:white;
                  </item>
                  <item>
                   <widget class="QScrollArea" name="scrollArea_2">
+                   <property name="styleSheet">
+                    <string notr="true"/>
+                   </property>
                    <property name="widgetResizable">
                     <bool>true</bool>
                    </property>
