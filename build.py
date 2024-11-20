@@ -77,7 +77,7 @@ def build_resources():
         )
 
 
-def create_venv(python_version="python3.11"):
+def create_venv():
     print("Creating virtual environment")
     command = [python_version, "-m", "venv", "venv"]
     subprocess.run(command)
@@ -135,16 +135,22 @@ def clean():
     os.remove("get-pip.py")
 
 
-
+def build_venv():
+    create_venv()
+    install_pip_in_venv()
+    install_requirements_in_venv()
 
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "--create_venv" or sys.argv[1] == "--build_exe":
-        create_venv(python_version=python_version)
-        install_pip_in_venv()
-        install_requirements_in_venv()
+        build_venv()
+
+if not os.path.exists("venv"):
+    build_venv()
+
 build_gui()
 build_resources()
+
 if len(sys.argv) > 1:
     if sys.argv[1] == "--build_exe":
         build_executable()
