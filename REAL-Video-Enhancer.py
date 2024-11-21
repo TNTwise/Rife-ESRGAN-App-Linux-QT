@@ -143,7 +143,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             + f"REAL Video Enhancer Version: {version}\n"
             + self.fullOutput
         )
-        self.renderOutput.setText(printOut)
+        self.systemInfoText.setText(printOut)
         log(printOut)
 
         # process the output
