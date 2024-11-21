@@ -5,6 +5,7 @@ from src.RenderVideo import Render
 
 from src.utils.Util import (
     checkForPytorchCUDA,
+    checkForPytorchROCM,
     checkForNCNN,
     checkForTensorRT,
     check_bfloat16_support,
@@ -69,11 +70,15 @@ class HandleApplication:
             if checkForPytorchCUDA():
                 import torch
 
-                availableBackends.append("pytorch")
+                availableBackends.append("pytorch (cuda)")
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
                 gmfss_supp = checkForGMFSS()
-
+            if checkForPytorchROCM():
+                availableBackends.append("pytorch (rocm)")
+                import torch
+                printMSG += f"PyTorch Version: {torch.__version__}\n"
+                half_prec_supp = check_bfloat16_support()
             if checkForNCNN():
                 availableBackends.append("ncnn")
                 printMSG += f"NCNN Version: 20220729\n"
@@ -86,7 +91,7 @@ class HandleApplication:
                 half_prec_supp = checkForDirectMLHalfPrecisionSupport()
             printMSG += f"Half precision support: {half_prec_supp}\n"
             printMSG += f"GMFSS support: {gmfss_supp}\n"
-            if not gmfss_supp and "pytorch" in availableBackends:
+            if not gmfss_supp and "pytorch (cuda)" in availableBackends:
                 printMSG += "Please install CUDA to enable GMFSS\n"
             print("Available Backends: " + str(availableBackends))
             print(printMSG)

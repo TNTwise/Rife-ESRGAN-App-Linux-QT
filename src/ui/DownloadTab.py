@@ -29,10 +29,8 @@ class DownloadTab:
     def __init__(
         self,
         parent: QMainWindow,
-        installed_backends: list,
     ):
         self.parent = parent
-        self.installed_backends = installed_backends
         self.downloadDeps = DownloadDependencies()
         self.QButtonConnect()
 

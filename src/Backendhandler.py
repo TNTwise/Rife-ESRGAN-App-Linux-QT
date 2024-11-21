@@ -36,10 +36,11 @@ class BackendHandler:
         self.parent.uninstallDirectMLBtn.setVisible(False)
 
     def showUninstallButton(self, backends):
-        if "pytorch" in backends:
+        if "pytorch (cuda)" in backends:
             self.parent.downloadTorchCUDABtn.setVisible(False)
-            self.parent.downloadTorchROCmBtn.setVisible(False)
             self.parent.uninstallTorchCUDABtn.setVisible(True)
+        if "pytorch (rocm)" in backends:
+            self.parent.downloadTorchROCmBtn.setVisible(False)
             self.parent.uninstallTorchROCmBtn.setVisible(True)
         if "ncnn" in backends:
             self.parent.downloadNCNNBtn.setVisible(False)
