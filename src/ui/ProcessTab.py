@@ -162,8 +162,8 @@ class ProcessTab:
         backend = self.parent.backendComboBox.currentText()
         models = self.getTotalModels(method=method, backend=backend)
         if backend != "pytorch":
-            self.parent.methodComboBox.removeItem(2)
-        else:
+            self.parent.methodComboBox.removeItem(self.parent.methodComboBox.findText("Denoise"))
+        elif self.parent.methodComboBox.findText("Denoise") == -1 and backend == 'pytorch':
             self.parent.methodComboBox.addItem("Denoise")
         self.parent.modelComboBox.addItems(models)
         total_items = self.parent.modelComboBox.count()

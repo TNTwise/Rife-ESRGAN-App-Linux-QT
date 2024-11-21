@@ -59,21 +59,37 @@ def bytesToImg(
     return frame
 
 
-def checkForPytorch() -> bool:
+def checkForPytorchCUDA() -> bool:
     """
     function that checks if the pytorch backend is available
     """
     try:
         import torch
         import torchvision
-
-        return True
+        if "cu" in torch.__version__:
+            return True
+        return False
     except ImportError as e:
         log(str(e))
         return False
     except Exception as e:
         log(str(e))
 
+def checkForPytorchROCM() -> bool:
+    """
+    function that checks if the pytorch backend is available
+    """
+    try:
+        import torch
+        import torchvision
+        if "rocm" in torch.__version__:
+            return True
+        return False
+    except ImportError as e:
+        log(str(e))
+        return False
+    except Exception as e:
+        log(str(e))
 
 def checkForTensorRT() -> bool:
     """
