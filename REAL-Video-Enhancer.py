@@ -23,7 +23,6 @@ from src.ModelHandler import getCustomModelScale
 
 # other imports
 from src.Util import (
-    openLink,
     getOSInfo,
     get_gpu_info,
     getRAMAmount,

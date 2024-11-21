@@ -1,7 +1,10 @@
 import os
+import sys
+
 from .constants import BACKEND_PATH, PYTHON_PATH, PLATFORM, IS_INSTALLED, IS_FLATPAK
 from .Util import (
     log,
+    networkCheck,
 )
 from .version import version
 
@@ -64,14 +67,17 @@ class BackendHandler:
         downloadDependencies = DownloadDependencies()
         downloadDependencies.downloadBackend(version)
         if not IS_INSTALLED:
-            from .ui.QTcustom import NetworkCheckPopup
+            from .ui.QTcustom import  RegularQTPopup
 
-            if NetworkCheckPopup():
+            if networkCheck():
                 # Dont flip these due to shitty code!
                 downloadDependencies.downloadFFMpeg()
                 downloadDependencies.downloadPython()
                 if PLATFORM == "win32":
                     downloadDependencies.downloadVCREDLIST()
+            else:
+                RegularQTPopup("Cannot install required dependencies!\nThe first launch of the app requires internet.")
+                sys.exit()
 
     def recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
         self, firstIter=True
