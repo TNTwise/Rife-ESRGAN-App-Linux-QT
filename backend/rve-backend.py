@@ -4,7 +4,7 @@ import logging
 from src.RenderVideo import Render
 
 from src.utils.Util import (
-    checkForPytorch,
+    checkForPytorchCUDA,
     checkForNCNN,
     checkForTensorRT,
     check_bfloat16_support,
@@ -66,7 +66,7 @@ class HandleApplication:
                     printMSG += f"TensorRT Version: {tensorrt.__version__}\n"
                 else:
                     printMSG += "ERROR: Cannot use tensorrt backend, as it is not supported on your current GPU"
-            if checkForPytorch():
+            if checkForPytorchCUDA():
                 import torch
 
                 availableBackends.append("pytorch")
