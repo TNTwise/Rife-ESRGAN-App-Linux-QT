@@ -16,7 +16,6 @@ class DownloadModel:
         self,
         modelFile: str,
         downloadModelFile: str,
-        backend: str,
         modelPath: str = MODELS_PATH,
     ):
         self.modelPath = modelPath

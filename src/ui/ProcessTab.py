@@ -61,7 +61,9 @@ class ProcessTab:
             match backend:
                 case "ncnn":
                     models = ncnnInterpolateModels
-                case "pytorch":
+                case "pytorch (cuda)":
+                    models = pytorchInterpolateModels
+                case "pytorch (rocm)":
                     models = pytorchInterpolateModels
                 case "tensorrt":
                     models = tensorrtInterpolateModels
@@ -78,7 +80,9 @@ class ProcessTab:
             match backend:
                 case "ncnn":
                     models = ncnnUpscaleModels
-                case "pytorch":
+                case "pytorch (cuda)":
+                    models = pytorchUpscaleModels
+                case "pytorch (rocm)":
                     models = pytorchUpscaleModels
                 case "tensorrt":
                     models = tensorrtUpscaleModels
@@ -94,7 +98,9 @@ class ProcessTab:
             match backend:
                 case "ncnn":
                     models = None
-                case "pytorch":
+                case "pytorch (cuda)":
+                    models = pytorchDenoiseModels
+                case "pytorch (rocm)":
                     models = pytorchDenoiseModels
                 case "tensorrt":
                     models = None
@@ -269,7 +275,6 @@ class ProcessTab:
             DownloadModel(
                 modelFile=self.modelFile,
                 downloadModelFile=self.downloadFile,
-                backend=backend,
             )
         # self.ffmpegWriteThread()
 
@@ -317,6 +322,8 @@ class ProcessTab:
 
     def renderToPipeThread(self, method: str, backend: str, interpolateTimes: int):
         # builds command
+        if backend == "pytorch (cuda)" or backend == "pytorch (rocm)":
+            backend = "pytorch" # pytorch is the same for both cuda and rocm
 
         command = [
             f"{PYTHON_PATH}",

@@ -160,7 +160,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             gmfssSupport=gmfssSupport,
         )
         self.homeTab = HomeTab(parent=self)
-        self.downloadTab = DownloadTab(parent=self, installed_backends=self.backends)
+        self.downloadTab = DownloadTab(parent=self)
         self.settingsTab = SettingsTab(
             parent=self, halfPrecisionSupport=halfPrecisionSupport
         )
