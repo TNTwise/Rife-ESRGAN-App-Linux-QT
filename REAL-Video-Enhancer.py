@@ -252,15 +252,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             
             file_name = os.path.splitext(os.path.basename(inputFile))[0]
+            base_file_name = f"{file_name}_{round(interpolateTimes*self.videoFps,0)}fps_{scale*self.videoWidth}x{scale*self.videoHeight}"
             output_file = os.path.join(
                 outputDirectory,
-                f"{file_name}_{interpolateTimes*self.videoFps}fps_{scale*self.videoWidth}x{scale*self.videoHeight}.mkv",
+                f"{base_file_name}.mkv",
             )
             iteration = 0
             while os.path.isfile(output_file):
                 output_file = os.path.join(
                     outputDirectory,
-                    f"{file_name}_{interpolateTimes*self.videoFps}fps_{scale*self.videoWidth}x{scale*self.videoHeight}_({iteration}).mkv",
+                    f"{base_file_name}_({iteration}).mkv",
                 )
                 iteration += 1
             self.outputFileText.setText(output_file)
