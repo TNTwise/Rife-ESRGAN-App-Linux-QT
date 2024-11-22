@@ -21,6 +21,6 @@ tensorrt_cu12_bindings==10.6.0
 
 torch==2.6.0.dev20241023
 torchvision==0.20.0.dev20241023
-torch_tensorrt==2.6.0.dev20241023
+torch_tensorrt==2.6.0.dev20241023 --install-option="--no-deps"
 einops
 safetensors
