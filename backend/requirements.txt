@@ -9,16 +9,18 @@ mpmath
 pillow
 numpy<=1.26.4
 
-cupy-cuda12x
+cupy-cuda12x==13.3.0
 ncnn
 upscale_ncnn_py
 rife-ncnn-vulkan-python-tntwise
 scenedetect
-tensorrt==10.4.0
-tensorrt_cu12==10.4.0
-tensorrt-cu12_libs==10.4.0
-tensorrt_cu12_bindings==10.4.0
+tensorrt==10.6.0
+tensorrt_cu12==10.6.0
+tensorrt-cu12_libs==10.6.0
+tensorrt_cu12_bindings==10.6.0
 
 torch==2.6.0.dev20241023
 torchvision==0.20.0.dev20241023
 torch_tensorrt==2.6.0.dev20241023
+einops
+safetensors
