@@ -486,8 +486,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
 
     # setting the pallette
@@ -499,3 +498,15 @@ if __name__ == "__main__":
             window.showFullScreen()
     window.show()
     sys.exit(app.exec())
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == 'debug':
+        import trace
+        tracer = trace.Trace(
+            ignoredirs=[sys.prefix, sys.exec_prefix],
+            trace=True,
+            count=False
+        )
+        tracer.run("main()")
+    else:
+        main()
