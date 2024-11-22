@@ -163,5 +163,5 @@ python3 build.py --build_exe
 
 ### NCNN related questions
 * **Q:** Why am I getting (Insert Vulkan Error here)?
-  * **A:**  This usually is an OOM (Out Of Memory) error, this can indicate a weak iGPU or very old GPU, I recommeding trying out the <a href="https://colab.research.google.com/drive/1P9PIhOs5UV56gWp4hBYqjIf1MLE3gexz?usp=sharing">Colab Notebook</a>  instead.
+  * **A:**  This usually is an OOM (Out Of Memory) error, this can indicate a weak iGPU or very old GPU, I recommeding trying out the <a href="https://github.com/TNTwise/REAL-Video-Enhancer-Colab">Colab Notebook</a>  instead.
 
