@@ -40,7 +40,7 @@ class HandleApplication:
                 # misc settingss
                 pausedFile=self.args.pausedFile,
                 sceneDetectMethod=self.args.sceneDetectMethod,
-                sceneDetectSensitivity=self.args.sceneDetectSensitivity,
+                sceneDetectSensitivity=self.args.sceneDetectThreshold,
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 upscale_output_resolution=self.args.upscale_output_resolution,
@@ -170,7 +170,7 @@ class HandleApplication:
             default="mean",
         )
         parser.add_argument(
-            "--sceneDetectSensitivity",
+            "--sceneDetectThreshold",
             help="Scene change detection sensitivity, lower number means it has a higher chance of detecting scene changes, with risk of detecting too many.",
             type=float,
             default=2.0,
