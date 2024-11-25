@@ -402,7 +402,9 @@ class ProcessTab:
                 continue
             if "INFO:torch_tensorrt" in line:
                 continue
-            
+            if "WARNING: [Torch-TensorRT]" in line:
+                continue
+                        
             line = str(line.strip())
             if "it/s" in line:
                 textOutput = textOutput[:-1]
