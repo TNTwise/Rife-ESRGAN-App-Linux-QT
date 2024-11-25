@@ -131,6 +131,7 @@ class TorchTensorRTHandler:
         example_inputs: list[torch.Tensor],
         trt_engine_path: str,
     ):
+        torch.cuda.empty_cache()
         """Builds a TensorRT engine from the provided model."""
         print(
             f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...",

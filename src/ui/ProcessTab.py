@@ -381,7 +381,7 @@ class ProcessTab:
             command += [
                 "--sceneDetectMethod",
                 self.settings["scene_change_detection_method"],
-                "--sceneDetectSensitivity",
+                "--sceneDetectThreshold",
                 self.settings["scene_change_detection_threshold"],
             ]
         if self.benchmarkMode:
@@ -404,7 +404,7 @@ class ProcessTab:
                 continue
             if "WARNING: [Torch-TensorRT]" in line:
                 continue
-                        
+
             line = str(line.strip())
             if "it/s" in line:
                 textOutput = textOutput[:-1]
