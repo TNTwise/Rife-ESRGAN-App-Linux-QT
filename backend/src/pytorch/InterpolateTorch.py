@@ -405,6 +405,7 @@ class InterpolateRifeTorch:
                         )
 
                     self.flownet = trtHandler.load_engine(trt_engine_path)
+        torch.cuda.empty_cache()
         self.prepareStream.synchronize()
 
     @torch.inference_mode()
