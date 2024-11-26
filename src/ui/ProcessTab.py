@@ -52,10 +52,9 @@ class ProcessTab:
         self.QConnect()
         self.populateModels(self.parent.backendComboBox.currentText())
 
-    def populateModels(self, backend) -> dict:
+    def getModels(self,backend):
         """
-        returns
-        the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
+        returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
         """
         match backend:
             case "ncnn":
@@ -79,7 +78,14 @@ class ProcessTab:
                 )
                 errorAndLog("Failed to import any backends!")
                 return {}
-            
+        return interpolateModels,upscaleModels
+
+    def populateModels(self, backend) -> dict:
+        """
+        returns
+        the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
+        """
+        interpolateModels,upscaleModels = self.getModels(backend)
         self.parent.interpolateModelComboBox.clear()
         self.parent.upscaleModelComboBox.clear()
         self.parent.interpolateModelComboBox.addItems(['None'] + list(interpolateModels.keys()))
@@ -193,6 +199,7 @@ class ProcessTab:
         interpolateModel: str,
         benchmarkMode: bool,
     ):
+        interpolateModels,upscaleModels = self.getModels(backend)
         if interpolateModel == "None":
             interpolateModel = None
             interpolateModelFile = None
@@ -218,14 +225,15 @@ class ProcessTab:
         """
         self.benchmarkMode = benchmarkMode
         # get model attributes
+        
         if interpolateModel:
-            interpolateModelFile,interpolateDownloadFile = totalModels[interpolateModel][0], totalModels[interpolateModel][1]
+            interpolateModelFile,interpolateDownloadFile = interpolateModels[interpolateModel][0], interpolateModels[interpolateModel][1]
         else:
             interpolateTimes = 1
         if upscaleModel:
-            upscaleModelFile, upscaleDownloadFile = totalModels[upscaleModel][0], totalModels[upscaleModel][1]
-            upscaleTimes = totalModels[upscaleModel][2]
-            upscaleModelArch = totalModels[upscaleModel][3]
+            upscaleModelFile, upscaleDownloadFile = upscaleModels[upscaleModel][0], upscaleModels[upscaleModel][1]
+            upscaleTimes = upscaleModels[upscaleModel][2]
+            upscaleModelArch = upscaleModels[upscaleModel][3]
         else:
             upscaleTimes = 1
             upscaleModelArch = "custom"
@@ -314,8 +322,6 @@ class ProcessTab:
             command += [
                 "--upscale_model",
                 modelPath,
-                "--interpolate_factor",
-                "1",
             ]
             if self.tilingEnabled:
                 command += [
