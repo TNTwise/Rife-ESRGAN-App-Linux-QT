@@ -74,7 +74,6 @@ jobs:
         id: version_tag
         run: |
           git clone https://github.com/tntwise/real-video-enhancer
-          cp real-video-enhancer/CHANGELOG.md .
           version=$(python -c "from datetime import datetime; print(str(datetime.now()).split(' ')[0].replace('-',''))")
           tag=$(python -c "import random, string; print(''.join(random.choices(string.ascii_letters, k=8)))")
           body=$(python3 -c 'import sys
@@ -99,7 +98,7 @@ jobs:
                                                    print(content)
 
                                                if __name__ == "__main__":
-                                                   changelog_file = \'CHANGELOG.md\'
+                                                   changelog_file = 'real-video-enhancer/CHANGELOG.md'
                                                    if len(sys.argv) > 1:
                                                        changelog_file = sys.argv[1]
                                                    get_latest_tag(changelog_file)')
