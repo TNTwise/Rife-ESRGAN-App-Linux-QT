@@ -80,6 +80,8 @@ class Render(FFMpegRender):
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
         self.setupRender = self.returnFrame  # set it to not convert the bytes to array by default, and just pass chunk through
         self.setupFrame0 = None
+        self.interpolateOption = None
+        self.upscaleOption = None
         self.doEncodingOnFrame = False
         self.isPaused = False
         self.sceneDetectMethod = sceneDetectMethod
@@ -137,11 +139,17 @@ class Render(FFMpegRender):
                     activate = self.prevState != self.isPaused
                 if activate:
                     if self.isPaused:
-                        self.interpolateOption.hotUnload()
+                        if self.interpolateOption:
+                            self.interpolateOption.hotUnload()
+                        if self.upscaleOption:
+                            self.upscaleOption.hotUnload()
                         print("\nRender Paused")
                     else:
                         print("\nResuming Render")
-                        self.interpolateOption.hotReload()
+                        if self.upscaleOption:
+                            self.upscaleOption.hotReload()
+                        if self.interpolateOption:
+                            self.interpolateOption.hotReload()
                 self.prevState = self.isPaused
             sleep(1)
 
