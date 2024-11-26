@@ -104,7 +104,7 @@ class UpscalePytorch:
     @torch.inference_mode()
     def _load(self):
         with torch.cuda.stream(self.prepareStream):
-            model = self.loadModel(
+            self.model = self.loadModel(
                 modelPath=self.modelPath, device=self.device, dtype=self.dtype
             )
 
@@ -165,16 +165,15 @@ class UpscalePytorch:
                         )
                     ]
                     trtHandler.build_engine(
-                        model,
+                        self.model,
                         self.dtype,
                         self.device,
                         example_inputs=inputs,
                         trt_engine_path=trt_engine_path,
                     )
 
-                model = trtHandler.load_engine(trt_engine_path=trt_engine_path)
-
-            self.model = model
+                self.model = trtHandler.load_engine(trt_engine_path=trt_engine_path)
+        torch.cuda.empty_cache()
         self.prepareStream.synchronize()
 
     @torch.inference_mode()
