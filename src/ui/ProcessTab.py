@@ -164,6 +164,7 @@ class ProcessTab:
             outputVideoWidth=self.outputVideoWidth,
         )
         self.workerThread.latestPreviewPixmap.connect(self.updateProcessTab)
+        self.workerThread.finished.connect(self.guiChangesOnRenderCompletion)
         self.workerThread.finished.connect(self.workerThread.deleteLater)
         self.workerThread.finished.connect(self.workerThread.quit)
         self.workerThread.finished.connect(
@@ -384,12 +385,19 @@ class ProcessTab:
         log(str(textOutput))
         self.onRenderCompletion()
 
+    def guiChangesOnRenderCompletion(self):
+        # Have to swap the visibility of these here otherwise crash for some reason
+        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
+        self.parent.startRenderButton.setEnabled(True)
+        self.parent.previewLabel.clear()
+        self.parent.startRenderButton.clicked.disconnect()
+        self.parent.startRenderButton.clicked.connect(self.parent.startRender)
+        self.parent.processSettingsContainer.setEnabled(True)
+        self.parent.startRenderButton.setVisible(True)
+
     def onRenderCompletion(self):
         self.renderProcess.wait()
         # Have to swap the visibility of these here otherwise crash for some reason
-        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
-        self.parent.startRenderButton.setVisible(True)
-        self.parent.startRenderButton.setEnabled(True)
         if self.settings["discord_rich_presence"] == "True":  # only close if it exists
             self.discordRPC.closeRPC()
         try:
@@ -398,13 +406,8 @@ class ProcessTab:
             self.workerThread.wait()
         except Exception:
             pass  # pass just incase internet error caused a skip
-        # reset image preview
-        self.parent.previewLabel.clear()
-        self.parent.startRenderButton.clicked.disconnect()
-
-        self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-
-        self.parent.enableProcessPage()
+        
+        
 
     def getRoundedPixmap(self, pixmap, corner_radius):
         size = pixmap.size()
