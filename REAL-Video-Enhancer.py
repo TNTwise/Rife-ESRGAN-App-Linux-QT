@@ -216,12 +216,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.animationHandler.fadeInAnimation(self.stackedWidget)
 
 
+
+
     def updateVideoGUIText(self):
         if self.isVideoLoaded:
-            modelName = self.modelComboBox.currentText()
-            method = self.methodComboBox.currentText()
-            interpolateTimes = self.getInterpolateTimes(method, modelName)
-            scale = self.getScale(method, modelName)
+            upscaleModelName = self.upscaleModelComboBox.currentText()
+            interpolateModelName = self.interpolateModelComboBox.currentText()
+            interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
+            scale = self.getUpscaleModelScale(upscaleModelName)
+            
             text = (
                 f"FPS: {round(self.videoFps,0)} -> {round(self.videoFps*interpolateTimes,0)}\n"
                 + f"Resolution: {self.videoWidth}x{self.videoHeight} -> {self.videoWidth*scale}x{self.videoHeight*scale}\n"
@@ -232,6 +235,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             self.videoInfoTextEdit.setFontPointSize(10)
             self.videoInfoTextEdit.setText(text)
+    def getInterpolationMultiplier(self, interpolateModelName):
+        if interpolateModelName == "None":
+            interpolateTimes = 1    
+        else:
+            interpolateTimes = self.interpolationMultiplierSpinBox.value()
+        return interpolateTimes
+
+    def getUpscaleModelScale(self, upscaleModelName):
+        if upscaleModelName == "None":
+            scale = 1
+        else:
+            scale = totalModels[upscaleModelName][2]
+        return scale
 
     def setDefaultOutputFile(self, outputDirectory):
         """
@@ -245,11 +261,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # check if there is a video loaded
         if self.isVideoLoaded:
             inputFile = self.inputFileText.text()
-            modelName = self.modelComboBox.currentText()
-            method = self.methodComboBox.currentText()
-            interpolateTimes = self.getInterpolateTimes(method, modelName)
-            scale = self.getScale(method, modelName)
-
+            upscaleModelName = self.upscaleModelComboBox.currentText()
+            interpolateModelName = self.interpolateModelComboBox.currentText()
+            interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
+            scale = self.getUpscaleModelScale(upscaleModelName)
+           
             
             file_name = os.path.splitext(os.path.basename(inputFile))[0]
             base_file_name = f"{file_name}_{round(interpolateTimes*self.videoFps,0)}fps_{scale*self.videoWidth}x{scale*self.videoHeight}"
@@ -272,58 +288,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
         self.updateVideoGUIText()
 
-    def getScale(self, method, modelName):
-        if method == "Upscale" or method == "Denoise":
-            scale = totalModels[modelName][2]
-        elif method == "Interpolate":
-            scale = 1
-        return scale
-
-    def getInterpolateTimes(self, method, modelName):
-        if method == "Upscale" or method == "Denoise":
-            interpolateTimes = 1
-        elif method == "Interpolate":
-            interpolateTimes = self.interpolationMultiplierSpinBox.value()
-        return interpolateTimes
-
     def startRender(self):
-        if self.isVideoLoaded:
-            if checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
-                self.startRenderButton.setEnabled(False)
-                method = self.methodComboBox.currentText()
-                self.progressBar.setRange(
-                    0,
-                    # only set the range to multiply the frame count if the method is interpolate
-                    int(
-                        self.videoFrameCount
-                        * math.ceil(self.interpolationMultiplierSpinBox.value())
-                    )
-                    if method == "Interpolate"
-                    else self.videoFrameCount,
-                )
-                self.disableProcessPage()
-
-                self.processTab.run(
-                    inputFile=self.inputFileText.text(),
-                    outputPath=self.outputFileText.text(),
-                    videoWidth=self.videoWidth,
-                    videoHeight=self.videoHeight,
-                    videoFps=self.videoFps,
-                    tilingEnabled=self.tilingCheckBox.isChecked(),
-                    tilesize=self.tileSizeComboBox.currentText(),
-                    videoFrameCount=self.videoFrameCount,
-                    method=method,
-                    backend=self.backendComboBox.currentText(),
-                    interpolationTimes=self.interpolationMultiplierSpinBox.value(),
-                    model=self.modelComboBox.currentText(),
-                    benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
-                )
-            else:
-                RegularQTPopup("No write permissions to the output directory!")
-        else:
-            pass
+        if not self.isVideoLoaded:
             RegularQTPopup("Please select a video file!")
+            return
+        if not checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
+            RegularQTPopup("No write permissions to the output directory!")
+            return
+        if self.interpolateModelComboBox.currentText() == "None" and self.upscaleModelComboBox.currentText() == "None":
+            RegularQTPopup("Please select at least one model!")
+            return    
+        self.startRenderButton.setEnabled(False)
+        self.progressBar.setRange(
+            0,
+            # only set the range to multiply the frame count if the method is interpolate
+            int(
+                self.videoFrameCount
+                * math.ceil(self.interpolationMultiplierSpinBox.value())
+            )
+            if self.interpolateModelComboBox.currentText() != "None"
+            else self.videoFrameCount,
+        )
+        self.disableProcessPage()
 
+        self.processTab.run(
+            inputFile=self.inputFileText.text(),
+            outputPath=self.outputFileText.text(),
+            videoWidth=self.videoWidth,
+            videoHeight=self.videoHeight,
+            videoFps=self.videoFps,
+            tilingEnabled=self.tilingCheckBox.isChecked(),
+            tilesize=self.tileSizeComboBox.currentText(),
+            videoFrameCount=self.videoFrameCount,
+            backend=self.backendComboBox.currentText(),
+            interpolateModel=self.interpolateModelComboBox.currentText(),
+            upscaleModel=self.upscaleModelComboBox.currentText(),
+            interpolateTimes=self.getInterpolationMultiplier(self.interpolateModelComboBox.currentText()),
+            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),)
     def disableProcessPage(self):
         self.processSettingsContainer.setDisabled(True)
 

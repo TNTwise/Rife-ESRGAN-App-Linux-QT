@@ -30,6 +30,7 @@ from ..ModelHandler import (
     tensorrtUpscaleModels,
     onnxUpscaleModels,
     onnxInterpolateModels,
+    totalModels
 )
 
 
@@ -49,70 +50,49 @@ class ProcessTab:
 
         # get default backend
         self.QConnect()
-        self.switchInterpolationAndUpscale()
+        self.populateModels(self.parent.backendComboBox.currentText())
 
-    def getTotalModels(self, method: str, backend: str) -> dict:
+    def populateModels(self, backend) -> dict:
         """
         returns
         the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
         """
-        log("Getting total models, method: " + method + " backend: " + backend)
-        if method == "Interpolate":
-            match backend:
-                case "ncnn":
-                    models = ncnnInterpolateModels
-                case "pytorch (cuda)":
-                    models = pytorchInterpolateModels
-                case "pytorch (rocm)":
-                    models = pytorchInterpolateModels
-                case "tensorrt":
-                    models = tensorrtInterpolateModels
-                case "directml":
-                    models = onnxInterpolateModels
-                case _:
-                    RegularQTPopup(
-                        "Failed to import any backends!, please try to reinstall the app!"
-                    )
-                    errorAndLog("Failed to import any backends!")
-                    models = None
-            self.parent.interpolationContainer.setVisible(True)
-        if method == "Upscale":
-            match backend:
-                case "ncnn":
-                    models = ncnnUpscaleModels
-                case "pytorch (cuda)":
-                    models = pytorchUpscaleModels
-                case "pytorch (rocm)":
-                    models = pytorchUpscaleModels
-                case "tensorrt":
-                    models = tensorrtUpscaleModels
-                case "directml":
-                    models = onnxUpscaleModels
-                case _:
-                    RegularQTPopup(
-                        "Failed to import any backends!, please try to reinstall the app!"
-                    )
-                    errorAndLog("Failed to import any backends!")
-                    models = None
-        if method == "Denoise":
-            match backend:
-                case "ncnn":
-                    models = None
-                case "pytorch (cuda)":
-                    models = pytorchDenoiseModels
-                case "pytorch (rocm)":
-                    models = pytorchDenoiseModels
-                case "tensorrt":
-                    models = None
-                case "directml":
-                    models = None
-                case _:
-                    RegularQTPopup(
-                        "Failed to import any backends!, please try to reinstall the app!"
-                    )
-                    errorAndLog("Failed to import any backends!")
-                    models = None
-        return models
+        match backend:
+            case "ncnn":
+                interpolateModels = ncnnInterpolateModels
+                upscaleModels = ncnnUpscaleModels
+            case "pytorch (cuda)":
+                interpolateModels = pytorchInterpolateModels
+                upscaleModels = pytorchUpscaleModels
+            case "pytorch (rocm)":
+                interpolateModels = pytorchInterpolateModels
+                upscaleModels = pytorchUpscaleModels
+            case "tensorrt":
+                interpolateModels = tensorrtInterpolateModels
+                upscaleModels = tensorrtUpscaleModels
+            case "directml":
+                interpolateModels = onnxInterpolateModels
+                upscaleModels = onnxUpscaleModels
+            case _:
+                RegularQTPopup(
+                    "Failed to import any backends!, please try to reinstall the app!"
+                )
+                errorAndLog("Failed to import any backends!")
+                return {}
+            
+        self.parent.interpolateModelComboBox.clear()
+        self.parent.upscaleModelComboBox.clear()
+        self.parent.interpolateModelComboBox.addItems(['None'] + list(interpolateModels.keys()))
+        self.parent.upscaleModelComboBox.addItems(['None'] + list(upscaleModels.keys()))
+        if not self.gmfssSupport:
+                # Disable specific options based on the selected text
+                for i in range(self.parent.modelComboBox.count()):
+                    if (
+                        "GMFSS" in self.parent.modelComboBox.itemText(i)
+                    ):  # hacky solution, just straight copy pasted
+                        self.parent.modelComboBox.model().item(i).setEnabled(
+                            self.gmfssSupport
+                        )
 
     def onTilingSwitch(self):
         if self.parent.tilingCheckBox.isChecked():
@@ -132,9 +112,6 @@ class ProcessTab:
         self.parent.outputFileSelectButton.clicked.connect(self.parent.openOutputFolder)
         # connect render button
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-        cbs = (self.parent.methodComboBox, self.parent.backendComboBox)
-        for combobox in cbs:
-            combobox.currentIndexChanged.connect(self.switchInterpolationAndUpscale)
         # set tile size visible to false by default
         self.parent.tileSizeContainer.setVisible(False)
         # connect up tilesize container visiable
@@ -143,8 +120,12 @@ class ProcessTab:
         self.parent.interpolationMultiplierSpinBox.valueChanged.connect(
             self.parent.updateVideoGUIDetails
         )
-        self.parent.modelComboBox.currentIndexChanged.connect(
+        
+        self.parent.upscaleModelComboBox.currentIndexChanged.connect(
             self.parent.updateVideoGUIDetails
+        )
+        self.parent.backendComboBox.currentIndexChanged.connect(
+            lambda: self.populateModels(self.parent.backendComboBox.currentText())
         )
         # connect up pausing
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
@@ -156,135 +137,6 @@ class ProcessTab:
             self.renderProcess.terminate()
         except AttributeError:
             log("No render process!")
-
-    def switchInterpolationAndUpscale(self):
-        """
-        Called every render, gets the correct model based on the backend and the method.
-        """
-
-        self.parent.modelComboBox.clear()
-        # overwrite method
-        method = self.parent.methodComboBox.currentText()
-        backend = self.parent.backendComboBox.currentText()
-        models = self.getTotalModels(method=method, backend=backend)
-        if backend != "pytorch":
-            self.parent.methodComboBox.removeItem(self.parent.methodComboBox.findText("Denoise"))
-        elif self.parent.methodComboBox.findText("Denoise") == -1 and backend == 'pytorch':
-            self.parent.methodComboBox.addItem("Denoise")
-        self.parent.modelComboBox.addItems(models)
-        total_items = self.parent.modelComboBox.count()
-        if total_items > 0 and method.lower() == "interpolate":
-            self.parent.modelComboBox.setCurrentIndex(total_items - 1)
-
-        if method.lower() == "interpolate":
-            self.parent.interpolationContainer.setVisible(True)
-            self.parent.upscaleContainer.setVisible(False)
-            self.animationHandler.dropDownAnimation(self.parent.interpolationContainer)
-            if not self.gmfssSupport:
-                # Disable specific options based on the selected text
-                for i in range(self.parent.modelComboBox.count()):
-                    if (
-                        self.parent.modelComboBox.itemText(i)
-                        == "GMFSS (Slowest Model, Animation)"
-                    ):  # hacky solution, just straight copy pasted
-                        self.parent.modelComboBox.model().item(i).setEnabled(
-                            self.gmfssSupport
-                        )
-        elif method.lower() == "upscale" or method.lower() == "denoise":
-            self.parent.interpolationContainer.setVisible(False)
-            self.parent.upscaleContainer.setVisible(True)
-            
-            self.animationHandler.dropDownAnimation(self.parent.upscaleContainer)
-
-        self.parent.updateVideoGUIDetails()
-
-    def run(
-        self,
-        inputFile: str,
-        outputPath: str,
-        videoWidth: int,
-        videoHeight: int,
-        videoFps: float,
-        videoFrameCount: int,
-        tilesize: int,
-        tilingEnabled: bool,
-        method: str,
-        backend: str,
-        interpolationTimes: int,
-        model: str,
-        benchmarkMode: bool,
-    ):
-        self.inputFile = inputFile
-        self.outputPath = outputPath
-        self.videoWidth = videoWidth
-        self.videoHeight = videoHeight
-        self.videoFps = videoFps
-        self.tilingEnabled = tilingEnabled
-        self.tilesize = tilesize
-        self.videoFrameCount = videoFrameCount
-        models = self.getTotalModels(method=method, backend=backend)
-
-        # if upscale or interpolate
-        """
-        Function to start the rendering process
-        It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
-        Then, based on the settings selected, it will build a command that is then passed into rve-backend
-        Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
-        """
-        self.benchmarkMode = benchmarkMode
-        # get model attributes
-        self.modelFile = models[model][0]
-        self.downloadFile = models[model][1]
-        self.upscaleTimes = models[model][2]
-        self.modelArch = models[model][3]
-
-        # get video attributes
-        self.outputVideoWidth = videoWidth * self.upscaleTimes
-        self.outputVideoHeight = videoHeight * self.upscaleTimes
-        
-        # set up pausing
-        self.pausedFile = os.path.join(
-            currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
-        )
-        show_layout_widgets(self.parent.onRenderButtonsContiainer)
-        self.parent.startRenderButton.setVisible(False)
-        self.parent.startRenderButton.clicked.disconnect()
-        self.parent.startRenderButton.clicked.connect(self.resumeRender)
-
-        # get most recent settings
-        settings = Settings()
-        settings.readSettings()
-        self.settings = settings.settings
-
-        # get built ffmpeg command
-        buildFFMpegCommand = BuildFFMpegCommand(
-            encoder=self.settings["encoder"], quality=self.settings["video_quality"]
-        )
-        self.buildFFMpegsettings = buildFFMpegCommand.buildFFmpeg()
-
-        # discord rpc
-        if self.settings["discord_rich_presence"] == "True":
-            try:
-                self.discordRPC = DiscordRPC()
-                self.discordRPC.start_discordRPC(
-                    method, os.path.basename(self.inputFile), backend
-                )
-            except Exception:
-                pass
-        if self.modelArch != "custom":  # custom models are not downloaded
-            DownloadModel(
-                modelFile=self.modelFile,
-                downloadModelFile=self.downloadFile,
-            )
-        # self.ffmpegWriteThread()
-
-        writeThread = Thread(
-            target=lambda: self.renderToPipeThread(
-                method=method, backend=backend, interpolateTimes=interpolationTimes
-            )
-        )
-        writeThread.start()
-        self.startGUIUpdate()
 
     def pauseRender(self):
         with open(self.pausedFile, "w") as f:
@@ -320,7 +172,110 @@ class ProcessTab:
         return "\n".join(string_list)
         # Set the text to the QTextEdit
 
-    def renderToPipeThread(self, method: str, backend: str, interpolateTimes: int):
+    def run(
+        self,
+        inputFile: str,
+        outputPath: str,
+        videoWidth: int,
+        videoHeight: int,
+        videoFps: float,
+        videoFrameCount: int,
+        tilesize: int,
+        tilingEnabled: bool,
+        backend: str,
+        interpolateTimes: int,
+        upscaleModel: str,
+        interpolateModel: str,
+        benchmarkMode: bool,
+    ):
+        if interpolateModel == "None":
+            interpolateModelFile = None
+        if upscaleModel == "None":
+            upscaleModelFile = None
+        self.inputFile = inputFile
+        self.outputPath = outputPath
+        self.videoWidth = videoWidth
+        self.videoHeight = videoHeight
+        self.videoFps = videoFps
+        self.tilingEnabled = tilingEnabled
+        self.tilesize = tilesize
+        self.videoFrameCount = videoFrameCount
+        
+
+        # if upscale or interpolate
+        """
+        Function to start the rendering process
+        It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
+        Then, based on the settings selected, it will build a command that is then passed into rve-backend
+        Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
+        """
+        self.benchmarkMode = benchmarkMode
+        # get model attributes
+        if interpolateModelFile:
+            interpolateModelFile,interpolateDownloadFile = totalModels[interpolateModel][0], totalModels[interpolateModelFile][1]
+        else:
+            interpolateTimes = 1
+        if upscaleModelFile:
+            upscaleModelFile, upscaleDownloadFile = totalModels[upscaleModel][0], totalModels[upscaleModelFile][1]
+            upscaleTimes = totalModels[upscaleModel][2]
+            upscaleModelArch = totalModels[upscaleModel][3]
+        else:
+            upscaleTimes = 1
+            upscaleModelArch = "custom"
+
+        if interpolateModelFile:
+            DownloadModel(
+                modelFile=interpolateModelFile,
+                downloadModelFile=interpolateDownloadFile)
+        if upscaleModelArch != "custom":  # custom models are not downloaded
+            if upscaleModelFile:
+                DownloadModel(
+                    modelFile=upscaleModelFile,
+                    downloadModelFile=upscaleDownloadFile)
+        # get video attributes
+        self.outputVideoWidth = videoWidth * upscaleTimes
+        self.outputVideoHeight = videoHeight * upscaleTimes
+        
+        # set up pausing
+        self.pausedFile = os.path.join(
+            currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
+        )
+        show_layout_widgets(self.parent.onRenderButtonsContiainer)
+        self.parent.startRenderButton.setVisible(False)
+        self.parent.startRenderButton.clicked.disconnect()
+        self.parent.startRenderButton.clicked.connect(self.resumeRender)
+
+        # get most recent settings
+        settings = Settings()
+        settings.readSettings()
+        self.settings = settings.settings
+
+        # get built ffmpeg command
+        buildFFMpegCommand = BuildFFMpegCommand(
+            encoder=self.settings["encoder"], quality=self.settings["video_quality"]
+        )
+        self.buildFFMpegsettings = buildFFMpegCommand.buildFFmpeg()
+
+        # discord rpc
+        if self.settings["discord_rich_presence"] == "True":
+            try:
+                self.discordRPC = DiscordRPC()
+                self.discordRPC.start_discordRPC(
+                    "Enhancing", os.path.basename(self.inputFile), backend
+                )
+            except Exception:
+                pass
+
+        writeThread = Thread(
+            target=lambda: self.renderToPipeThread(
+                backend=backend, interpolateTimes=interpolateTimes, interpolateModelFile=interpolateModelFile, upscaleModelFile=upscaleModelFile, upscaleModelArch=upscaleModelArch
+            )
+        )
+        writeThread.start()
+        self.startGUIUpdate()
+
+
+    def renderToPipeThread(self, backend: str, interpolateTimes: int, interpolateModelFile: str, upscaleModelFile: str, upscaleModelArch: str):
         # builds command
         if backend == "pytorch (cuda)" or backend == "pytorch (rocm)":
             backend = "pytorch" # pytorch is the same for both cuda and rocm
@@ -345,10 +300,10 @@ class ProcessTab:
             "--paused_file",
             f"{self.pausedFile}",
         ]
-        if method == "Upscale" or method == "Denoise":
-            modelPath = os.path.join(MODELS_PATH, self.modelFile)
-            if self.modelArch == "custom":
-                modelPath = os.path.join(CUSTOM_MODELS_PATH, self.modelFile)
+        if upscaleModelFile:
+            modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
+            if upscaleModelArch == "custom":
+                modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
             command += [
                 "--upscale_model",
                 modelPath,
@@ -360,12 +315,12 @@ class ProcessTab:
                     "--tilesize",
                     f"{self.tilesize}",
                 ]
-        if method == "Interpolate":
+        if interpolateModelFile:
             command += [
                 "--interpolate_model",
                 os.path.join(
                     MODELS_PATH,
-                    self.modelFile,
+                    interpolateModelFile,
                 ),
                 "--interpolate_factor",
                 f"{interpolateTimes}",
