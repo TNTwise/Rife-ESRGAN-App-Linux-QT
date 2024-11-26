@@ -76,32 +76,7 @@ jobs:
           git clone https://github.com/tntwise/real-video-enhancer
           version=$(python -c "from datetime import datetime; print(str(datetime.now()).split(' ')[0].replace('-',''))")
           tag=$(python -c "import random, string; print(''.join(random.choices(string.ascii_letters, k=8)))")
-          body=$(python3 -c 'import sys
-
-                                               def get_latest_tag(changelog):
-                                                   with open(changelog, \'r\') as file:
-                                                       lines = file.readlines()
-
-                                                   tags = []
-                                                   for index, line in enumerate(lines):
-                                                       if line.startswith(\'# \'):
-                                                           tags.append((index, line.strip(\'# \').strip()))
-
-                                                   if not tags:
-                                                       print("No tags found.")
-                                                       return
-
-                                                   start_index, latest_tag = tags[0]
-                                                   end_index = tags[1][0] if len(tags) > 1 else len(lines)
-                                                   content = \'\'.join(lines[start_index:end_index])
-
-                                                   print(content)
-
-                                               if __name__ == "__main__":
-                                                   changelog_file = 'real-video-enhancer/CHANGELOG.md'
-                                                   if len(sys.argv) > 1:
-                                                       changelog_file = sys.argv[1]
-                                                   get_latest_tag(changelog_file)')
+          body=$(python3 printchangelog.py)
           echo "Version=$version"
           echo "Tag=$version"
           echo "Body=$body"
