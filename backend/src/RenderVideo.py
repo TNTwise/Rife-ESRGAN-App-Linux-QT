@@ -193,7 +193,8 @@ class Render(FFMpegRender):
                         img1=self.setupFrame1,
                         timestep=self.maxTimestep,
                     )
-
+                if self.upscaleModel:
+                    frame = self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame))
                 self.writeQueue.put(frame)
 
             self.onEndOfInterpolateCall()
@@ -204,14 +205,12 @@ class Render(FFMpegRender):
                 frame = self.readQueue.get()
                 if frame is None:
                     break
-                if self.upscaleModel:
-                    frame = self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame))
 
                 if self.interpolateModel:
-                    if self.sceneDetectMethod.lower() != "none":
-                        self.renderInterpolate(frame, self.sceneDetect.detect(frame))
-                    else:
-                        self.renderInterpolate(frame, False)
+                    self.renderInterpolate(frame, self.sceneDetect.detect(frame))
+
+                if self.upscaleModel:
+                    frame = self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame))
 
                 self.writeQueue.put(frame)
             else:
@@ -276,8 +275,8 @@ class Render(FFMpegRender):
             self.sceneDetect = SceneDetect(
                 sceneChangeMethod=self.sceneDetectMethod,
                 sceneChangeSensitivity=self.sceneDetectSensitivty,
-                width=self.width*self.upscaleTimes,
-                height=self.height*self.upscaleTimes,
+                width=self.width,
+                height=self.height,
             )
         else:
             printAndLog("Scene Detection Disabled")
@@ -287,8 +286,8 @@ class Render(FFMpegRender):
 
             self.interpolateOption = InterpolateRIFENCNN(
                 interpolateModelPath=self.interpolateModel,
-                width=self.width*self.upscaleTimes,
-                height=self.height*self.upscaleTimes,
+                width=self.width,
+                height=self.height,
                 max_timestep=self.maxTimestep,
             )
             self.doEncodingOnFrame = False
@@ -299,8 +298,8 @@ class Render(FFMpegRender):
             self.interpolateOption = InterpolateRifeTorch(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
-                width=self.width*self.upscaleTimes,
-                height=self.height*self.upscaleTimes,
+                width=self.width,
+                height=self.height,
                 device=self.device,
                 dtype=self.precision,
                 backend=self.backend,

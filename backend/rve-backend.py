@@ -167,13 +167,13 @@ class HandleApplication:
             "--sceneDetectMethod",
             help="Scene change detection to avoid interpolating transitions. (options=mean, mean_segmented, none)\nMean segmented splits up an image, and if an arbitrary number of segments changes are detected within the segments, it will trigger a scene change. (lower sensativity thresholds are not recommended)",
             type=str,
-            default="mean",
+            default="pyscenedetect",
         )
         parser.add_argument(
             "--sceneDetectThreshold",
             help="Scene change detection sensitivity, lower number means it has a higher chance of detecting scene changes, with risk of detecting too many.",
             type=float,
-            default=2.0,
+            default=4.0,
         )
         parser.add_argument(
             "--overwrite",
@@ -199,8 +199,14 @@ class HandleApplication:
         )
         parser.add_argument(
             "--benchmark",
-            help="Overwrite output video if it already exists.",
+            help="Benchmark without saving video",
             action="store_true",
+        )
+        parser.add_argument(
+            "--auto_rife_uhd_mode",
+            help="Sets the scale of rife to .5 automatically if the video is greater than 1080p",
+            action="store_true",
+            default=True
         )
         parser.add_argument(
             "--shared_memory_id",
