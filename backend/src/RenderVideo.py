@@ -277,15 +277,15 @@ class Render(FFMpegRender):
 
     def setupInterpolate(self):
         log("Setting up Interpolation")
-
-        if self.sceneDetectMethod != "none":
-            printAndLog("Scene Detection Enabled")
-            self.sceneDetect = SceneDetect(
+        self.sceneDetect = SceneDetect(
                 sceneChangeMethod=self.sceneDetectMethod,
                 sceneChangeSensitivity=self.sceneDetectSensitivty,
                 width=self.width,
                 height=self.height,
             )
+        if self.sceneDetectMethod != "none":
+            printAndLog("Scene Detection Enabled")
+            
         else:
             printAndLog("Scene Detection Disabled")
             
