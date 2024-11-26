@@ -219,7 +219,7 @@ class ProcessTab:
             interpolateModelFile,interpolateDownloadFile = totalModels[interpolateModel][0], totalModels[interpolateModel][1]
         else:
             interpolateTimes = 1
-        if upscaleModelFile:
+        if upscaleModel:
             upscaleModelFile, upscaleDownloadFile = totalModels[upscaleModel][0], totalModels[upscaleModel][1]
             upscaleTimes = totalModels[upscaleModel][2]
             upscaleModelArch = totalModels[upscaleModel][3]
