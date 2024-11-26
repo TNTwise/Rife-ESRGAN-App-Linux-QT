@@ -7,6 +7,7 @@
  - Denoise for pytorch backend.
  - Subtitle passthrough.
  - Changelog view in home menu.
+ - Upscale and Interpolate at the same time.
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials. (thanks zeptofine!) 
  - Make GUI more compact.
