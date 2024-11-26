@@ -74,9 +74,10 @@ jobs:
         id: version_tag
         run: |
           git clone https://github.com/tntwise/real-video-enhancer
+          cp real-video-enhancer/CHANGELOG.md .
           version=$(python -c "from datetime import datetime; print(str(datetime.now()).split(' ')[0].replace('-',''))")
           tag=$(python -c "import random, string; print(''.join(random.choices(string.ascii_letters, k=8)))")
-          body=$(python3 printchangelog.py)
+          body=$(python3 scripts/printchangelog.py)
           echo "Version=$version"
           echo "Tag=$version"
           echo "Body=$body"
