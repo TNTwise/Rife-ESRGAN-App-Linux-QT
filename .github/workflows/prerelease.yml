@@ -81,17 +81,45 @@ jobs:
         run: |
           version=$(python -c "from datetime import datetime; print(str(datetime.now()).split(' ')[0].replace('-',''))")
           tag=$(python -c "import random, string; print(''.join(random.choices(string.ascii_letters, k=8)))")
+          body=$(python3 -c 'import sys
+
+                                               def get_latest_tag(changelog):
+                                                   with open(changelog, \'r\') as file:
+                                                       lines = file.readlines()
+
+                                                   tags = []
+                                                   for index, line in enumerate(lines):
+                                                       if line.startswith(\'# \'):
+                                                           tags.append((index, line.strip(\'# \').strip()))
+
+                                                   if not tags:
+                                                       print("No tags found.")
+                                                       return
+
+                                                   start_index, latest_tag = tags[0]
+                                                   end_index = tags[1][0] if len(tags) > 1 else len(lines)
+                                                   content = \'\'.join(lines[start_index:end_index])
+
+                                                   print(content)
+
+                                               if __name__ == "__main__":
+                                                   changelog_file = \'CHANGELOG.md\'
+                                                   if len(sys.argv) > 1:
+                                                       changelog_file = sys.argv[1]
+                                                   get_latest_tag(changelog_file)')
           echo "Version=$version"
           echo "Tag=$version"
+          echo "Body=$body"
           echo "::set-output name=version::$version"
           echo "::set-output name=tag::$version"
+          echo "::set-output name=body::$body"
       
       - name: Create Release and Upload Release Asset
         uses: softprops/action-gh-release@v1        
         with:
           name: REAL Video Enhancer 2.1.5 Pre-Release
           tag_name: prerelease_2.1.5
-          body: ${{ steps.version_tag.outputs.tag }}
+          body: ${{ steps.version_tag.outputs.body }}
           draft: false
           prerelease: true
           
