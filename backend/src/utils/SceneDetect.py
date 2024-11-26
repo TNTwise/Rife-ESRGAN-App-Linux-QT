@@ -5,8 +5,14 @@ import sys
 from .Util import bytesToImg
 from .PySceneDetectUtils import ContentDetector
 
+class BaseDetector:
+    def __init__(self):
+        pass
 
-class NPMeanSCDetect:
+    def sceneDetect(self, frame):
+        return False
+
+class NPMeanSCDetect(BaseDetector):
     """
     takes in an image as np array and calculates the mean, with ability to use it for scene detect and upscale skip
     """
@@ -35,7 +41,7 @@ class NPMeanSCDetect:
         return False
 
 
-class NPMeanSegmentedSCDetect:
+class NPMeanSegmentedSCDetect(BaseDetector):
     """
     takes in an image as np array and calculates the mean, with ability to use it for scene detect
     Args:
@@ -97,7 +103,7 @@ class NPMeanSegmentedSCDetect:
         return False
 
 
-class NPMeanDiffSCDetect:
+class NPMeanDiffSCDetect(BaseDetector):
     def __init__(self, sensitivity=2):
         self.sensativity = (
             sensitivity * 10
@@ -121,7 +127,7 @@ class NPMeanDiffSCDetect:
         return False
 
 
-class FFMPEGSceneDetect:
+class FFMPEGSceneDetect(BaseDetector):
     def __init__(self, threshold=0.3, min_scene_length=15, history_size=30):
         self.threshold = threshold / 10
         self.min_scene_length = min_scene_length
@@ -186,7 +192,7 @@ class FFMPEGSceneDetect:
         return False
 
 
-class PySceneDetect:
+class PySceneDetect(BaseDetector):
     def __init__(self, threshold=2, min_scene_length=30):
         self.detector = ContentDetector(threshold=threshold * 10, min_scene_len=1) # has to be 1 to stay synced
         self.frameNum = 0
@@ -201,6 +207,7 @@ class PySceneDetect:
                 return False
 
         return len(frameList) > 0
+
 
 
 class SceneDetect:
@@ -237,6 +244,8 @@ class SceneDetect:
             )
         elif sceneChangeMethod == "pyscenedetect":
             self.detector = PySceneDetect(threshold=sceneChangeSensitivity)
+        elif sceneChangeMethod.lower() == "none":
+            self.detector = BaseDetector()
         else:
             raise ValueError("Invalid scene change method")
 
