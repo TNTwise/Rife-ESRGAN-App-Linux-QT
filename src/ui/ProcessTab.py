@@ -367,7 +367,7 @@ class ProcessTab:
                     MODELS_PATH,
                     self.modelFile,
                 ),
-                "--interpolateFactor",
+                "--interpolate_factor",
                 f"{interpolateTimes}",
             ]
         if self.settings["preview_enabled"] == "True":
