@@ -202,8 +202,9 @@ class Render(FFMpegRender):
                         timestep=self.maxTimestep,
                     )
                 if self.upscaleModel:
-                    frame = self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame))
-                self.writeQueue.put(frame)
+                    self.writeQueue.put(self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame)))
+                else:
+                    self.writeQueue.put(frame)
 
             self.onEndOfInterpolateCall()
 
