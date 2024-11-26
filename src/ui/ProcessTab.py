@@ -124,6 +124,10 @@ class ProcessTab:
         self.parent.upscaleModelComboBox.currentIndexChanged.connect(
             self.parent.updateVideoGUIDetails
         )
+        self.parent.interpolateModelComboBox.currentIndexChanged.connect(
+            self.parent.updateVideoGUIDetails
+        )
+
         self.parent.backendComboBox.currentIndexChanged.connect(
             lambda: self.populateModels(self.parent.backendComboBox.currentText())
         )
@@ -211,12 +215,12 @@ class ProcessTab:
         """
         self.benchmarkMode = benchmarkMode
         # get model attributes
-        if interpolateModelFile:
-            interpolateModelFile,interpolateDownloadFile = totalModels[interpolateModel][0], totalModels[interpolateModelFile][1]
+        if interpolateModel:
+            interpolateModelFile,interpolateDownloadFile = totalModels[interpolateModel][0], totalModels[interpolateModel][1]
         else:
             interpolateTimes = 1
         if upscaleModelFile:
-            upscaleModelFile, upscaleDownloadFile = totalModels[upscaleModel][0], totalModels[upscaleModelFile][1]
+            upscaleModelFile, upscaleDownloadFile = totalModels[upscaleModel][0], totalModels[upscaleModel][1]
             upscaleTimes = totalModels[upscaleModel][2]
             upscaleModelArch = totalModels[upscaleModel][3]
         else:

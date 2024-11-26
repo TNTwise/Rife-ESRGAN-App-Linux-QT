@@ -224,7 +224,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateModelName = self.interpolateModelComboBox.currentText()
             interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
             scale = self.getUpscaleModelScale(upscaleModelName)
-            
             text = (
                 f"FPS: {round(self.videoFps,0)} -> {round(self.videoFps*interpolateTimes,0)}\n"
                 + f"Resolution: {self.videoWidth}x{self.videoHeight} -> {self.videoWidth*scale}x{self.videoHeight*scale}\n"
@@ -243,7 +242,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return interpolateTimes
 
     def getUpscaleModelScale(self, upscaleModelName):
-        if upscaleModelName == "None":
+        if upscaleModelName == "None" or upscaleModelName == '':
             scale = 1
         else:
             scale = totalModels[upscaleModelName][2]
@@ -284,6 +283,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return output_file
 
     def updateVideoGUIDetails(self):
+        self.interpolationContainer.setVisible(self.interpolateModelComboBox.currentText() != "None") # set interpolation container visible if interpolate model is not none
+        self.upscaleContainer.setVisible(self.upscaleModelComboBox.currentText() != "None")
         self.settings.readSettings()
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
         self.updateVideoGUIText()

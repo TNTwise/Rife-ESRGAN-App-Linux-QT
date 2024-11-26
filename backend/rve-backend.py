@@ -248,13 +248,13 @@ class HandleApplication:
             raise os.error("Input file does not exist!")
         if self.args.tilesize < 0:
             raise ValueError("Tilesize must be greater than 0")
-        if self.args.interpolateFactor < 0:
+        if self.args.interpolate_factor < 0:
             raise ValueError("Interpolation factor must be greater than 0")
-        if self.args.interpolateFactor == 1 and self.args.interpolateModel:
+        if self.args.interpolate_factor == 1 and self.args.interpolate_model:
             raise ValueError(
                 "Interpolation factor must be greater than 1 if interpolation model is used.\nPlease use --interpolateFactor 2 for 2x interpolation!"
             )
-        if self.args.interpolateFactor != 1 and not self.args.interpolateModel:
+        if self.args.interpolate_factor != 1 and not self.args.interpolate_model:
             raise ValueError(
                 "Interpolation factor must be 1 if no interpolation model is used.\nPlease use --interpolateFactor 1 for no interpolation!"
             )
