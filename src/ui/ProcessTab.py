@@ -193,8 +193,10 @@ class ProcessTab:
         benchmarkMode: bool,
     ):
         if interpolateModel == "None":
+            interpolateModel = None
             interpolateModelFile = None
         if upscaleModel == "None":
+            upscaleModel = None
             upscaleModelFile = None
         self.inputFile = inputFile
         self.outputPath = outputPath
@@ -227,7 +229,7 @@ class ProcessTab:
             upscaleTimes = 1
             upscaleModelArch = "custom"
 
-        if interpolateModelFile:
+        if interpolateModel:
             DownloadModel(
                 modelFile=interpolateModelFile,
                 downloadModelFile=interpolateDownloadFile)
