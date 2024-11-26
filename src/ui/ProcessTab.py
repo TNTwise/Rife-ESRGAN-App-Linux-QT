@@ -342,7 +342,7 @@ class ProcessTab:
             f"{self.buildFFMpegsettings}",
             "--tensorrt_opt_profile",
             f"{self.settings['tensorrt_optimization_level']}",
-            "--pausedFile",
+            "--paused_file",
             f"{self.pausedFile}",
         ]
         if method == "Upscale" or method == "Denoise":
@@ -350,9 +350,9 @@ class ProcessTab:
             if self.modelArch == "custom":
                 modelPath = os.path.join(CUSTOM_MODELS_PATH, self.modelFile)
             command += [
-                "--upscaleModel",
+                "--upscale_model",
                 modelPath,
-                "--interpolateFactor",
+                "--interpolate_factor",
                 "1",
             ]
             if self.tilingEnabled:
@@ -362,7 +362,7 @@ class ProcessTab:
                 ]
         if method == "Interpolate":
             command += [
-                "--interpolateModel",
+                "--interpolate_model",
                 os.path.join(
                     MODELS_PATH,
                     self.modelFile,
@@ -376,12 +376,12 @@ class ProcessTab:
                 f"{self.imagePreviewSharedMemoryID}",
             ]
         if self.settings["scene_change_detection_enabled"] == "False":
-            command += ["--sceneDetectMethod", "none"]
+            command += ["--scene_detect_method", "none"]
         else:
             command += [
-                "--sceneDetectMethod",
+                "--scene_detect_method",
                 self.settings["scene_change_detection_method"],
-                "--sceneDetectThreshold",
+                "--scene_detect_threshold",
                 self.settings["scene_change_detection_threshold"],
             ]
         if self.benchmarkMode:

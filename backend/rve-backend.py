@@ -24,9 +24,9 @@ class HandleApplication:
                 # model settings
                 inputFile=self.args.input,
                 outputFile=self.args.output,
-                interpolateModel=self.args.interpolateModel,
-                interpolateFactor=self.args.interpolateFactor,
-                upscaleModel=self.args.upscaleModel,
+                interpolateModel=self.args.interpolate_model,
+                interpolateFactor=self.args.interpolate_factor,
+                upscaleModel=self.args.upscale_model,
                 tile_size=self.args.tilesize,
                 # backend settings
                 device="default",
@@ -38,9 +38,9 @@ class HandleApplication:
                 benchmark=self.args.benchmark,
                 encoder=self.args.custom_encoder,
                 # misc settingss
-                pausedFile=self.args.pausedFile,
-                sceneDetectMethod=self.args.sceneDetectMethod,
-                sceneDetectSensitivity=self.args.sceneDetectThreshold,
+                pausedFile=self.args.paused_file,
+                sceneDetectMethod=self.args.scene_detect_method,
+                sceneDetectSensitivity=self.args.scene_detect_threshold,
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 upscale_output_resolution=self.args.upscale_output_resolution,
@@ -137,17 +137,17 @@ class HandleApplication:
             type=str,
         )
         parser.add_argument(
-            "--upscaleModel",
+            "--upscale_model",
             help="Direct path to upscaling model, will automatically upscale if model is valid.",
             type=str,
         )
         parser.add_argument(
-            "--interpolateModel",
+            "--interpolate_model",
             help="Direct path to interpolation model, will automatically upscale if model is valid.\n(Downloadable Options: [rife46, rife47, rife415, rife418, rife420, rife422, rife422lite]))",
             type=str,
         )
         parser.add_argument(
-            "--interpolateFactor",
+            "--interpolate_factor",
             help="Multiplier for interpolation, will round up to nearest integer for interpolation but the fps will be correct",
             type=float,
             default=1.0,
@@ -164,13 +164,13 @@ class HandleApplication:
             default=3,
         )
         parser.add_argument(
-            "--sceneDetectMethod",
+            "--scene_detect_method",
             help="Scene change detection to avoid interpolating transitions. (options=mean, mean_segmented, none)\nMean segmented splits up an image, and if an arbitrary number of segments changes are detected within the segments, it will trigger a scene change. (lower sensativity thresholds are not recommended)",
             type=str,
             default="pyscenedetect",
         )
         parser.add_argument(
-            "--sceneDetectThreshold",
+            "--scene_detect_threshold",
             help="Scene change detection sensitivity, lower number means it has a higher chance of detecting scene changes, with risk of detecting too many.",
             type=float,
             default=4.0,
@@ -220,7 +220,7 @@ class HandleApplication:
             action="store_true",
         )
         parser.add_argument(
-            "--pausedFile",
+            "--paused_file",
             help="File to store paused state (True means paused, False means unpaused)",
             type=str,
             default=None,
