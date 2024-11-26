@@ -1342,9 +1342,15 @@ background-color:#343b47
                        </size>
                       </property>
                       <property name="checkable">
-                       <bool>true</bool>
+                       <bool>false</bool>
                       </property>
                       <property name="checked">
+                       <bool>false</bool>
+                      </property>
+                      <property name="autoRepeat">
+                       <bool>false</bool>
+                      </property>
+                      <property name="autoExclusive">
                        <bool>false</bool>
                       </property>
                      </widget>
@@ -1379,7 +1385,7 @@ background-color:#343b47
                          </size>
                         </property>
                         <property name="checkable">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="checked">
                          <bool>false</bool>
@@ -1763,7 +1769,7 @@ QTabWidget::pane { /* The tab widget frame */
                    <x>0</x>
                    <y>0</y>
                    <width>521</width>
-                   <height>325</height>
+                   <height>330</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">

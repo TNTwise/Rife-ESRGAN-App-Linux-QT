@@ -406,8 +406,6 @@ class ProcessTab:
             self.workerThread.wait()
         except Exception:
             pass  # pass just incase internet error caused a skip
-        
-        
 
     def getRoundedPixmap(self, pixmap, corner_radius):
         size = pixmap.size()
