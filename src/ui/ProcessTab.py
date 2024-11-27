@@ -92,11 +92,11 @@ class ProcessTab:
         self.parent.upscaleModelComboBox.addItems(['None'] + list(upscaleModels.keys()))
         if not self.gmfssSupport:
                 # Disable specific options based on the selected text
-                for i in range(self.parent.modelComboBox.count()):
+                for i in range(self.parent.interpolateModelComboBox.count()):
                     if (
-                        "GMFSS" in self.parent.modelComboBox.itemText(i)
+                        "GMFSS" in self.parent.interpolateModelComboBox.itemText(i)
                     ):  # hacky solution, just straight copy pasted
-                        self.parent.modelComboBox.model().item(i).setEnabled(
+                        self.parent.interpolateModelComboBox.model().item(i).setEnabled(
                             self.gmfssSupport
                         )
 
