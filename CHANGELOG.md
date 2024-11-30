@@ -10,7 +10,7 @@
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials. (thanks zeptofine!) 
  - Make GUI more compact.
- - bump torch to 20241130-dev.
+ - bump torch to 2.6.0-dev20241130.
 # RVE 2.1.0
 ### Added
  - Custom Upscale Model Support (TensorRT/Pytorch/NCNN)
