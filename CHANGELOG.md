@@ -4,13 +4,13 @@
  - Stopping render, instead of having to kill the entire app.
  - More tiling options.
  - Better checks on imported models.
- - Denoise for pytorch backend.
  - Subtitle passthrough.
  - Changelog view in home menu.
  - Upscale and Interpolate at the same time.
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials. (thanks zeptofine!) 
  - Make GUI more compact.
+ - bump torch to 20241130-dev.
 # RVE 2.1.0
 ### Added
  - Custom Upscale Model Support (TensorRT/Pytorch/NCNN)
