@@ -134,8 +134,11 @@ class BackendHandler:
             if "[Torch-TensorRT]" in word:
                 continue
             new_out += word + " "
-        output = new_out
+        
+        new_out = new_out.replace("Unable to import quantization op. Please install modelopt library (https://github.com/NVIDIA/TensorRT-Model-Optimizer?tab=readme-ov-file#installation) to add support for compiling quantized models\n","")
+        new_out = new_out.replace("WARNING: - Unable to read CUDA capable devices. Return status: 35\n", "")
         # Find the part of the output containing the backends list
+        output = new_out
         start = output.find("[")
         end = output.find("]") + 1
         backends_str = output[start:end]
