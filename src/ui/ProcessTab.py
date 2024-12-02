@@ -372,6 +372,8 @@ class ProcessTab:
                 continue
             if "WARNING: [Torch-TensorRT]" in line:
                 continue
+            if "Unable to import quantization" in line:
+                continue
 
             line = str(line.strip())
             if "it/s" in line:
