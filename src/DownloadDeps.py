@@ -215,8 +215,8 @@ class DownloadDependencies:
         Pytorch CUDA deps
         """
         torchCUDADeps = [
-            "torch==2.6.0.dev20241130",
-            "torchvision==0.20.0.dev20241130",
+            "torch==2.6.0.dev20241127",
+            "torchvision==0.20.0.dev20241127",
             "safetensors",
             "einops",
             "cupy-cuda12x==13.3.0",
@@ -236,7 +236,7 @@ class DownloadDependencies:
             "tensorrt-cu12_libs==10.6.0",
             "tensorrt_cu12_bindings==10.6.0",
             "--no-deps",
-            "torch_tensorrt==2.6.0.dev20241130",
+            "torch_tensorrt==2.6.0.dev20241127",
         ]
 
         return tensorRTDeps
