@@ -82,7 +82,7 @@ jobs:
           cp real-video-enhancer/CHANGELOG.md .
           version=$(python -c "from datetime import datetime; print(str(datetime.now()).split(' ')[0].replace('-',''))")
           tag=$(python -c "import random, string; print(''.join(random.choices(string.ascii_letters, k=8)))")
-          python3 scripts/printchangelog.py > RELEASE_BODY.md
+          python3 real-video-enhancer/scripts/printchangelog.py > RELEASE_BODY.md
           echo "Version=$version"
           echo "Tag=$version"
           echo "Body=$body"
