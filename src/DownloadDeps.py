@@ -55,9 +55,9 @@ class DownloadDependencies:
 
     def __init__(self):
         if PLATFORM == "win32":
-            self.__torchVersion = "2.6.0.dev20241120"
+            self.__torchVersion = "dev20241120"
         elif PLATFORM == "linux":
-            self.__torchVersion = "2.6.0.dev20241130"
+            self.__torchVersion = "dev20241202"
 
         createDirectory(os.path.join(CWD, "python"))
         createDirectory(os.path.join(CWD, "bin"))
@@ -221,8 +221,8 @@ class DownloadDependencies:
         Pytorch CUDA deps
         """
         torchCUDADeps = [
-            f"torch=={self.__torchVersion}",
-            f"torchvision=={self.__torchVersion}",
+            f"torch==2.6.0.{self.__torchVersion}",
+            f"torchvision==0.20.0.{self.__torchVersion}",
             "safetensors",
             "einops",
             "cupy-cuda12x==13.3.0",
@@ -242,7 +242,7 @@ class DownloadDependencies:
             "tensorrt-cu12_libs==10.6.0",
             "tensorrt_cu12_bindings==10.6.0",
             "--no-deps",
-            f"torch_tensorrt=={self.__torchVersion}",
+            f"torch_tensorrt==2.6.0.{self.__torchVersion}",
         ]
 
         return tensorRTDeps
