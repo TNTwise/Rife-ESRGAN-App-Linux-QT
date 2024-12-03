@@ -1,5 +1,6 @@
 import os
 import sys
+import socket
 PLATFORM = sys.platform
 
 IS_FLATPAK = "FLATPAK_ID" in os.environ
