@@ -142,59 +142,6 @@ class FFMpegRender:
         self.readQueue = queue.Queue(maxsize=50)
         self.writeQueue = queue.Queue(maxsize=50)
 
-    def get_ffmpeg_streams(self, video_file):
-        """Get a list of streams from the video file using FFmpeg."""
-        try:
-            result = subprocess.run(
-                [FFMPEG_PATH, "-i", video_file], stderr=subprocess.PIPE, text=True
-            )
-            return result.stderr
-        except Exception as e:
-            print(f"An error occurred while running FFmpeg: {e}")
-            return None
-
-    def extract_subtitles(self, video_file, stream_index, subtitle_file):
-        self.videoPropertiesLocation = os.path.join(CWD, self.inputFile + "_VIDEODATA")
-        if not os.path.exists(self.videoPropertiesLocation):
-            os.makedirs(self.videoPropertiesLocation)
-        """Extract a specific subtitle stream from the video file."""
-        try:
-            subprocess.run(
-                [
-                    FFMPEG_PATH,
-                    "-i",
-                    video_file,
-                    "-map",
-                    f"0:{stream_index}",
-                    subtitle_file,
-                ],
-                check=True,
-            )
-            print(f"Extracted subtitle stream {stream_index} to {subtitle_file}")
-            self.subtitleFiles.append(subtitle_file)
-        except subprocess.CalledProcessError as e:
-            print(f"An error occurred while extracting subtitles: {e}")
-
-    def getVideoSubs(self, video_file):
-        ffmpeg_output = self.get_ffmpeg_streams(video_file)
-        if not ffmpeg_output:
-            return
-
-        subtitle_stream_pattern = re.compile(
-            r"Stream #0:(\d+).*?Subtitle", re.MULTILINE | re.DOTALL
-        )
-        subtitle_streams = subtitle_stream_pattern.findall(ffmpeg_output)
-
-        if not subtitle_streams:
-            print("No subtitle streams found in the video.")
-            return
-
-        for stream_index in subtitle_streams:
-            subtitle_file = os.path.join(
-                self.videoPropertiesLocation, f"subtitle_{stream_index}.srt"
-            )
-            self.extract_subtitles(video_file, stream_index, subtitle_file)
-
     def getVideoProperties(self, inputFile: str = None):
         log("Getting Video Properties...")
         if inputFile is None:
@@ -282,13 +229,13 @@ class FFMpegRender:
             command.append(
                 f"{self.outputFile}",
             )
-
+            
             if self.overwrite:
                 command.append("-y")
+            
         else:
             command = [
                 f"{FFMPEG_PATH}",
-                "-y",
                 "-hide_banner",
                 "-v",
                 "warning",
@@ -431,3 +378,6 @@ class FFMpegRender:
                     printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
             print(f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos.")
+            self.shm.close()
+            self.shm.unlink()
+            os._exit(1)

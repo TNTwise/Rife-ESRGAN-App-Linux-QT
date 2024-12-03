@@ -22,11 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from math import e
 import sys
 import os
-import tensorrt
+from io import BytesIO
 import torch
 import torch_tensorrt
+onnx_support = True
+try:
+    import onnx
+except ImportError:
+    onnx_support = False
+import tensorrt as trt
+TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
 from torch._decomp import get_decompositions
 
 
@@ -40,7 +48,7 @@ class TorchTensorRTHandler:
         debug: bool = False,
         static_shape: bool = True,
     ):
-        self.tensorrt_version = tensorrt.__version__  # can just grab version from here instead of importing trt and torch trt in all related files
+        self.tensorrt_version = trt.__version__  # can just grab version from here instead of importing trt and torch trt in all related files
         self.torch_tensorrt_version = torch_tensorrt.__version__
         self.export_format = export_format
         self.trt_workspace_size = trt_workspace_size
@@ -152,3 +160,84 @@ class TorchTensorRTHandler:
         """Loads a TensorRT engine from the specified path."""
         print(f"Loading TensorRT engine from {trt_engine_path}.", file=sys.stderr)
         return torch.jit.load(trt_engine_path).eval()
+
+class TensorRTHandler:
+    def __init__(
+        self,
+        trt_workspace_size: int = 0,
+        max_aux_streams: int | None = None,
+        trt_optimization_level: int = 3,
+        static_shape: bool = True,
+    ):
+        self.tensorrt_version = trt.__version__
+        self.trt_workspace_size = trt_workspace_size
+        self.max_aux_streams = max_aux_streams
+        self.optimization_level = trt_optimization_level
+        self.static_shape = static_shape
+    
+    def export_onnx(
+            self,
+            model,
+            dtype,
+            device,
+            example_inputs: list[torch.Tensor]
+            ):
+        example_inputs = [input.to(device=device, dtype=dtype) for input in example_inputs]
+        model.to(device=device, dtype=dtype)
+        with BytesIO() as f:
+            torch.onnx.export(
+                model,
+                tuple(example_inputs),
+                f,
+                verbose=True,
+                do_constant_folding=True,
+                input_names=["input"],
+                output_names=["output"],
+                #dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}}, dealing with static for testing currently
+            )
+            f.seek(0)
+            return f.read()
+
+    def build_tensorrt_engine(self, onnx_model, trt_engine_path):
+        builder = trt.Builder(TRT_LOGGER)
+        network = builder.create_network(0)
+        parser = trt.OnnxParser(network, TRT_LOGGER)
+        parser.parse(onnx_model)
+        config = builder.create_builder_config()
+        config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 20)
+        serialized_engine = builder.build_serialized_network(network, config)
+        with open(trt_engine_path, "wb") as f:
+            f.write(serialized_engine)
+
+    def load_engine(self, trt_engine_path: str):
+        runtime = trt.Runtime(TRT_LOGGER)
+        with open(trt_engine_path, "rb") as f:
+            serialized_engine = f.read()
+        engine =  runtime.deserialize_cuda_engine(serialized_engine)
+        self.context = engine.create_execution_context()
+
+    def build_engine(
+        self,
+        model: torch.nn.Module,
+        dtype: torch.dtype,
+        device: torch.device,
+        example_inputs: list[torch.Tensor],
+        trt_engine_path: str,
+    ):
+        onnx_model = self.export_onnx(model=model, example_inputs=example_inputs, dtype=dtype, device=device)
+        engine = self.build_tensorrt_engine(onnx_model, trt_engine_path)
+
+    def __call__(self): # inference here
+        pass
+
+if __name__ == '__main__':
+    model = torch.nn.Sequential(
+        torch.nn.Linear(10, 10),
+        torch.nn.ReLU(),
+        torch.nn.Linear(10, 1),
+    )
+    example_inputs = [torch.randn(10)]
+    trt_engine_path = "model.engine"
+    handler = TensorRTHandler()
+    handler.build_engine(model, torch.float32, torch.device("cuda"), example_inputs, trt_engine_path)
+    engine = handler.load_engine(trt_engine_path)
