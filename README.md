@@ -125,7 +125,8 @@ python3 build.py --build_exe
 | cx_Freeze | Tool for creating standalone executables from Python scripts (Linux build) | https://github.com/marcelotduarte/cx_Freeze 
 | PyInstaller | Tool for creating standalone executables from Python scripts (Windows/Mac builds) | https://github.com/pyinstaller/pyinstaller
 | Feather Icons | Open source icons library | https://github.com/feathericons/feather 
-|Python Standalone Builds | Backend inference using portable python, helps when porting to different platforms. | https://github.com/indygreg/python-build-standalone |
+| PySceneDetect | Transition detection library for python | [https://github.com/feathericons/feather ](https://github.com/Breakthrough/PySceneDetect/)
+| Python Standalone Builds | Backend inference using portable python, helps when porting to different platforms. | https://github.com/indygreg/python-build-standalone |
 
 
 # Custom Models:
