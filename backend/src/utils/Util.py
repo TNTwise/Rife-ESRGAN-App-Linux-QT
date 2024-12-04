@@ -3,8 +3,10 @@ import warnings
 import numpy as np
 import cv2
 import shutil
-from ..constants import CWD
-
+try:
+    from ..constants import CWD
+except ImportError:
+    CWD = os.getcwd()
 
 with open(os.path.join(CWD, "backend_log.txt"), "w") as f:
     pass
@@ -58,7 +60,26 @@ def bytesToImg(
         frame = cv2.resize(frame, dsize=(100, 100))
     return frame
 
-
+def get_pytorch_vram() -> int:
+    """
+    Function that returns the total VRAM amount in MB using PyTorch.
+    """
+    try:
+        import torch
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            props = torch.cuda.get_device_properties(device)
+            vram_in_mb = props.total_memory // (1024 ** 2)  # Convert bytes to MB
+            return vram_in_mb
+        else:
+            return 0
+    except ImportError as e:
+        log(str(e))
+        return 0
+    except Exception as e:
+        log(str(e))
+        return 0
+    
 def checkForPytorchCUDA() -> bool:
     """
     function that checks if the pytorch backend is available
@@ -239,3 +260,6 @@ def checkForNCNN() -> bool:
         return False
     except Exception as e:
         log(str(e))
+
+if __name__ == "__main__":
+    print(get_pytorch_vram())

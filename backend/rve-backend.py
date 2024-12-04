@@ -12,6 +12,7 @@ from src.utils.Util import (
     checkForDirectML,
     checkForDirectMLHalfPrecisionSupport,
     checkForGMFSS,
+    get_pytorch_vram,
 )
 
 
@@ -48,6 +49,7 @@ class HandleApplication:
         else:
             half_prec_supp = False
             gmfss_supp = False
+            vram = 0
             availableBackends = []
             printMSG = ""
 
@@ -58,27 +60,29 @@ class HandleApplication:
                 Half precision is only availaible on RTX 20 series and up
                 """
                 import torch
-
                 half_prec_supp = check_bfloat16_support()
                 if half_prec_supp:
                     import tensorrt
-
                     availableBackends.append("tensorrt")
                     printMSG += f"TensorRT Version: {tensorrt.__version__}\n"
                 else:
                     printMSG += "ERROR: Cannot use tensorrt backend, as it is not supported on your current GPU"
             if checkForPytorchCUDA():
                 import torch
-
                 availableBackends.append("pytorch (cuda)")
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
                 gmfss_supp = checkForGMFSS()
+                vram = get_pytorch_vram()
             if checkForPytorchROCM():
                 availableBackends.append("pytorch (rocm)")
                 import torch
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
+                try:
+                    vram = get_pytorch_vram()
+                except Exception:
+                    vram = 0
             if checkForNCNN():
                 availableBackends.append("ncnn")
                 printMSG += f"NCNN Version: 20220729\n"
@@ -93,6 +97,8 @@ class HandleApplication:
             printMSG += f"GMFSS support: {gmfss_supp}\n"
             if not gmfss_supp and "pytorch (cuda)" in availableBackends:
                 printMSG += "Please install CUDA to enable GMFSS\n"
+            if vram != 0:
+                printMSG += f"VRAM: {vram}mb\n"
             print("Available Backends: " + str(availableBackends))
             print(printMSG)
 
