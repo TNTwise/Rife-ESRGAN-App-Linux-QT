@@ -52,11 +52,16 @@ class TorchTensorRTHandler:
         static_shape (bool): Whether to use static shape when compiling models using TensorRT. Defaults
 
         dynamo_export_format (str): nn2exportedprogram or torchscript2exportedprogram, torchscript2exportedprogram uses torchscript as an intermediatory as some issues occur when using dynamo with torch.export.export
+        
+        multi precision engines seem to not like torchscript2exportedprogram, 
+        or maybe its just the model not playing nice with explicit_typing, 
+        either way, forcing one precision helps with speed in some cases.
     """
     
     def __init__(
         self,
         dynamo_export_format: str = "nn2exportedprogram", 
+        multi_precision_engine: bool = True, 
         trt_workspace_size: int = 0,
         max_aux_streams: int | None = None,
         trt_optimization_level: int = 3,
@@ -71,6 +76,7 @@ class TorchTensorRTHandler:
         self.optimization_level = trt_optimization_level
         self.debug = debug
         self.static_shape = static_shape  # Unused for now
+        self.multi_precision_engine = multi_precision_engine
 
     def prepare_inputs(
         self, example_inputs: list[torch.Tensor]
@@ -117,19 +123,32 @@ class TorchTensorRTHandler:
         exported_program = exported_program.run_decompositions(
             get_decompositions([torch.ops.aten.grid_sampler_2d])
         )
-
-        model_trt = torch_tensorrt.dynamo.compile(
-            exported_program,
-            tuple(self.prepare_inputs(example_inputs)),
-            device=device,
-            use_explicit_typing=True,
-            debug=self.debug,
-            num_avg_timing_iters=4,
-            workspace_size=self.trt_workspace_size,
-            min_block_size=1,
-            max_aux_streams=self.max_aux_streams,
-            optimization_level=self.optimization_level,
-        )
+        if self.multi_precision_engine:
+            model_trt = torch_tensorrt.dynamo.compile(
+                exported_program,
+                tuple(self.prepare_inputs(example_inputs)),
+                device=device,
+                use_explicit_typing=True,
+                debug=self.debug,
+                num_avg_timing_iters=4,
+                workspace_size=self.trt_workspace_size,
+                min_block_size=1,
+                max_aux_streams=self.max_aux_streams,
+                optimization_level=self.optimization_level,
+            )
+        else:
+            model_trt = torch_tensorrt.dynamo.compile(
+                exported_program,
+                tuple(self.prepare_inputs(example_inputs)),
+                device=device,
+                enabled_precisions={dtype},
+                debug=self.debug,
+                num_avg_timing_iters=4,
+                workspace_size=self.trt_workspace_size,
+                min_block_size=1,
+                max_aux_streams=self.max_aux_streams,
+                optimization_level=self.optimization_level,
+            )
 
         torch_tensorrt.save(
             model_trt,
