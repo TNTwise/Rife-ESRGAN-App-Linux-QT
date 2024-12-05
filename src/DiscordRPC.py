@@ -24,6 +24,7 @@ def time_limit(seconds):
 
 class DiscordRPC:
     def start_discordRPC(self, mode: str, videoName: str, backend: str):
+        return # Disable Discord RPC, it is shit
         if networkCheck():
             """
             Attempts to connect to discord for RPC suppor
