@@ -23,25 +23,40 @@ SOFTWARE.
 """
 
 from math import e
+from random import sample
 import sys
 import os
 from io import BytesIO
 import torch
 import torch_tensorrt
-onnx_support = True
+import tensorrt as trt
+from torch._decomp import get_decompositions
+from torch._export.converter import TS2EPConverter
+from torch.export.exported_program import ExportedProgram
+
+
+"""onnx_support = True
 try:
     import onnx
 except ImportError:
-    onnx_support = False
-import tensorrt as trt
-TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
-from torch._decomp import get_decompositions
-
+    onnx_support = False"""
 
 class TorchTensorRTHandler:
+    """
+    Args:
+        dynamo_export_format (str): The export format to use when exporting models using Dynamo. Defaults to "nn2exportedprogram".
+        trt_workspace_size (int): The workspace size to use when compiling models using TensorRT. Defaults to 0.
+        max_aux_streams (int | None): The maximum number of auxiliary streams to use when compiling models using TensorRT. Defaults to None.
+        trt_optimization_level (int): The optimization level to use when compiling models using TensorRT. Defaults to 3.
+        debug (bool): Whether to enable debugging when compiling models using TensorRT. Defaults to False.
+        static_shape (bool): Whether to use static shape when compiling models using TensorRT. Defaults
+
+        dynamo_export_format (str): nn2exportedprogram or torchscript2exportedprogram, torchscript2exportedprogram uses torchscript as an intermediatory as some issues occur when using dynamo with torch.export.export
+    """
+    
     def __init__(
         self,
-        export_format: str = "dynamo",
+        dynamo_export_format: str = "nn2exportedprogram", 
         trt_workspace_size: int = 0,
         max_aux_streams: int | None = None,
         trt_optimization_level: int = 3,
@@ -50,7 +65,7 @@ class TorchTensorRTHandler:
     ):
         self.tensorrt_version = trt.__version__  # can just grab version from here instead of importing trt and torch trt in all related files
         self.torch_tensorrt_version = torch_tensorrt.__version__
-        self.export_format = export_format
+        self.dynamo_export_format = dynamo_export_format
         self.trt_workspace_size = trt_workspace_size
         self.max_aux_streams = max_aux_streams
         self.optimization_level = trt_optimization_level
@@ -66,7 +81,23 @@ class TorchTensorRTHandler:
             for input in example_inputs
         ]
 
-    def export_dynamo_model(
+    def torchscript_to_dynamo(self, model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
+        """Converts a TorchScript module to a Dynamo program."""
+        module = torch.jit.trace(model, example_inputs)
+        exported_program = TS2EPConverter(
+            module, sample_args=tuple(example_inputs), sample_kwargs=None
+        ).convert()
+        del module
+        torch.cuda.empty_cache()
+        return exported_program
+    
+    def nnmodule_to_dynamo(self, model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
+        """Converts a nn.Module to a Dynamo program."""
+        return torch.export.export(
+            model, tuple(example_inputs), dynamic_shapes=None
+        )
+
+    def export_using_dynamo(
         self,
         model: torch.nn.Module,
         example_inputs: list[torch.Tensor],
@@ -75,10 +106,14 @@ class TorchTensorRTHandler:
         trt_engine_path: str,
     ):
         """Exports a model using TensorRT Dynamo."""
-        model.to(device=device, dtype=dtype)
-        exported_program = torch.export.export(
-            model, tuple(example_inputs), dynamic_shapes=None
-        )
+        if self.dynamo_export_format == "nn2exportedprogram":
+            exported_program = self.nnmodule_to_dynamo(model, example_inputs)
+        elif self.dynamo_export_format == "torchscript2exportedprogram":
+            exported_program = self.torchscript_to_dynamo(model, example_inputs)
+        else:
+            raise ValueError(f"Unsupported export format: {self.dynamo_export_format}")
+        
+        torch.cuda.empty_cache()
         exported_program = exported_program.run_decompositions(
             get_decompositions([torch.ops.aten.grid_sampler_2d])
         )
@@ -103,34 +138,6 @@ class TorchTensorRTHandler:
             inputs=tuple(example_inputs),
         )
 
-    def export_torchscript_model(
-        self,
-        model: torch.nn.Module,
-        example_inputs: list[torch.Tensor],
-        device: torch.device,
-        dtype: torch.dtype,
-        trt_engine_path: str,
-    ):
-        """Exports a model using TorchScript."""
-
-        model.to(device=device, dtype=dtype)
-        module = torch.jit.trace(model, example_inputs)
-        torch.cuda.empty_cache()
-        model = None
-
-        module_trt = torch_tensorrt.compile(
-            module,
-            ir="ts",
-            inputs=example_inputs,
-            enabled_precisions={dtype},
-            device=torch_tensorrt.Device(gpu_id=0),
-            workspace_size=self.trt_workspace_size,
-            truncate_long_and_double=True,
-            min_block_size=1,
-        )
-
-        torch.jit.save(module_trt, trt_engine_path)
-
     def build_engine(
         self,
         model: torch.nn.Module,
@@ -145,23 +152,17 @@ class TorchTensorRTHandler:
             f"Building TensorRT engine {os.path.basename(trt_engine_path)}. This may take a while...",
             file=sys.stderr,
         )
-        if self.export_format == "dynamo":
-            self.export_dynamo_model(
-                model, example_inputs, device, dtype, trt_engine_path
-            )
-        elif self.export_format == "torchscript":
-            self.export_torchscript_model(
-                model, example_inputs, device, dtype, trt_engine_path
-            )
-        else:
-            raise ValueError(f"Unsupported export format: {self.export_format}")
+        self.export_using_dynamo(
+            model, example_inputs, device, dtype, trt_engine_path
+        )
 
     def load_engine(self, trt_engine_path: str) -> torch.jit.ScriptModule:
         """Loads a TensorRT engine from the specified path."""
         print(f"Loading TensorRT engine from {trt_engine_path}.", file=sys.stderr)
         return torch.jit.load(trt_engine_path).eval()
-
+"""
 class TensorRTHandler:
+    TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
     def __init__(
         self,
         trt_workspace_size: int = 0,
@@ -240,4 +241,4 @@ if __name__ == '__main__':
     trt_engine_path = "model.engine"
     handler = TensorRTHandler()
     handler.build_engine(model, torch.float32, torch.device("cuda"), example_inputs, trt_engine_path)
-    engine = handler.load_engine(trt_engine_path)
+    engine = handler.load_engine(trt_engine_path)"""
