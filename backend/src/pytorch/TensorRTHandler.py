@@ -90,22 +90,6 @@ class TorchTensorRTHandler:
             for input in example_inputs
         ]
 
-    def torchscript_to_dynamo(self, model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
-        """Converts a TorchScript module to a Dynamo program."""
-        module = torch.jit.trace(model, example_inputs)
-        exported_program = TS2EPConverter(
-            module, sample_args=tuple(example_inputs), sample_kwargs=None
-        ).convert()
-        del module
-        torch.cuda.empty_cache()
-        return exported_program
-    
-    def nnmodule_to_dynamo(self, model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
-        """Converts a nn.Module to a Dynamo program."""
-        return torch.export.export(
-            model, tuple(example_inputs), dynamic_shapes=None
-        )
-
     def export_using_dynamo(
         self,
         model: torch.nn.Module,
@@ -114,11 +98,27 @@ class TorchTensorRTHandler:
         dtype: torch.dtype,
         trt_engine_path: str,
     ):
+        def torchscript_to_dynamo(model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
+            """Converts a TorchScript module to a Dynamo program."""
+            module = torch.jit.trace(model, example_inputs)
+            exported_program = TS2EPConverter(
+                module, sample_args=tuple(example_inputs), sample_kwargs=None
+            ).convert()
+            del module
+            torch.cuda.empty_cache()
+            return exported_program
+    
+        def nnmodule_to_dynamo(model: torch.nn.Module, example_inputs: list[torch.Tensor]) -> ExportedProgram:
+            """Converts a nn.Module to a Dynamo program."""
+            return torch.export.export(
+                model, tuple(example_inputs), dynamic_shapes=None
+            )
+
         """Exports a model using TensorRT Dynamo."""
         if self.dynamo_export_format == "nn2exportedprogram":
-            exported_program = self.nnmodule_to_dynamo(model, example_inputs)
+            exported_program = nnmodule_to_dynamo(model, example_inputs)
         elif self.dynamo_export_format == "torchscript2exportedprogram":
-            exported_program = self.torchscript_to_dynamo(model, example_inputs)
+            exported_program = torchscript_to_dynamo(model, example_inputs)
         else:
             raise ValueError(f"Unsupported export format: {self.dynamo_export_format}")
         
