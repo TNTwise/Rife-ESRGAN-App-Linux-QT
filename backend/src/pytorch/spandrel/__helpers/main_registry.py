@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from ..architectures import (
     ATD,
     CRAFT,
@@ -19,6 +18,7 @@ from ..architectures import (
     SAFMN,
     SAFMNBCIE,
     SPAN,
+    SPANPlus,
     Compact,
     DnCNN,
     DRUNet,
@@ -39,7 +39,6 @@ from ..architectures import (
     SwiftSRGAN,
     Swin2SR,
     SwinIR,
-    sudo_SPANPlus,
     Uformer,
 )
 from .registry import ArchRegistry, ArchSupport
@@ -90,5 +89,5 @@ MAIN_REGISTRY.add(
     ArchSupport.from_architecture(HVICIDNet.HVICIDNetArch()),
     ArchSupport.from_architecture(SeemoRe.SeemoReArch()),
     ArchSupport.from_architecture(MoSR.MoSRArch()),
-    ArchSupport.from_architecture(sudo_SPANPlus.sudo_SPANPlusArch()),
+    ArchSupport.from_architecture(SPANPlus.SPANPlusArch()),
 )
