@@ -1,12 +1,24 @@
 import torch
+from dataclasses import dataclass
+from abc import ABCMeta, abstractmethod
+@dataclass
+class Arch(metaclass=ABCMeta):
+    @abstractmethod
+    def base_arch() -> str:
+        """base arch"""
+    @abstractmethod
+    def excluded_keys() -> list:
+        """excluded keys"""
+    @abstractmethod()
+    def unique_shapes() -> list:
+        """unique keys with their shapes"""
 
-
-class RIFE46:
+class RIFE46(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife46"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> tuple:
         return ()
@@ -43,12 +55,12 @@ class RIFE46:
         ]
 
 
-class RIFE47:
+class RIFE47(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife47"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> tuple:
         return ()
@@ -77,12 +89,12 @@ class RIFE47:
         ]
 
 
-class RIFE413:
+class RIFE413(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> tuple:
         return ()
@@ -108,12 +120,12 @@ class RIFE413:
         ]
 
 
-class RIFE420:
+class RIFE420(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> dict:
         return {"module.block0.conv0.1.0.bias": "torch.Size([384])"}
@@ -129,13 +141,13 @@ class RIFE420:
         ]
 
 
-class RIFE421:
+class RIFE421(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
-
+    def base_arch():
+        return "rife"
+    
     def unique_shapes() -> dict:
         return {"module.block0.conv0.1.0.bias": "torch.Size([256])"}
 
@@ -150,12 +162,12 @@ class RIFE421:
         ]
 
 
-class RIFE422lite:
+class RIFE422lite(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> dict:
         return {"module.block0.conv0.1.0.bias": "torch.Size([192])"}
@@ -171,12 +183,12 @@ class RIFE422lite:
         ]
 
 
-class RIFE425:
+class RIFE425(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
+    def base_arch():
+        return "rife"
 
     def unique_shapes() -> dict:
         return {"module.block4.lastconv.0.bias": "torch.Size([52])"}
@@ -191,12 +203,12 @@ class RIFE425:
         ]
 
 
-class GMFSS:
+class GMFSS(Arch):
     def __init__():
         pass
 
-    def __name__():
-        return "rife413"
+    def base_arch():
+        return "gmfss"
 
     def unique_shapes() -> dict:
         return {"transformer.layers.4.self_attn.merge.weight": "torch.Size([128, 128])"}
@@ -230,14 +242,15 @@ class ArchDetect:
             key_shape_pair[key] = str(self.state_dict[key].shape)
         return key_shape_pair
 
-    def compare_arch(self) -> tuple:
+    def compare_arch(self) -> Arch:
         arch_dict = {}
         for arch in archs:
-            arch_dict[arch.__name__] = True
+            arch:Arch
+            arch_dict[arch] = True
             # see if there are any excluded keys in the state_dict
             for key, shape in self.key_shape_pair.items():
                 if key in arch.excluded_keys():
-                    arch_dict[arch.__name__] = False
+                    arch_dict[arch] = False
                     continue
             # unique shapes will return tuple if there is no unique shape, dict if there is
             # parse the unique shape and compare with the state_dict shape
@@ -245,16 +258,19 @@ class ArchDetect:
                 for key1, uniqueshape1 in arch.unique_shapes().items():
                     try:  # the key might not be in the state_dict
                         if not str(self.state_dict[key1].shape) == str(uniqueshape1):
-                            arch_dict[arch.__name__] = False
+                            arch_dict[arch] = False
                     except Exception:
-                        arch_dict[arch.__name__] = False
+                        arch_dict[arch] = False
 
         for key, value in arch_dict.items():
             if value:
                 return key
 
-    def getArch(self):
-        return self.detected_arch
+    def getArchName(self):
+        return self.detected_arch.__name__
+
+    def getArchBase(self):
+        return self.detected_arch.base_arch()
 
 
 if __name__ == "__main__":
