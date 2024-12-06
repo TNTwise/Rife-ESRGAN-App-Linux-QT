@@ -197,17 +197,20 @@ class FFMpegRender:
                 "-",
                 "-i",
                 f"{self.inputFile}",
-                "-map", "0:v",                   # Map video stream from input 0
-                "-map", "1:a?",                  # Map all audio streams from input 1
-                "-map", "1:s?",                  # Map all subtitle streams from input 1 
+                "-map",
+                "0:v",  # Map video stream from input 0
+                "-map",
+                "1:a?",  # Map all audio streams from input 1
+                "-map",
+                "1:s?",  # Map all subtitle streams from input 1
                 "-crf",
                 f"{self.crf}",
                 "-pix_fmt",
                 self.pixelFormat,
                 "-c:a",
                 "copy",
-                "-c:s", 
-                "copy", 
+                "-c:s",
+                "copy",
                 "-loglevel",
                 "error",
             ]
@@ -229,10 +232,10 @@ class FFMpegRender:
             command.append(
                 f"{self.outputFile}",
             )
-            
+
             if self.overwrite:
                 command.append("-y")
-            
+
         else:
             command = [
                 f"{FFMPEG_PATH}",
@@ -365,7 +368,7 @@ class FFMpegRender:
                         if frame is None:
                             break
                         self.previewFrame = frame
-                        
+
                         self.writeProcess.stdin.buffer.write(frame)
                         self.framesRendered += 1
 
@@ -377,7 +380,9 @@ class FFMpegRender:
 
                     printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
-            print(f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos.")
+            print(
+                f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos."
+            )
             self.shm.close()
             self.shm.unlink()
             os._exit(1)

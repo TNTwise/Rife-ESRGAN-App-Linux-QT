@@ -84,6 +84,7 @@ def build_coord(img):
     coords = coords_grid(N, H // 8, W // 8)
     return coords
 
+
 def initialize_params(params, init_type, **kwargs):
     fan_in, fan_out = params.shape[0], params.shape[1]
     if init_type is None or init_type == "normal":
@@ -105,6 +106,8 @@ def initialize_params(params, init_type, **kwargs):
         nn.init.uniform_(params, -w_std, w_std)
     else:
         raise NotImplementedError
+
+
 def create_params_with_init(
     shape, init_type="normal", include_bias=False, bias_init_type="zero", **kwargs
 ):
@@ -198,6 +201,8 @@ class CoordSampler3D(nn.Module):
         if self.t_coord_only:
             coords = coords[..., :1]
         return coords
+
+
 # define siren layer & Siren model
 class Sine(nn.Module):
     """Sine activation with scaling.
@@ -212,6 +217,7 @@ class Sine(nn.Module):
 
     def forward(self, x):
         return torch.sin(self.w0 * x)
+
 
 class HypoNet(nn.Module):
     r"""
@@ -711,7 +717,6 @@ class NewMultiFlowDecoder(nn.Module):
         return flow0, flow1, mask, img_res
 
 
-
 def initialize_RAFT(model_path="models/GIMM-VFI/raft-things.pth", device="cuda"):
     """Initializes the RAFT model."""
     model = RAFT()
@@ -725,4 +730,3 @@ def initialize_RAFT(model_path="models/GIMM-VFI/raft-things.pth", device="cuda")
     print("load raft from " + model_path)
 
     return model
-

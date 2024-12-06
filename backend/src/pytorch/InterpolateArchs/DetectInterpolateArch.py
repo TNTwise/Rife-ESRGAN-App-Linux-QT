@@ -49,6 +49,7 @@ class RIFE46(Arch):
 
     def module():
         from .RIFE.rife46IFNET import IFNet
+
         return IFNet
 
 
@@ -108,6 +109,7 @@ class RIFE413(Arch):
 
     def module():
         from .RIFE.rife413IFNET import IFNet
+
         return IFNet
 
 
@@ -125,6 +127,7 @@ class RIFE420(Arch):
 
     def module():
         from .RIFE.rife420IFNET import IFNet
+
         return IFNet
 
 
@@ -142,6 +145,7 @@ class RIFE421(Arch):
 
     def module():
         from .RIFE.rife421IFNET import IFNet
+
         return IFNet
 
 
@@ -159,6 +163,7 @@ class RIFE422lite(Arch):
 
     def module():
         from .RIFE.rife422_liteIFNET import IFNet
+
         return IFNet
 
 
@@ -175,6 +180,7 @@ class RIFE425(Arch):
 
     def module():
         from .RIFE.rife425IFNET import IFNet
+
         return IFNet
 
 
@@ -192,6 +198,7 @@ class GMFSS(Arch):
 
     def module():
         from .GMFSS.GMFSS import GMFSS
+
         return GMFSS
 
 

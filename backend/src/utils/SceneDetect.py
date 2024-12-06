@@ -5,12 +5,14 @@ import sys
 from .Util import bytesToImg
 from .PySceneDetectUtils import ContentDetector
 
+
 class BaseDetector:
     def __init__(self):
         pass
 
     def sceneDetect(self, frame):
         return False
+
 
 class NPMeanSCDetect(BaseDetector):
     """
@@ -194,7 +196,9 @@ class FFMPEGSceneDetect(BaseDetector):
 
 class PySceneDetect(BaseDetector):
     def __init__(self, threshold=2, min_scene_length=30):
-        self.detector = ContentDetector(threshold=threshold * 10, min_scene_len=1) # has to be 1 to stay synced
+        self.detector = ContentDetector(
+            threshold=threshold * 10, min_scene_len=1
+        )  # has to be 1 to stay synced
         self.frameNum = 0
 
     def sceneDetect(self, frame: np.ndarray):
@@ -203,11 +207,13 @@ class PySceneDetect(BaseDetector):
         self.frameNum += 1
         if len(frameList) > 0:
             if self.frameNum != frameList[0] + 1:
-                print(f"Transition Mismatch {self.frameNum} is not equal to {frameList[0] + 1}, skipping", file=sys.stderr)
+                print(
+                    f"Transition Mismatch {self.frameNum} is not equal to {frameList[0] + 1}, skipping",
+                    file=sys.stderr,
+                )
                 return False
 
         return len(frameList) > 0
-
 
 
 class SceneDetect:

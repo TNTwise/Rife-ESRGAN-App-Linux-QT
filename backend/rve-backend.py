@@ -60,15 +60,18 @@ class HandleApplication:
                 Half precision is only availaible on RTX 20 series and up
                 """
                 import torch
+
                 half_prec_supp = check_bfloat16_support()
                 if half_prec_supp:
                     import tensorrt
+
                     availableBackends.append("tensorrt")
                     printMSG += f"TensorRT Version: {tensorrt.__version__}\n"
                 else:
                     printMSG += "ERROR: Cannot use tensorrt backend, as it is not supported on your current GPU"
             if checkForPytorchCUDA():
                 import torch
+
                 availableBackends.append("pytorch (cuda)")
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
@@ -77,6 +80,7 @@ class HandleApplication:
             if checkForPytorchROCM():
                 availableBackends.append("pytorch (rocm)")
                 import torch
+
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
                 try:
@@ -212,7 +216,7 @@ class HandleApplication:
             "--auto_rife_uhd_mode",
             help="Sets the scale of rife to .5 automatically if the video is greater than 1080p",
             action="store_true",
-            default=True
+            default=True,
         )
         parser.add_argument(
             "--shared_memory_id",

@@ -19,6 +19,7 @@ torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
 logging.basicConfig(level=logging.INFO)
 
+
 class BaseInterpolate(metaclass=ABCMeta):
     @abstractmethod
     def _load(self):
@@ -41,11 +42,11 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.stream.synchronize()
 
     def hotUnload(self):
-        del self.flownet 
-        del self.encode 
-        del self.tenFlow_div 
-        del self.backwarp_tenGrid 
-        del self.f0encode 
+        del self.flownet
+        del self.encode
+        del self.tenFlow_div
+        del self.backwarp_tenGrid
+        del self.f0encode
         gc.collect()
         torch.cuda.empty_cache()
         torch.cuda.reset_max_memory_allocated()
@@ -54,12 +55,12 @@ class BaseInterpolate(metaclass=ABCMeta):
     @torch.inference_mode()
     def hotReload(self):
         self._load()
-    
+
     @abstractmethod
     @torch.inference_mode()
-    def process(self,img0, img1, timestep, f0encode=None, f1encode=None):
+    def process(self, img0, img1, timestep, f0encode=None, f1encode=None):
         """Perform processing"""
-    
+
     @torch.inference_mode()
     def norm(self, frame: torch.Tensor):
         return (
@@ -82,7 +83,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
         self.prepareStream.synchronize()
         return frame
-    
+
     @torch.inference_mode()
     def uncacheFrame(self):
         self.f0encode = None
@@ -91,6 +92,7 @@ class BaseInterpolate(metaclass=ABCMeta):
     @torch.inference_mode()
     def tensor_to_frame(self, frame: torch.Tensor):
         return frame.float().byte().contiguous().cpu().numpy()
+
 
 class InterpolateGIMMTorch(BaseInterpolate):
     pass
@@ -139,13 +141,14 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         if UHDMode:
             self.scale = 0.5
         self._load()
-    
+
     @torch.inference_mode()
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
         with torch.cuda.stream(self.prepareStream):
             from .InterpolateArchs.GMFSS.GMFSS import GMFSS
+
             _pad = 64
             tmp = max(_pad, int(_pad / self.scale))
             self.pw = math.ceil(self.width / tmp) * tmp
@@ -182,7 +185,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
             output = self.flownet(img0, img1, timestep)
         self.stream.synchronize()
         return self.tensor_to_frame(output)
-    
+
+
 class InterpolateRifeTorch(BaseInterpolate):
     @torch.inference_mode()
     def __init__(
@@ -256,16 +260,18 @@ class InterpolateRifeTorch(BaseInterpolate):
                 mmap=True,
             )
             # detect what rife arch to use
-            
+
             ad = ArchDetect(self.interpolateModel)
             interpolateArch = ad.getArchName()
             _pad = 32
             match interpolateArch.lower():
                 case "rife46":
                     from .InterpolateArchs.RIFE.rife46IFNET import IFNet
+
                     self.doEncodingOnFrame = False
                 case "rife47":
                     from .InterpolateArchs.RIFE.rife47IFNET import IFNet
+
                     num_ch_for_encode = 4
                     self.encode = torch.nn.Sequential(
                         torch.nn.Conv2d(3, 16, 3, 2, 1),
@@ -273,22 +279,27 @@ class InterpolateRifeTorch(BaseInterpolate):
                     )
                 case "rife413":
                     from .InterpolateArchs.RIFE.rife413IFNET import IFNet, Head
+
                     num_ch_for_encode = 8
                     self.encode = Head()
                 case "rife420":
                     from .InterpolateArchs.RIFE.rife420IFNET import IFNet, Head
+
                     num_ch_for_encode = 8
                     self.encode = Head()
                 case "rife421":
                     from .InterpolateArchs.RIFE.rife421IFNET import IFNet, Head
+
                     num_ch_for_encode = 8
                     self.encode = Head()
                 case "rife422lite":
                     from .InterpolateArchs.RIFE.rife422_liteIFNET import IFNet, Head
+
                     self.encode = Head()
                     num_ch_for_encode = 4
                 case "rife425":
                     from .InterpolateArchs.RIFE.rife425IFNET import IFNet, Head
+
                     _pad = 64
                     num_ch_for_encode = 4
                     self.encode = Head()
@@ -442,7 +453,7 @@ class InterpolateRifeTorch(BaseInterpolate):
 
                         if not os.path.isfile(encode_trt_engine_path):
                             # build encode engine
-                            
+
                             encodedExampleInputs = [
                                 torch.zeros(
                                     (1, 3, self.ph, self.pw),
@@ -458,7 +469,6 @@ class InterpolateRifeTorch(BaseInterpolate):
                                 trt_engine_path=encode_trt_engine_path,
                             )
 
-                        
                         self.encode = trtHandler.load_engine(encode_trt_engine_path)
 
                     trtHandler.build_engine(
@@ -492,7 +502,6 @@ class InterpolateRifeTorch(BaseInterpolate):
         ).to(dtype=torch.float32, device=self.device)
         self.backwarp_tenGrid = torch.cat([tenHorizontal, tenVertical], 1)
 
-
     @torch.inference_mode()
     def process(self, img0, img1, timestep, f0encode=None, f1encode=None):
         while self.flownet is None:
@@ -516,7 +525,6 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.stream.synchronize()
         return self.tensor_to_frame(output)
 
-
     @torch.inference_mode()
     def encode_Frame(self, frame: torch.Tensor):
         while self.encode is None:
@@ -525,6 +533,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             frame = self.encode(frame)
         self.prepareStream.synchronize()
         return frame
+
 
 class InterpolateFactory:
     @staticmethod

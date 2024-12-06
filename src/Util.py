@@ -17,7 +17,8 @@ from .constants import CWD, IS_FLATPAK, PLATFORM, HOME_PATH
 def log(message: str):
     with open(os.path.join(CWD, "frontend_log.txt"), "a") as f:
         f.write(message + "\n")
-    
+
+
 with open(os.path.join(CWD, "frontend_log.txt"), "w") as f:
     pass
 
@@ -44,7 +45,7 @@ def getAvailableDiskSpace() -> float:
     except Exception as e:
         printAndLog(f"An error occurred while getting available disk space: {e}")
         return "Unknown"
-    
+
 
 def networkCheck(hostname="https://raw.githubusercontent.com") -> bool:
     """
@@ -89,11 +90,13 @@ def getRAMAmount() -> str:
         printAndLog(f"An error occurred while getting RAM amount: {e}")
         return "Unknown"
 
+
 def removeFolder(folder):
     """
     Removes the folder of the current working directory
     """
     shutil.rmtree(folder)
+
 
 def getCPUInfo() -> str:
     """
@@ -116,6 +119,7 @@ def getCPUInfo() -> str:
             return "X86_64 CPU"
     else:
         return cpuinfo.get_cpu_info()["brand_raw"]
+
 
 def copy(prev: str, new: str):
     """
@@ -179,7 +183,6 @@ def removeFile(file):
         print("Failed to remove file!")
 
 
-
 def downloadFile(link, downloadLocation):
     response = requests.get(
         link,
@@ -189,9 +192,6 @@ def downloadFile(link, downloadLocation):
     with open(downloadLocation, "wb") as f:
         for chunk in response.iter_content(chunk_size=1024):
             f.write(chunk)
-
-
-
 
 
 def extractTarGZ(file):

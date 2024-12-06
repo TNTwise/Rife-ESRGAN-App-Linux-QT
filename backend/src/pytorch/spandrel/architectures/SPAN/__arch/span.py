@@ -191,7 +191,6 @@ class Conv3XC(nn.Module):
         self.eval_conv.bias.data = self.bias_concat.contiguous()  # type: ignore
 
     def forward(self, x):
-        
         self.update_params()
         out = self.eval_conv(x)
 

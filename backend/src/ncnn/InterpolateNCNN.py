@@ -165,8 +165,10 @@ class InterpolateRIFENCNN:
             sleep(1)
         frame = self.render.process_bytes(img0, img1, timestep)
         return frame
+
     def frame_to_tensor(self, frame: np.array) -> np.array:
         return frame
+
     def normFrame(self, frame: bytes):
         return frame
         frame = bytearray(frame)

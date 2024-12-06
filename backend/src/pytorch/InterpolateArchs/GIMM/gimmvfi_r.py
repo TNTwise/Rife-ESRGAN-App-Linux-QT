@@ -22,10 +22,10 @@ from .raft import (
     resize,
     build_coord,
     initialize_RAFT,
-    NewInitDecoder, 
-    NewMultiFlowDecoder, 
-    BasicUpdateBlock, 
-    LateralBlock
+    NewInitDecoder,
+    NewMultiFlowDecoder,
+    BasicUpdateBlock,
+    LateralBlock,
 )
 import torch.nn.functional as F
 
@@ -34,7 +34,6 @@ from softsplat import softsplat
 
 
 class GIMMVFI_R(nn.Module):
-
     def __init__(self):
         super().__init__()
         self.raft_iter = 20
@@ -63,7 +62,7 @@ class GIMMVFI_R(nn.Module):
         )
 
         ################ GIMM settings #################
-        self.coord_sampler = CoordSampler3D([-1., 1.])
+        self.coord_sampler = CoordSampler3D([-1.0, 1.0])
 
         self.g_filter = torch.nn.Parameter(
             torch.FloatTensor(
@@ -458,11 +457,7 @@ class GIMMVFI_R(nn.Module):
             dim=1,
         )
         var = (
-            (sqaure_mean - mean_square**2)
-            .clamp(1e-9, None)
-            .sqrt()
-            .mean(1)
-            .unsqueeze(1)
+            (sqaure_mean - mean_square**2).clamp(1e-9, None).sqrt().mean(1).unsqueeze(1)
         )
         var01 = var[:batch_size]
         var10 = var[batch_size:]
