@@ -10,7 +10,6 @@ from ..utils.Util import (
     printAndLog,
     errorAndLog,
     check_bfloat16_support,
-    log,
     warnAndLog,
 )
 from time import sleep
@@ -24,6 +23,12 @@ class BaseInterpolate(metaclass=ABCMeta):
     @abstractmethod
     def _load(self):
         """Loads in the model"""
+        self.stream = torch.cuda.Stream()
+        self.prepareStream = torch.cuda.Stream()
+        self.flownet = None
+        self.encode = None
+        self.tenFlow_div = None
+        self.backwarp_tenGrid = None
 
     def handlePrecision(self, precision):
         if precision == "auto":
@@ -126,18 +131,12 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
-
         self.device = device
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
         self.scale = 1
-        self.img0 = None
-        self.f0encode = None
-        self.doEncodingOnFrame = False
-        self.gmfss = False
-
         if UHDMode:
             self.scale = 0.5
         self._load()
@@ -168,8 +167,6 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 width=self.width,
                 height=self.height,
             )
-            # self.dtype = torch.float32
-            # warnAndLog("GMFSS does not support float16, switching to float32")
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
             if self.backend == "tensorrt":
                 warnAndLog(
@@ -237,10 +234,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
         self.scale = 1
-        self.img0 = None
-        self.f0encode = None
         self.doEncodingOnFrame = True
-        self.gmfss = False
         self.trt_debug = trt_debug  # too much output, i would like a progress bar tho
         self.trt_static_shape = trt_static_shape
 

@@ -413,7 +413,7 @@ class ProcessTab:
             self.renderTextOutputList = textOutput.copy()
             if "Time to complete render" in line:
                 break
-        log(str(textOutput))
+        log(line for line in textOutput if len(line) > 2)
         self.onRenderCompletion()
 
     def guiChangesOnRenderCompletion(self):
