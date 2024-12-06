@@ -4,28 +4,19 @@ from abc import ABCMeta, abstractmethod
 
 @dataclass
 class Arch(metaclass=ABCMeta):
+    base_arch:str
+    unique_shapes:dict
+    excluded_keys:list
+    
+    
     @abstractmethod
-    def base_arch() -> str:
-        """base arch"""
-    @abstractmethod
-    def excluded_keys() -> list:
-        """excluded keys"""
-    @abstractmethod
-    def unique_shapes() -> dict:
-        """unique keys with their shapes"""
+    def module() -> torch.nn.Module:
+        """The actual module"""
 
 class RIFE46(Arch):
-    def __init__():
-        pass
-
-    def base_arch():
-        return "rife"
-
-    def unique_shapes() -> dict:
-        return {}
-
-    def excluded_keys() -> tuple:
-        return [
+    base_arch:str = "rife"
+    unique_shapes:dict = {}
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -54,20 +45,20 @@ class RIFE46(Arch):
             "module.block4.lastconv.0.bias",
             "transformer.layers.4.self_attn.merge.weight",
         ]
-
+    
+    def module():
+        from .RIFE.rife46IFNET import IFNet
+        return IFNet
 
 class RIFE47(Arch):
-    def __init__():
-        pass
+    base_arch:str = "rife"
+    unique_shapes:dict = {}
+    
+    def module():
+        from .RIFE.rife47IFNET import IFNet
+        return IFNet
 
-    def base_arch():
-        return "rife"
-
-    def unique_shapes() -> dict:
-        return {}
-
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.cnn0.bias",
             "module.encode.cnn1.weight",
             "module.encode.cnn1.bias",
@@ -91,17 +82,14 @@ class RIFE47(Arch):
 
 
 class RIFE413(Arch):
-    def __init__():
-        pass
+    base_arch:str = "rife"
+    unique_shapes:dict = {}
 
-    def base_arch():
-        return "rife"
+    def module():
+        from .RIFE.rife413IFNET import IFNet
+        return IFNet
 
-    def unique_shapes() -> dict:
-        return {}
-
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -122,17 +110,14 @@ class RIFE413(Arch):
 
 
 class RIFE420(Arch):
-    def __init__():
-        pass
+    base_arch:str = "rife"
+    unique_shapes:dict = {"module.block0.conv0.1.0.bias": "torch.Size([384])"}
 
-    def base_arch():
-        return "rife"
+    def module():
+        from .RIFE.rife420IFNET import IFNet
+        return IFNet
 
-    def unique_shapes() -> dict:
-        return {"module.block0.conv0.1.0.bias": "torch.Size([384])"}
-
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -143,17 +128,14 @@ class RIFE420(Arch):
 
 
 class RIFE421(Arch):
-    def __init__():
-        pass
-
-    def base_arch():
-        return "rife"
+    base_arch:str = "rife"
+    unique_shapes:dict = {"module.block0.conv0.1.0.bias": "torch.Size([256])"}
     
-    def unique_shapes() -> dict:
-        return {"module.block0.conv0.1.0.bias": "torch.Size([256])"}
+    def module():
+        from .RIFE.rife421IFNET import IFNet
+        return IFNet
 
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -164,17 +146,14 @@ class RIFE421(Arch):
 
 
 class RIFE422lite(Arch):
-    def __init__():
-        pass
+    base_arch:str = "rife"
+    unique_shapes:dict = {"module.block0.conv0.1.0.bias": "torch.Size([192])"}
 
-    def base_arch():
-        return "rife"
+    def module():
+        from .RIFE.rife422_liteIFNET import IFNet
+        return IFNet
 
-    def unique_shapes() -> dict:
-        return {"module.block0.conv0.1.0.bias": "torch.Size([192])"}
-
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -185,17 +164,14 @@ class RIFE422lite(Arch):
 
 
 class RIFE425(Arch):
-    def __init__():
-        pass
+    base_arch:str = "rife"
+    unique_shapes:dict = {"module.block4.lastconv.0.bias": "torch.Size([52])"}
 
-    def base_arch():
-        return "rife"
+    def module():
+        from .RIFE.rife425IFNET import IFNet
+        return IFNet
 
-    def unique_shapes() -> dict:
-        return {"module.block4.lastconv.0.bias": "torch.Size([52])"}
-
-    def excluded_keys() -> tuple:
-        return [
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
@@ -205,23 +181,18 @@ class RIFE425(Arch):
 
 
 class GMFSS(Arch):
-    def __init__():
-        pass
-
-    def base_arch():
-        return "gmfss"
-
-    def unique_shapes() -> dict:
-        return {"transformer.layers.4.self_attn.merge.weight": "torch.Size([128, 128])"}
-
-    def excluded_keys() -> tuple:
-        return [
+    base_arch:str = "gmfss"
+    unique_shapes:dict = {"transformer.layers.4.self_attn.merge.weight": "torch.Size([128, 128])"}
+    excluded_keys:list = [
             "module.encode.0.weight",
             "module.encode.0.bias",
             "module.encode.1.weight",
             "module.encode.1.bias",
         ]
 
+    def module():
+        from .GMFSS.GMFSS import GMFSS
+        return GMFSS
 
 archs = [RIFE46, RIFE47, RIFE413, RIFE420, RIFE421, RIFE422lite, RIFE425, GMFSS]
 
@@ -251,13 +222,13 @@ class ArchDetect:
             arch_dict[arch] = True
             # see if there are any excluded keys in the state_dict
             for key, shape in self.key_shape_pair.items():
-                if key in arch.excluded_keys():
+                if key in arch.excluded_keys:
                     arch_dict[arch] = False
                     continue
             # unique shapes will return tuple if there is no unique shape, dict if there is
             # parse the unique shape and compare with the state_dict shape
-            if type(arch.unique_shapes()) is dict:
-                for key1, uniqueshape1 in arch.unique_shapes().items():
+            if type(arch.unique_shapes) is dict:
+                for key1, uniqueshape1 in arch.unique_shapes.items():
                     try:  # the key might not be in the state_dict
                         if not str(self.state_dict[key1].shape) == str(uniqueshape1):
                             arch_dict[arch] = False
@@ -272,14 +243,15 @@ class ArchDetect:
         return self.detected_arch.__name__
 
     def getArchBase(self):
-        return self.detected_arch.base_arch()
+        return self.detected_arch.base_arch
+    
+    def getArchModule(self):
+        return self.detected_arch.module()
 
 
 if __name__ == "__main__":
     import os
     for file in os.listdir('.'):
         if '.pkl' in file:
-            print(file)
             ra = ArchDetect(file)
             print(ra.getArchName())
-            print(ra.getArchBase())
