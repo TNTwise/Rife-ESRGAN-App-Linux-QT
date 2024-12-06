@@ -22,11 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from math import e
-from random import sample
 import sys
 import os
-from io import BytesIO
 import torch
 import torch_tensorrt
 import tensorrt as trt

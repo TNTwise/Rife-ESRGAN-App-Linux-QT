@@ -1,12 +1,20 @@
-#!/usr/bin/env python
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
+# --------------------------------------------------------
+# References:
+# softmax-splatting: https://github.com/sniklaus/softmax-splatting
+# --------------------------------------------------------
 
 import collections
+import cupy
 import os
 import re
+import torch
 import typing
 
-import cupy
-import torch
 
 ##########################################################
 
@@ -43,16 +51,16 @@ def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
         if objValue is None:
             continue
 
-        elif isinstance(objValue, int):
+        elif type(objValue) == int:
             strKey += str(objValue)
 
-        elif isinstance(objValue, float):
+        elif type(objValue) == float:
             strKey += str(objValue)
 
-        elif isinstance(objValue, bool):
+        elif type(objValue) == bool:
             strKey += str(objValue)
 
-        elif isinstance(objValue, str):
+        elif type(objValue) == str:
             strKey += objValue
 
         elif type(objValue) == torch.Tensor:
@@ -76,16 +84,16 @@ def cuda_kernel(strFunction: str, strKernel: str, objVariables: typing.Dict):
             if objValue is None:
                 continue
 
-            elif isinstance(objValue, int):
+            elif type(objValue) == int:
                 strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif isinstance(objValue, float):
+            elif type(objValue) == float:
                 strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif isinstance(objValue, bool):
+            elif type(objValue) == bool:
                 strKernel = strKernel.replace("{{" + strVariable + "}}", str(objValue))
 
-            elif isinstance(objValue, str):
+            elif type(objValue) == str:
                 strKernel = strKernel.replace("{{" + strVariable + "}}", objValue)
 
             elif type(objValue) == torch.Tensor and objValue.dtype == torch.uint8:
@@ -258,16 +266,15 @@ def cuda_launch(strKey: str):
         os.environ["CUDA_HOME"] = cupy.cuda.get_cuda_path()
     # end
 
-    return cupy.RawKernel(
+    return cupy.cuda.compile_with_cache(
         objCudacache[strKey]["strKernel"],
-        objCudacache[strKey]["strFunction"],
         tuple(
             [
                 "-I " + os.environ["CUDA_HOME"],
                 "-I " + os.environ["CUDA_HOME"] + "/include",
             ]
         ),
-    )
+    ).get_function(objCudacache[strKey]["strFunction"])
 
 
 # end
@@ -276,60 +283,76 @@ def cuda_launch(strKey: str):
 ##########################################################
 
 
-def softsplat(
-    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str
-):
-    mode_parts = strMode.split("-")
-    mode_main = mode_parts[0]
-    mode_sub = mode_parts[1] if len(mode_parts) > 1 else None
+def softsplat(tenIn, tenFlow, tenMetric, strMode, return_norm=False):
+    assert strMode.split("-")[0] in ["sum", "avg", "linear", "softmax"]
 
-    assert mode_main in ["sum", "avg", "linear", "soft"]
-    if mode_main in ["sum", "avg"]:
+    if strMode == "sum":
         assert tenMetric is None
-    if mode_main in ["linear", "soft"]:
+    if strMode == "avg":
+        assert tenMetric is None
+    if strMode.split("-")[0] == "linear":
+        assert tenMetric is not None
+    if strMode.split("-")[0] == "softmax":
         assert tenMetric is not None
 
-    orig_dtype = tenIn.dtype
-    tenIn = tenIn.float()
-    tenFlow = tenFlow.float()
-    if tenMetric is not None:
-        tenMetric = tenMetric.float()
-
-    mode_to_operation = {
-        "avg": lambda: torch.cat(
+    if strMode == "avg":
+        tenIn = torch.cat(
             [
                 tenIn,
                 tenIn.new_ones([tenIn.shape[0], 1, tenIn.shape[2], tenIn.shape[3]]),
             ],
             1,
-        ),
-        "linear": lambda: torch.cat([tenIn * tenMetric, tenMetric], 1),
-        "soft": lambda: torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1),
-    }
+        )
 
-    if mode_main in mode_to_operation:
-        tenIn = mode_to_operation[mode_main]()
+    elif strMode.split("-")[0] == "linear":
+        tenIn = torch.cat([tenIn * tenMetric, tenMetric], 1)
+
+    elif strMode.split("-")[0] == "softmax":
+        tenIn = torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1)
+
+    # end
+    if torch.isnan(tenIn).any():
+        print("NaN values detected during training in tenIn. Exiting.")
+        assert False
 
     tenOut = softsplat_func.apply(tenIn, tenFlow)
 
-    if mode_main in ["avg", "linear", "soft"]:
+    if torch.isnan(tenOut).any():
+        print("NaN values detected during training in tenOut_1. Exiting.")
+        assert False
+
+    if strMode.split("-")[0] in ["avg", "linear", "softmax"]:
         tenNormalize = tenOut[:, -1:, :, :]
 
-        normalize_modes = {
-            None: lambda x: x + 0.0000001,
-            "addeps": lambda x: x + 0.0000001,
-            "zeroeps": lambda x: torch.where(
-                x == 0.0, torch.tensor(1.0, device=x.device), x
-            ),
-            "clipeps": lambda x: x.clip(0.0000001, None),
-        }
+        if len(strMode.split("-")) == 1:
+            tenNormalize = tenNormalize + 0.0000001
 
-        if mode_sub in normalize_modes:
-            tenNormalize = normalize_modes[mode_sub](tenNormalize)
+        elif strMode.split("-")[1] == "addeps":
+            tenNormalize = tenNormalize + 0.0000001
+
+        elif strMode.split("-")[1] == "zeroeps":
+            tenNormalize[tenNormalize == 0.0] = 1.0
+
+        elif strMode.split("-")[1] == "clipeps":
+            tenNormalize = tenNormalize.clip(0.0000001, None)
+
+        # end
+
+        if return_norm:
+            return tenOut[:, :-1, :, :], tenNormalize
 
         tenOut = tenOut[:, :-1, :, :] / tenNormalize
 
-    return tenOut.to(orig_dtype)
+    if torch.isnan(tenOut).any():
+        print("NaN values detected during training in tenOut_2. Exiting.")
+        assert False
+
+    # end
+
+    return tenOut
+
+
+# end
 
 
 class softsplat_func(torch.autograd.Function):
