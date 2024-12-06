@@ -302,9 +302,8 @@ class InterpolateRifeTorch(BaseInterpolate):
             self.ph = math.ceil(self.height / tmp) * tmp
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
             # caching the timestep tensor in a dict with the timestep as a float for the key
-            self.timestepDict = {}
-            
 
+            self.timestepDict = {}
             for n in range(self.ceilInterpolateFactor):
                 timestep = n / (self.ceilInterpolateFactor)
                 timestep_tens = torch.full(
@@ -534,8 +533,8 @@ class InterpolateFactory:
         base_arch = ad.getArchBase()
         match base_arch:
             case "rife":
-                return InterpolateRifeTorch()
+                return InterpolateRifeTorch
             case "gfmss":
-                return InterpolateGMFSSTorch()
+                return InterpolateGMFSSTorch
             case "gimm":
-                return InterpolateGIMMTorch()
+                return InterpolateGIMMTorch
