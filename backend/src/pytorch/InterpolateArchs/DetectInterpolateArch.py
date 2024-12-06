@@ -1,6 +1,7 @@
 import torch
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
+
 @dataclass
 class Arch(metaclass=ABCMeta):
     @abstractmethod
@@ -9,8 +10,8 @@ class Arch(metaclass=ABCMeta):
     @abstractmethod
     def excluded_keys() -> list:
         """excluded keys"""
-    @abstractmethod()
-    def unique_shapes() -> list:
+    @abstractmethod
+    def unique_shapes() -> dict:
         """unique keys with their shapes"""
 
 class RIFE46(Arch):
@@ -20,8 +21,8 @@ class RIFE46(Arch):
     def base_arch():
         return "rife"
 
-    def unique_shapes() -> tuple:
-        return ()
+    def unique_shapes() -> dict:
+        return {}
 
     def excluded_keys() -> tuple:
         return [
@@ -62,8 +63,8 @@ class RIFE47(Arch):
     def base_arch():
         return "rife"
 
-    def unique_shapes() -> tuple:
-        return ()
+    def unique_shapes() -> dict:
+        return {}
 
     def excluded_keys() -> tuple:
         return [
@@ -96,8 +97,8 @@ class RIFE413(Arch):
     def base_arch():
         return "rife"
 
-    def unique_shapes() -> tuple:
-        return ()
+    def unique_shapes() -> dict:
+        return {}
 
     def excluded_keys() -> tuple:
         return [
@@ -274,6 +275,7 @@ class ArchDetect:
 
 
 if __name__ == "__main__":
-    pkl_path = "rife4.15.pkl"
+    pkl_path = "GMFSS.pkl"
     ra = ArchDetect(pkl_path)
-    print(ra.getArch())
+    print(ra.getArchName())
+    print(ra.getArchBase())

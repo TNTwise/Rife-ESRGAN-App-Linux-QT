@@ -108,13 +108,6 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
-        # trt options
-        trt_workspace_size: int = 0,
-        trt_max_aux_streams: int | None = None,
-        trt_optimization_level: int = 5,
-        trt_cache_dir: str = None,
-        trt_debug: bool = False,
-        trt_static_shape: bool = True,
     ):
         if device == "default":
             if torch.cuda.is_available():
@@ -134,14 +127,6 @@ class InterpolateGMFSSTorch(BaseInterpolate):
 
         self.device = device
         self.dtype = self.handlePrecision(dtype)
-        self.trt_workspace_size = trt_workspace_size
-        self.trt_max_aux_streams = trt_max_aux_streams
-        self.trt_optimization_level = trt_optimization_level
-        if trt_cache_dir is None:
-            trt_cache_dir = os.path.dirname(
-                modelPath
-            )  # use the model directory as the cache directory
-        self.trt_cache_dir = trt_cache_dir
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
@@ -150,8 +135,6 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.f0encode = None
         self.doEncodingOnFrame = False
         self.gmfss = False
-        self.trt_debug = trt_debug  # too much output, i would like a progress bar tho
-        self.trt_static_shape = trt_static_shape
 
         if UHDMode:
             self.scale = 0.5
