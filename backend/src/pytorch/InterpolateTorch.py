@@ -172,6 +172,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 warnAndLog(
                     "TensorRT is not implemented for GMFSS yet, falling back to PyTorch"
                 )
+        self.prepareStream.synchronize()
 
     @torch.inference_mode()
     def process(self, img0, img1, timestep, f0encode=None, f1encode=None):
@@ -197,12 +198,8 @@ class InterpolateRifeTorch(BaseInterpolate):
         backend: str = "pytorch",
         UHDMode: bool = False,
         # trt options
-        trt_workspace_size: int = 0,
-        trt_max_aux_streams: int | None = None,
         trt_optimization_level: int = 5,
-        trt_cache_dir: str = None,
-        trt_debug: bool = False,
-        trt_static_shape: bool = True,
+        
     ):
         if device == "default":
             if torch.cuda.is_available():
@@ -222,21 +219,18 @@ class InterpolateRifeTorch(BaseInterpolate):
 
         self.device = device
         self.dtype = self.handlePrecision(dtype)
-        self.trt_workspace_size = trt_workspace_size
-        self.trt_max_aux_streams = trt_max_aux_streams
-        self.trt_optimization_level = trt_optimization_level
-        if trt_cache_dir is None:
-            trt_cache_dir = os.path.dirname(
-                modelPath
-            )  # use the model directory as the cache directory
-        self.trt_cache_dir = trt_cache_dir
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
         self.scale = 1
         self.doEncodingOnFrame = True
-        self.trt_debug = trt_debug  # too much output, i would like a progress bar tho
-        self.trt_static_shape = trt_static_shape
+
+
+        self.trt_optimization_level = trt_optimization_level
+        self.trt_cache_dir = os.path.dirname(
+                modelPath
+            )  # use the model directory as the cache directory
+        
 
         if UHDMode:
             self.scale = 0.5
@@ -361,16 +355,6 @@ class InterpolateRifeTorch(BaseInterpolate):
                         + f"_{torch.cuda.get_device_name(self.device)}"
                         + f"_trt-{trtHandler.tensorrt_version}"
                         + f"_torch_tensorrt-{trtHandler.torch_tensorrt_version}"
-                        + (
-                            f"_workspace-{self.trt_workspace_size}"
-                            if self.trt_workspace_size > 0
-                            else ""
-                        )
-                        + (
-                            f"_aux-{self.trt_max_aux_streams}"
-                            if self.trt_max_aux_streams is not None
-                            else ""
-                        )
                         + (
                             f"_level-{self.trt_optimization_level}"
                             if self.trt_optimization_level is not None
