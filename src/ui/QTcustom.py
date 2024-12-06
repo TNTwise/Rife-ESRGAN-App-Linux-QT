@@ -58,6 +58,7 @@ from .QTstyle import styleSheet
 from ..Util import log, networkCheck
 from ..Backendhandler import BackendHandler
 
+
 def hide_layout_widgets(layout):
     # Iterate through all items in the layout and hide the widgets
     for i in range(layout.count()):
@@ -67,6 +68,7 @@ def hide_layout_widgets(layout):
             if widget is not None:
                 widget.setVisible(False)  # Hide the widget
 
+
 def show_layout_widgets(layout):
     # Iterate through all items in the layout and show the widgets
     for i in range(layout.count()):
@@ -75,6 +77,7 @@ def show_layout_widgets(layout):
             widget = item.widget()
             if widget is not None:
                 widget.setVisible(True)  # Show the widget
+
 
 class UpdateGUIThread(QThread):
     """

@@ -2,7 +2,14 @@ from PySide6.QtWidgets import QMainWindow
 from .QTcustom import RegularQTPopup, NetworkCheckPopup
 from ..DownloadDeps import DownloadDependencies
 from ..DownloadModels import DownloadModel
-from ..ModelHandler import ncnnInterpolateModels, pytorchInterpolateModels, ncnnUpscaleModels, pytorchUpscaleModels 
+from ..ModelHandler import (
+    ncnnInterpolateModels,
+    pytorchInterpolateModels,
+    ncnnUpscaleModels,
+    pytorchUpscaleModels,
+)
+
+
 def downloadModelsBasedOnInstalledBackend(installed_backends: list):
     if NetworkCheckPopup():
         for backend in installed_backends:
@@ -24,6 +31,7 @@ def downloadModelsBasedOnInstalledBackend(installed_backends: list):
                 DownloadModel(model, onnxInterpolateModels[model][1], "onnx")
             for model in onnxUpscaleModels:
                 DownloadModel(model, onnxUpscaleModels[model][1], "onnx")"""
+
 
 class DownloadTab:
     def __init__(

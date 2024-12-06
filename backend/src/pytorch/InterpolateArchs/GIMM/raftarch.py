@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-
 class FlowHead(nn.Module):
     def __init__(self, input_dim=128, hidden_dim=256):
         super(FlowHead, self).__init__()
@@ -130,7 +129,7 @@ class SmallUpdateBlock(nn.Module):
 
 
 class BasicUpdateBlock(nn.Module):
-    def __init__(self,hidden_dim=128, input_dim=128):
+    def __init__(self, hidden_dim=128, input_dim=128):
         super(BasicUpdateBlock, self).__init__()
         self.encoder = BasicMotionEncoder()
         self.gru = SepConvGRU(hidden_dim=hidden_dim, input_dim=128 + hidden_dim)
@@ -152,6 +151,8 @@ class BasicUpdateBlock(nn.Module):
         # scale mask to balence gradients
         mask = 0.25 * self.mask(net)
         return net, mask, delta_flow
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -445,6 +446,8 @@ class SmallEncoder(nn.Module):
             x = torch.split(x, [batch_dim, batch_dim], dim=0)
 
         return x
+
+
 def bilinear_sampler(img, coords, mode="bilinear", mask=False):
     """Wrapper for grid_sample, uses pixel coordinates"""
     H, W = img.shape[-2:]
@@ -460,6 +463,8 @@ def bilinear_sampler(img, coords, mode="bilinear", mask=False):
         return img, mask.float()
 
     return img
+
+
 class CorrBlock:
     def __init__(self, fmap1, fmap2, num_levels=4, radius=4):
         self.num_levels = num_levels
@@ -563,8 +568,6 @@ class RAFT(nn.Module):
         )
         self.update_block = BasicUpdateBlock(hidden_dim=hdim)
 
-      
-
     def freeze_bn(self):
         for m in self.modules():
             if isinstance(m, nn.BatchNorm2d):
@@ -619,7 +622,7 @@ class RAFT(nn.Module):
 
         fmap1 = fmap1.float()
         fmap2 = fmap2.float()
-        
+
         corr_fn = CorrBlock(fmap1, fmap2, radius=self.args.corr_radius)
 
         # run the context network
@@ -661,6 +664,7 @@ class RAFT(nn.Module):
             return flow_up, feats[1:], fmap1
 
         return flow_predictions
+
 
 class BidirCorrBlock:
     def __init__(self, fmap1, fmap2, num_levels=4, radius=4):

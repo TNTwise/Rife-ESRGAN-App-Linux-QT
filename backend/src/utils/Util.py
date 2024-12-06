@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import cv2
 import shutil
+
 try:
     from ..constants import CWD
 except ImportError:
@@ -60,16 +61,18 @@ def bytesToImg(
         frame = cv2.resize(frame, dsize=(100, 100))
     return frame
 
+
 def get_pytorch_vram() -> int:
     """
     Function that returns the total VRAM amount in MB using PyTorch.
     """
     try:
         import torch
+
         if torch.cuda.is_available():
-            device = torch.device('cuda')
+            device = torch.device("cuda")
             props = torch.cuda.get_device_properties(device)
-            vram_in_mb = props.total_memory // (1024 ** 2)  # Convert bytes to MB
+            vram_in_mb = props.total_memory // (1024**2)  # Convert bytes to MB
             return vram_in_mb
         else:
             return 0
@@ -79,7 +82,8 @@ def get_pytorch_vram() -> int:
     except Exception as e:
         log(str(e))
         return 0
-    
+
+
 def checkForPytorchCUDA() -> bool:
     """
     function that checks if the pytorch backend is available
@@ -87,6 +91,7 @@ def checkForPytorchCUDA() -> bool:
     try:
         import torch
         import torchvision
+
         if "cu" in torch.__version__:
             return True
         return False
@@ -96,6 +101,7 @@ def checkForPytorchCUDA() -> bool:
     except Exception as e:
         log(str(e))
 
+
 def checkForPytorchROCM() -> bool:
     """
     function that checks if the pytorch backend is available
@@ -103,6 +109,7 @@ def checkForPytorchROCM() -> bool:
     try:
         import torch
         import torchvision
+
         if "rocm" in torch.__version__:
             return True
         return False
@@ -111,6 +118,7 @@ def checkForPytorchROCM() -> bool:
         return False
     except Exception as e:
         log(str(e))
+
 
 def checkForTensorRT() -> bool:
     """
@@ -260,6 +268,7 @@ def checkForNCNN() -> bool:
         return False
     except Exception as e:
         log(str(e))
+
 
 if __name__ == "__main__":
     print(get_pytorch_vram())

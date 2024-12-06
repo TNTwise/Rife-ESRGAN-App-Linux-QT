@@ -101,7 +101,6 @@ tensorrtInterpolateModels = {
     ),
 }
 ncnnUpscaleModels = {
-    
     "SPAN Spanimation (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2",
         "2x_ModernSpanimationV2.tar.gz",
@@ -169,17 +168,17 @@ ncnnUpscaleModels = {
         "compact",
     ),
     "RealESRGAN Plus (General Model) (4X) (Slow)": (
-    "realesrgan-x4plus",
-    "realesrgan-x4plus.tar.gz",
-    4,
-    "esrgan",
-),
-"RealESRGAN Plus (Animation Model) (4X) (Slow)": (
-    "realesrgan-x4plus-anime",
-    "realesrgan-x4plus-anime.tar.gz",
-    4,
-    "esrgan",
-),
+        "realesrgan-x4plus",
+        "realesrgan-x4plus.tar.gz",
+        4,
+        "esrgan",
+    ),
+    "RealESRGAN Plus (Animation Model) (4X) (Slow)": (
+        "realesrgan-x4plus-anime",
+        "realesrgan-x4plus-anime.tar.gz",
+        4,
+        "esrgan",
+    ),
 }
 
 pytorchUpscaleModels = {
@@ -289,19 +288,22 @@ onnxUpscaleModels = {
         "SPAN",
     ),
 }
+
+
 def getCustomModelScale(model):
     pattern = r"\d+x|x+\d"
     matches = re.findall(pattern, model)
     if len(matches) > 0:
-        upscaleFactor = int(matches[0].replace("x", ""))  
+        upscaleFactor = int(matches[0].replace("x", ""))
         return upscaleFactor
     return None
+
+
 # detect custom models
 createDirectory(CUSTOM_MODELS_PATH)
 customPytorchUpscaleModels = {}
 customNCNNUpscaleModels = {}
 for model in os.listdir(CUSTOM_MODELS_PATH):
-
     upscaleFactor = getCustomModelScale(model)
     if upscaleFactor:
         model_path = os.path.join(CUSTOM_MODELS_PATH, model)
@@ -314,7 +316,7 @@ for model in os.listdir(CUSTOM_MODELS_PATH):
         log(
             f"Custom model {model} does not have a valid upscale factor in the name, example: 2x or x2. Skipping import..."
         )
-    
+
 pytorchUpscaleModels = pytorchUpscaleModels | customPytorchUpscaleModels
 tensorrtUpscaleModels = tensorrtUpscaleModels | customPytorchUpscaleModels
 ncnnUpscaleModels = ncnnUpscaleModels | customNCNNUpscaleModels
@@ -329,6 +331,3 @@ totalModels = (
     | tensorrtInterpolateModels
     | tensorrtUpscaleModels
 )  # this doesnt include all models due to overwriting, but includes every case of every unique model name
-
-
-

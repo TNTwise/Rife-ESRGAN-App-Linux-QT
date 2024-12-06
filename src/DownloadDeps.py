@@ -1,4 +1,11 @@
-from .constants import PLATFORM, PYTHON_PATH, FFMPEG_PATH, BACKEND_PATH, TEMP_DOWNLOAD_PATH, CWD
+from .constants import (
+    PLATFORM,
+    PYTHON_PATH,
+    FFMPEG_PATH,
+    BACKEND_PATH,
+    TEMP_DOWNLOAD_PATH,
+    CWD,
+)
 from .Util import (
     log,
     createDirectory,
@@ -6,7 +13,7 @@ from .Util import (
     move,
     extractTarGZ,
     downloadFile,
-    removeFolder
+    removeFolder,
 )
 from .ui.QTcustom import (
     DownloadProgressPopup,
@@ -84,9 +91,7 @@ class DownloadDependencies:
         vcTempPath = os.path.join(CWD, "bin", "VC_redist.x64.exe")
         link = "https://aka.ms/vs/17/release/vc_redist.x64.exe"
 
-        log(
-            "Downloading VC_redlist.x64.exe\nClick yes after download is complete."
-        )
+        log("Downloading VC_redlist.x64.exe\nClick yes after download is complete.")
         DownloadProgressPopup(
             link=link,
             downloadLocation=vcTempPath,
@@ -149,7 +154,6 @@ class DownloadDependencies:
         makeExecutable(ffmpegTempPath)
         move(ffmpegTempPath, FFMPEG_PATH)
         removeFolder(TEMP_DOWNLOAD_PATH)
-        
 
     def pip(
         self,
@@ -212,7 +216,6 @@ class DownloadDependencies:
             "pillow",
         ]
         return platformIndependentdeps
-
 
     def getPyTorchCUDADeps(self):
         """

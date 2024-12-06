@@ -80,11 +80,13 @@ class DySample(nn.Module):
             .flatten(0, 1)
             .float()
         )
-        output = torch.ops.aten.grid_sampler_2d(
-            x.reshape(B * self.groups, -1, H, W).float(),
-            coords,
-            0,1,True
-        ).to(x.dtype).view(B, -1, self.scale * H, self.scale * W)
+        output = (
+            torch.ops.aten.grid_sampler_2d(
+                x.reshape(B * self.groups, -1, H, W).float(), coords, 0, 1, True
+            )
+            .to(x.dtype)
+            .view(B, -1, self.scale * H, self.scale * W)
+        )
 
         if self.end_convolution:
             output = self.end_conv(output)

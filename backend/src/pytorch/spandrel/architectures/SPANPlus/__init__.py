@@ -24,9 +24,9 @@ class SPANPlusArch(Architecture[SPANPlus]):
         num_out_ch: int = 3
         feature_channels: int = 48
         upscale: int = 4
-        n_feats = get_seq_len(state_dict, "feats")-1
+        n_feats = get_seq_len(state_dict, "feats") - 1
         blocks = [
-            get_seq_len(state_dict,f"feats.{n_feat+1}.block_n")
+            get_seq_len(state_dict, f"feats.{n_feat+1}.block_n")
             for n_feat in range(n_feats)
         ]
         num_in_ch = state_dict["feats.0.eval_conv.weight"].shape[1]
@@ -34,7 +34,9 @@ class SPANPlusArch(Architecture[SPANPlus]):
         if "upsampler.0.weight" in state_dict:
             upsampler = "ps"
             num_out_ch = num_in_ch
-            upscale = int((state_dict["upsampler.0.weight"].shape[0] / num_in_ch) ** 0.5)
+            upscale = int(
+                (state_dict["upsampler.0.weight"].shape[0] / num_in_ch) ** 0.5
+            )
         else:
             upsampler = "dys"
             num_out_ch = state_dict["upsampler.end_conv.weight"].shape[0]

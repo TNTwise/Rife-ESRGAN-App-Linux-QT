@@ -1,6 +1,7 @@
 import sys
 import os
 from threading import Thread
+
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -175,7 +176,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settingsBtn.clicked.connect(self.switchToSettingsPage)
         self.downloadBtn.clicked.connect(self.switchToDownloadPage)
         # connect getting default output file
-        
 
     def setButtonsUnchecked(self, buttonToIgnore):
         buttons = [
@@ -215,9 +215,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setButtonsUnchecked(self.downloadBtn)
         self.animationHandler.fadeInAnimation(self.stackedWidget)
 
-
-
-
     def updateVideoGUIText(self):
         if self.isVideoLoaded:
             upscaleModelName = self.upscaleModelComboBox.currentText()
@@ -234,15 +231,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             self.videoInfoTextEdit.setFontPointSize(10)
             self.videoInfoTextEdit.setText(text)
+
     def getInterpolationMultiplier(self, interpolateModelName):
         if interpolateModelName == "None":
-            interpolateTimes = 1    
+            interpolateTimes = 1
         else:
             interpolateTimes = self.interpolationMultiplierSpinBox.value()
         return interpolateTimes
 
     def getUpscaleModelScale(self, upscaleModelName):
-        if upscaleModelName == "None" or upscaleModelName == '':
+        if upscaleModelName == "None" or upscaleModelName == "":
             scale = 1
         else:
             scale = totalModels[upscaleModelName][2]
@@ -256,7 +254,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Returns:
         None
         """
-        
+
         # check if there is a video loaded
         if self.isVideoLoaded:
             inputFile = self.inputFileText.text()
@@ -264,8 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateModelName = self.interpolateModelComboBox.currentText()
             interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
             scale = self.getUpscaleModelScale(upscaleModelName)
-           
-            
+
             file_name = os.path.splitext(os.path.basename(inputFile))[0]
             base_file_name = f"{file_name}_{round(interpolateTimes*self.videoFps,0)}fps_{scale*self.videoWidth}x{scale*self.videoHeight}"
             output_file = os.path.join(
@@ -283,8 +280,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return output_file
 
     def updateVideoGUIDetails(self):
-        self.interpolationContainer.setVisible(self.interpolateModelComboBox.currentText() != "None") # set interpolation container visible if interpolate model is not none
-        self.upscaleContainer.setVisible(self.upscaleModelComboBox.currentText() != "None")
+        self.interpolationContainer.setVisible(
+            self.interpolateModelComboBox.currentText() != "None"
+        )  # set interpolation container visible if interpolate model is not none
+        self.upscaleContainer.setVisible(
+            self.upscaleModelComboBox.currentText() != "None"
+        )
         self.settings.readSettings()
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
         self.updateVideoGUIText()
@@ -296,9 +297,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
             RegularQTPopup("No write permissions to the output directory!")
             return
-        if self.interpolateModelComboBox.currentText() == "None" and self.upscaleModelComboBox.currentText() == "None":
+        if (
+            self.interpolateModelComboBox.currentText() == "None"
+            and self.upscaleModelComboBox.currentText() == "None"
+        ):
             RegularQTPopup("Please select at least one model!")
-            return    
+            return
         self.startRenderButton.setEnabled(False)
         self.progressBar.setRange(
             0,
@@ -324,8 +328,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             backend=self.backendComboBox.currentText(),
             interpolateModel=self.interpolateModelComboBox.currentText(),
             upscaleModel=self.upscaleModelComboBox.currentText(),
-            interpolateTimes=self.getInterpolationMultiplier(self.interpolateModelComboBox.currentText()),
-            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),)
+            interpolateTimes=self.getInterpolationMultiplier(
+                self.interpolateModelComboBox.currentText()
+            ),
+            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
+        )
+
     def disableProcessPage(self):
         self.processSettingsContainer.setDisabled(True)
 
@@ -333,10 +341,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.processSettingsContainer.setEnabled(True)
 
     def loadVideo(self, inputFile):
-        
         videoHandler = VideoLoader(inputFile)
         videoHandler.loadVideo()
-        if not videoHandler.isValidVideo(): # this handles case for invalid youtube link and invalid video file
+        if (
+            not videoHandler.isValidVideo()
+        ):  # this handles case for invalid youtube link and invalid video file
             RegularQTPopup("Not a valid input!")
             return
         videoHandler.getData()
@@ -348,7 +357,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.videoEncoder = videoHandler.codec_str
         self.videoBitrate = videoHandler.bitrate
         self.videoContainer = videoHandler.videoContainer
-        
+
         self.inputFileText.setText(inputFile)
         self.outputFileText.setEnabled(True)
         self.outputFileSelectButton.setEnabled(True)
@@ -433,7 +442,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     RegularQTPopup("Please select a param file!")
                     return
                 outputModelFolder = os.path.join(
-                    CUSTOM_MODELS_PATH, os.path.basename(modelBinFile).replace(".bin", "")
+                    CUSTOM_MODELS_PATH,
+                    os.path.basename(modelBinFile).replace(".bin", ""),
                 )
                 createDirectory(outputModelFolder)
                 outputBinPath = os.path.join(
@@ -488,6 +498,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
+
 def main():
     app = QApplication(sys.argv)
 
@@ -501,13 +512,13 @@ def main():
     window.show()
     sys.exit(app.exec())
 
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == '--debug':
+    if len(sys.argv) > 1 and sys.argv[1] == "--debug":
         import trace
+
         tracer = trace.Trace(
-            ignoredirs=[sys.prefix, sys.exec_prefix],
-            trace=True,
-            count=False
+            ignoredirs=[sys.prefix, sys.exec_prefix], trace=True, count=False
         )
         tracer.run("main()")
     else:

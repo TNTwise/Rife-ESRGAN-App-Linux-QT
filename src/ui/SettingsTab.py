@@ -206,7 +206,11 @@ class Settings:
             "tensorrt_optimization_level": ("0", "1", "2", "3", "4", "5"),
             "encoder": ("libx264", "libx265", "vp9", "av1"),
             "preview_enabled": ("True", "False"),
-            "scene_change_detection_method": ("mean", "mean_segmented", "pyscenedetect"),
+            "scene_change_detection_method": (
+                "mean",
+                "mean_segmented",
+                "pyscenedetect",
+            ),
             "scene_change_detection_enabled": ("True", "False"),
             "scene_change_detection_threshold": [
                 str(num / 10) for num in range(1, 100)

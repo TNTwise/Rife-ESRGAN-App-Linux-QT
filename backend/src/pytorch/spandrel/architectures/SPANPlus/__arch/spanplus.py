@@ -5,27 +5,57 @@ from torch.nn.init import trunc_normal_
 from ....util import store_hyperparameters
 from ....architectures.__arch_helpers.dysample import DySample
 
+
 class Conv3XC(nn.Module):
-    def __init__(self,
-                 c_in: int,
-                 c_out: int,
-                 gain: int = 1,
-                 s: int = 1,
-                 bias: bool = True):
+    def __init__(
+        self, c_in: int, c_out: int, gain: int = 1, s: int = 1, bias: bool = True
+    ):
         super(Conv3XC, self).__init__()
         self.weight_concat = None
         self.bias_concat = None
         self.update_params_flag = False
         self.stride = s
 
-        self.sk = nn.Conv2d(in_channels=c_in, out_channels=c_out, kernel_size=1, padding=0, stride=s, bias=bias)
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_channels=c_in, out_channels=c_in * gain, kernel_size=1, padding=0, bias=bias),
-            nn.Conv2d(in_channels=c_in * gain, out_channels=c_out * gain, kernel_size=3, stride=s, padding=0,
-                      bias=bias),
-            nn.Conv2d(in_channels=c_out * gain, out_channels=c_out, kernel_size=1, padding=0, bias=bias),
+        self.sk = nn.Conv2d(
+            in_channels=c_in,
+            out_channels=c_out,
+            kernel_size=1,
+            padding=0,
+            stride=s,
+            bias=bias,
         )
-        self.eval_conv = nn.Conv2d(in_channels=c_in, out_channels=c_out, kernel_size=3, padding=1, stride=s, bias=bias)
+        self.conv = nn.Sequential(
+            nn.Conv2d(
+                in_channels=c_in,
+                out_channels=c_in * gain,
+                kernel_size=1,
+                padding=0,
+                bias=bias,
+            ),
+            nn.Conv2d(
+                in_channels=c_in * gain,
+                out_channels=c_out * gain,
+                kernel_size=3,
+                stride=s,
+                padding=0,
+                bias=bias,
+            ),
+            nn.Conv2d(
+                in_channels=c_out * gain,
+                out_channels=c_out,
+                kernel_size=1,
+                padding=0,
+                bias=bias,
+            ),
+        )
+        self.eval_conv = nn.Conv2d(
+            in_channels=c_in,
+            out_channels=c_out,
+            kernel_size=3,
+            padding=1,
+            stride=s,
+            bias=bias,
+        )
         if self.training:
             trunc_normal_(self.sk.weight, std=0.02)
             trunc_normal_(self.eval_conv.weight, std=0.02)
@@ -43,13 +73,18 @@ class Conv3XC(nn.Module):
         w3 = self.conv[2].weight.data.clone().detach()
         b3 = self.conv[2].bias.data.clone().detach()
 
-        w = F.conv2d(w1.flip(2, 3).permute(1, 0, 2, 3), w2, padding=2, stride=1).flip(2, 3).permute(1, 0, 2, 3)
+        w = (
+            F.conv2d(w1.flip(2, 3).permute(1, 0, 2, 3), w2, padding=2, stride=1)
+            .flip(2, 3)
+            .permute(1, 0, 2, 3)
+        )
         b = (w2 * b1.reshape(1, -1, 1, 1)).sum((1, 2, 3)) + b2
 
-        self.weight_concat = F.conv2d(w.flip(2, 3).permute(1, 0, 2, 3), w3, padding=0, stride=1).flip(2, 3).permute(1,
-                                                                                                                    0,
-                                                                                                                    2,
-                                                                                                                    3)
+        self.weight_concat = (
+            F.conv2d(w.flip(2, 3).permute(1, 0, 2, 3), w3, padding=0, stride=1)
+            .flip(2, 3)
+            .permute(1, 0, 2, 3)
+        )
         self.bias_concat = (w3 * b.reshape(1, -1, 1, 1)).sum((1, 2, 3)) + b3
 
         sk_w = self.sk.weight.data.clone().detach()
@@ -58,7 +93,9 @@ class Conv3XC(nn.Module):
 
         H_pixels_to_pad = (target_kernel_size - 1) // 2
         W_pixels_to_pad = (target_kernel_size - 1) // 2
-        sk_w = F.pad(sk_w, [H_pixels_to_pad, H_pixels_to_pad, W_pixels_to_pad, W_pixels_to_pad])
+        sk_w = F.pad(
+            sk_w, [H_pixels_to_pad, H_pixels_to_pad, W_pixels_to_pad, W_pixels_to_pad]
+        )
 
         self.weight_concat = self.weight_concat + sk_w
         self.bias_concat = self.bias_concat + sk_b
@@ -110,15 +147,13 @@ class SPABS(nn.Module):
         super(SPABS, self).__init__()
         self.block_1 = SPAB(feature_channels)
 
-        self.block_n = nn.Sequential(
-            *[SPAB(feature_channels)
-              for _ in range(n_blocks)]
-        )
+        self.block_n = nn.Sequential(*[SPAB(feature_channels) for _ in range(n_blocks)])
         self.block_end = SPAB(feature_channels, True)
         self.conv_2 = Conv3XC(feature_channels, feature_channels, gain=2, s=1)
-        self.conv_cat = nn.Conv2d(feature_channels * 4, feature_channels, kernel_size=1, bias=True)
+        self.conv_cat = nn.Conv2d(
+            feature_channels * 4, feature_channels, kernel_size=1, bias=True
+        )
         self.dropout = nn.Dropout2d(drop)
-
 
     def forward(self, x):
         out_b1 = self.block_1(x)
@@ -127,23 +162,26 @@ class SPABS(nn.Module):
         out_end = self.dropout(self.conv_2(out_end))
         return self.conv_cat(torch.cat([x, out_end, out_b1, out_x_2], 1))
 
+
 @store_hyperparameters()
 class SPANPlus(nn.Module):
     """
     Swift Parameter-free Attention Network for Efficient Super-Resolution
     """
+
     hyperparameters = {}
 
-    def __init__(self,
-                 *,
-                 num_in_ch: int = 3,
-                 num_out_ch: int = 3,
-                 blocks: list = [4],
-                 feature_channels: int = 48,
-                 upscale: int = 4,
-                 drop_rate: float = 0.0,
-                 upsampler: str = "dys"  # "lp", "ps"
-                 ):
+    def __init__(
+        self,
+        *,
+        num_in_ch: int = 3,
+        num_out_ch: int = 3,
+        blocks: list = [4],
+        feature_channels: int = 48,
+        upscale: int = 4,
+        drop_rate: float = 0.0,
+        upsampler: str = "dys",  # "lp", "ps"
+    ):
         super(SPANPlus, self).__init__()
 
         in_channels = num_in_ch
@@ -151,26 +189,21 @@ class SPANPlus(nn.Module):
         drop_rate = 0
         self.feats = nn.Sequential(
             *[Conv3XC(in_channels, feature_channels, gain=2, s=1)]
-             + [
-                 SPABS(feature_channels, n_blocks, drop_rate)
-                 for n_blocks in blocks
-             ]
+            + [SPABS(feature_channels, n_blocks, drop_rate) for n_blocks in blocks]
         )
         if upsampler == "ps":
             self.upsampler = nn.Sequential(
-                nn.Conv2d(feature_channels,
-                          out_channels * (upscale ** 2),
-                          3, padding=1),
-                nn.PixelShuffle(upscale)
+                nn.Conv2d(feature_channels, out_channels * (upscale**2), 3, padding=1),
+                nn.PixelShuffle(upscale),
             )
         elif upsampler == "dys":
             self.upsampler = DySample(feature_channels, out_channels, upscale)
         else:
             raise NotImplementedError(
                 f'upsampler: {upsampler} not supported, choose one of these options: \
-                ["ps", "dys"]')
+                ["ps", "dys"]'
+            )
 
     def forward(self, x):
         out = self.feats(x)
         return self.upsampler(out)
-

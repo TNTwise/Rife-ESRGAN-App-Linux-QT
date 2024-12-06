@@ -9,7 +9,12 @@ from PySide6.QtCore import Qt, QSize
 from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler
-from .QTcustom import UpdateGUIThread, RegularQTPopup, show_layout_widgets, hide_layout_widgets
+from .QTcustom import (
+    UpdateGUIThread,
+    RegularQTPopup,
+    show_layout_widgets,
+    hide_layout_widgets,
+)
 from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PATH
 from ..Util import (
     currentDirectory,
@@ -30,7 +35,7 @@ from ..ModelHandler import (
     tensorrtUpscaleModels,
     onnxUpscaleModels,
     onnxInterpolateModels,
-    totalModels
+    totalModels,
 )
 
 
@@ -52,7 +57,7 @@ class ProcessTab:
         self.QConnect()
         self.populateModels(self.parent.backendComboBox.currentText())
 
-    def getModels(self,backend):
+    def getModels(self, backend):
         """
         returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
         """
@@ -78,27 +83,29 @@ class ProcessTab:
                 )
                 errorAndLog("Failed to import any backends!")
                 return {}
-        return interpolateModels,upscaleModels
+        return interpolateModels, upscaleModels
 
     def populateModels(self, backend) -> dict:
         """
         returns
         the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
         """
-        interpolateModels,upscaleModels = self.getModels(backend)
+        interpolateModels, upscaleModels = self.getModels(backend)
         self.parent.interpolateModelComboBox.clear()
         self.parent.upscaleModelComboBox.clear()
-        self.parent.interpolateModelComboBox.addItems(['None'] + list(interpolateModels.keys()))
-        self.parent.upscaleModelComboBox.addItems(['None'] + list(upscaleModels.keys()))
+        self.parent.interpolateModelComboBox.addItems(
+            ["None"] + list(interpolateModels.keys())
+        )
+        self.parent.upscaleModelComboBox.addItems(["None"] + list(upscaleModels.keys()))
         if not self.gmfssSupport:
-                # Disable specific options based on the selected text
-                for i in range(self.parent.interpolateModelComboBox.count()):
-                    if (
-                        "GMFSS" in self.parent.interpolateModelComboBox.itemText(i)
-                    ):  # hacky solution, just straight copy pasted
-                        self.parent.interpolateModelComboBox.model().item(i).setEnabled(
-                            self.gmfssSupport
-                        )
+            # Disable specific options based on the selected text
+            for i in range(self.parent.interpolateModelComboBox.count()):
+                if "GMFSS" in self.parent.interpolateModelComboBox.itemText(
+                    i
+                ):  # hacky solution, just straight copy pasted
+                    self.parent.interpolateModelComboBox.model().item(i).setEnabled(
+                        self.gmfssSupport
+                    )
 
     def onTilingSwitch(self):
         if self.parent.tilingCheckBox.isChecked():
@@ -126,7 +133,7 @@ class ProcessTab:
         self.parent.interpolationMultiplierSpinBox.valueChanged.connect(
             self.parent.updateVideoGUIDetails
         )
-        
+
         self.parent.upscaleModelComboBox.currentIndexChanged.connect(
             self.parent.updateVideoGUIDetails
         )
@@ -199,7 +206,7 @@ class ProcessTab:
         interpolateModel: str,
         benchmarkMode: bool,
     ):
-        interpolateModels,upscaleModels = self.getModels(backend)
+        interpolateModels, upscaleModels = self.getModels(backend)
         if interpolateModel == "None":
             interpolateModel = None
             interpolateModelFile = None
@@ -214,7 +221,6 @@ class ProcessTab:
         self.tilingEnabled = tilingEnabled
         self.tilesize = tilesize
         self.videoFrameCount = videoFrameCount
-        
 
         # if upscale or interpolate
         """
@@ -225,13 +231,19 @@ class ProcessTab:
         """
         self.benchmarkMode = benchmarkMode
         # get model attributes
-        
+
         if interpolateModel:
-            interpolateModelFile,interpolateDownloadFile = interpolateModels[interpolateModel][0], interpolateModels[interpolateModel][1]
+            interpolateModelFile, interpolateDownloadFile = (
+                interpolateModels[interpolateModel][0],
+                interpolateModels[interpolateModel][1],
+            )
         else:
             interpolateTimes = 1
         if upscaleModel:
-            upscaleModelFile, upscaleDownloadFile = upscaleModels[upscaleModel][0], upscaleModels[upscaleModel][1]
+            upscaleModelFile, upscaleDownloadFile = (
+                upscaleModels[upscaleModel][0],
+                upscaleModels[upscaleModel][1],
+            )
             upscaleTimes = upscaleModels[upscaleModel][2]
             upscaleModelArch = upscaleModels[upscaleModel][3]
         else:
@@ -241,16 +253,17 @@ class ProcessTab:
         if interpolateModel:
             DownloadModel(
                 modelFile=interpolateModelFile,
-                downloadModelFile=interpolateDownloadFile)
+                downloadModelFile=interpolateDownloadFile,
+            )
         if upscaleModelArch != "custom":  # custom models are not downloaded
             if upscaleModelFile:
                 DownloadModel(
-                    modelFile=upscaleModelFile,
-                    downloadModelFile=upscaleDownloadFile)
+                    modelFile=upscaleModelFile, downloadModelFile=upscaleDownloadFile
+                )
         # get video attributes
         self.outputVideoWidth = videoWidth * upscaleTimes
         self.outputVideoHeight = videoHeight * upscaleTimes
-        
+
         # set up pausing
         self.pausedFile = os.path.join(
             currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
@@ -283,17 +296,27 @@ class ProcessTab:
 
         writeThread = Thread(
             target=lambda: self.renderToPipeThread(
-                backend=backend, interpolateTimes=interpolateTimes, interpolateModelFile=interpolateModelFile, upscaleModelFile=upscaleModelFile, upscaleModelArch=upscaleModelArch
+                backend=backend,
+                interpolateTimes=interpolateTimes,
+                interpolateModelFile=interpolateModelFile,
+                upscaleModelFile=upscaleModelFile,
+                upscaleModelArch=upscaleModelArch,
             )
         )
         writeThread.start()
         self.startGUIUpdate()
 
-
-    def renderToPipeThread(self, backend: str, interpolateTimes: int, interpolateModelFile: str, upscaleModelFile: str, upscaleModelArch: str):
+    def renderToPipeThread(
+        self,
+        backend: str,
+        interpolateTimes: int,
+        interpolateModelFile: str,
+        upscaleModelFile: str,
+        upscaleModelArch: str,
+    ):
         # builds command
         if backend == "pytorch (cuda)" or backend == "pytorch (rocm)":
-            backend = "pytorch" # pytorch is the same for both cuda and rocm
+            backend = "pytorch"  # pytorch is the same for both cuda and rocm
 
         command = [
             f"{PYTHON_PATH}",
@@ -366,7 +389,7 @@ class ProcessTab:
                 break  # Exit the loop if the process has terminated
 
             # filter out lines from logs here
-            if "torch_tensorrt.dynamo" in line: 
+            if "torch_tensorrt.dynamo" in line:
                 continue
             if "INFO:torch_tensorrt" in line:
                 continue

@@ -67,7 +67,7 @@ class BackendHandler:
         downloadDependencies = DownloadDependencies()
         downloadDependencies.downloadBackend(version)
         if not IS_INSTALLED:
-            from .ui.QTcustom import  RegularQTPopup
+            from .ui.QTcustom import RegularQTPopup
 
             if networkCheck():
                 # Dont flip these due to shitty code!
@@ -76,7 +76,9 @@ class BackendHandler:
                 if PLATFORM == "win32":
                     downloadDependencies.downloadVCREDLIST()
             else:
-                RegularQTPopup("Cannot install required dependencies!\nThe first launch of the app requires internet.")
+                RegularQTPopup(
+                    "Cannot install required dependencies!\nThe first launch of the app requires internet."
+                )
                 sys.exit()
 
     def recursivlyCheckIfDepsOnFirstInstallToMakeSureUserHasInstalledAtLeastOneBackend(
@@ -134,9 +136,14 @@ class BackendHandler:
             if "[Torch-TensorRT]" in word:
                 continue
             new_out += word + " "
-        
-        new_out = new_out.replace("Unable to import quantization op. Please install modelopt library (https://github.com/NVIDIA/TensorRT-Model-Optimizer?tab=readme-ov-file#installation) to add support for compiling quantized models\n","")
-        new_out = new_out.replace("WARNING: - Unable to read CUDA capable devices. Return status: 35\n", "")
+
+        new_out = new_out.replace(
+            "Unable to import quantization op. Please install modelopt library (https://github.com/NVIDIA/TensorRT-Model-Optimizer?tab=readme-ov-file#installation) to add support for compiling quantized models\n",
+            "",
+        )
+        new_out = new_out.replace(
+            "WARNING: - Unable to read CUDA capable devices. Return status: 35\n", ""
+        )
         # Find the part of the output containing the backends list
         output = new_out
         start = output.find("[")

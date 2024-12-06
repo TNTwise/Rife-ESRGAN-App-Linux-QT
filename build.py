@@ -7,10 +7,14 @@ import sys
 import shutil
 
 import urllib.request
+
 linux_and_mac_py_ver = "python3.10"
+
+
 def checkIfExeExists(exe):
     path = shutil.which(exe)
     return path is not None
+
 
 def getPlatform():
     return sys.platform
@@ -21,17 +25,19 @@ def python_path():
         "venv\\Scripts\\python.exe" if getPlatform() == "win32" else "venv/bin/python3"
     )
 
+
 python_version = (
     linux_and_mac_py_ver
     if getPlatform() != "win32" and checkIfExeExists(linux_and_mac_py_ver)
     else "python3"
 )
 
+
 def get_site_packages():
     command = [
         python_path(),
-        '-c',
-        'import site; print("\\n".join(site.getsitepackages()))'
+        "-c",
+        'import site; print("\\n".join(site.getsitepackages()))',
     ]
     result = subprocess.run(command, stdout=subprocess.PIPE, text=True)
     site_packages = result.stdout.strip()
@@ -43,10 +49,13 @@ def download_file(url, destination):
     urllib.request.urlretrieve(url, destination)
     print("File downloaded successfully")
 
+
 def build_gui():
     print("Building GUI")
     if getPlatform() == "darwin" or getPlatform() == "linux":
-        os.system(f"{get_site_packages()}/PySide6/Qt/libexec/uic -g python testRVEInterface.ui > mainwindow.py")
+        os.system(
+            f"{get_site_packages()}/PySide6/Qt/libexec/uic -g python testRVEInterface.ui > mainwindow.py"
+        )
     if getPlatform() == "win32":
         os.system(
             r".\venv\Lib\site-packages\PySide6\uic.exe -g python testRVEInterface.ui > mainwindow.py"
@@ -70,7 +79,9 @@ def install_pip_in_venv():
 def build_resources():
     print("Building resources.rc")
     if getPlatform() == "darwin" or getPlatform() == "linux":
-        os.system(f"{get_site_packages()}/PySide6/Qt/libexec/rcc -g python resources.qrc > resources_rc.py")
+        os.system(
+            f"{get_site_packages()}/PySide6/Qt/libexec/rcc -g python resources.qrc > resources_rc.py"
+        )
     if getPlatform() == "win32":
         os.system(
             r".\venv\Lib\site-packages\PySide6\rcc.exe -g python resources.qrc > resources_rc.py"
@@ -123,12 +134,14 @@ def build_executable():
         ]
     subprocess.run(command)
 
+
 def copy_backend():
     print("Copying backend")
     if getPlatform() == "win32":
         os.system("cp -r backend dist/REAL-Video-Enhancer/")
     if getPlatform() == "linux":
         os.system("cp -r backend bin/")
+
 
 def clean():
     print("Cleaning up")

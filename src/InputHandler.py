@@ -1,14 +1,16 @@
 import cv2
 
-class VideoLoader:
 
+class VideoLoader:
     def __init__(self, inputFile):
         self.inputFile = inputFile
 
     def loadVideo(self):
         self.capture = cv2.VideoCapture(self.inputFile, cv2.CAP_FFMPEG)
+
     def isValidVideo(self):
         return self.capture.isOpened()
+
     def getData(self):
         self.width = int(self.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -25,5 +27,4 @@ class VideoLoader:
         self.total_frames = int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
         self.fps = self.capture.get(cv2.CAP_PROP_FPS)
         self.duration = self.total_frames / self.fps
-        self.capture.release() 
-        
+        self.capture.release()

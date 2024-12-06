@@ -102,7 +102,7 @@ class Render(FFMpegRender):
             self.setupInterpolate()
 
             printAndLog("Using Interpolation Model: " + self.interpolateModel)
-        
+
         super().__init__(
             inputFile=inputFile,
             outputFile=outputFile,
@@ -169,7 +169,9 @@ class Render(FFMpegRender):
         else:
             self.interpolateOption.copyTensor(self.setupFrame0, self.setupFrame1)
             if self.doEncodingOnFrame:
-                self.interpolateOption.copyTensor(self.encodedFrame0, self.encodedFrame1)
+                self.interpolateOption.copyTensor(
+                    self.encodedFrame0, self.encodedFrame1
+                )
 
     def renderInterpolate(self, frame, transition=False):
         if frame is not None:
@@ -195,14 +197,20 @@ class Render(FFMpegRender):
                             img1=self.setupFrame1,
                             timestep=timestep,
                         )
-                elif self.ncnn: # ncnn has to have sequential render or bad things happen
+                elif (
+                    self.ncnn
+                ):  # ncnn has to have sequential render or bad things happen
                     self.interpolateOption.process(
                         img0=self.setupFrame0,
                         img1=self.setupFrame1,
                         timestep=self.maxTimestep,
                     )
                 if self.upscaleModel:
-                    self.writeQueue.put(self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame)))
+                    self.writeQueue.put(
+                        self.upscaleOption.process(
+                            self.upscaleOption.frame_to_tensor(frame)
+                        )
+                    )
                 else:
                     self.writeQueue.put(frame)
 
@@ -219,7 +227,9 @@ class Render(FFMpegRender):
                     self.renderInterpolate(frame, self.sceneDetect.detect(frame))
 
                 if self.upscaleModel:
-                    frame = self.upscaleOption.process(self.upscaleOption.frame_to_tensor(frame))
+                    frame = self.upscaleOption.process(
+                        self.upscaleOption.frame_to_tensor(frame)
+                    )
 
                 self.writeQueue.put(frame)
             else:
@@ -251,9 +261,10 @@ class Render(FFMpegRender):
                 trt_optimization_level=self.trt_optimization_level,
             )
             self.upscaleTimes = self.upscaleOption.getScale()
-               
+
         if self.backend == "ncnn":
             from .ncnn.UpscaleNCNN import UpscaleNCNN, getNCNNScale
+
             path, last_folder = os.path.split(self.upscaleModel)
             self.upscaleModel = os.path.join(path, last_folder, last_folder)
             self.upscaleTimes = getNCNNScale(modelPath=self.upscaleModel)
@@ -266,9 +277,10 @@ class Render(FFMpegRender):
                 height=self.height,
                 tilesize=self.tilesize,
             )
-            
-        if self.backend == "directml": # i dont want to work with this shit
+
+        if self.backend == "directml":  # i dont want to work with this shit
             from .onnx.UpscaleONNX import UpscaleONNX
+
             upscaleONNX = UpscaleONNX(
                 modelPath=self.upscaleModel,
                 precision=self.precision,
@@ -279,17 +291,17 @@ class Render(FFMpegRender):
     def setupInterpolate(self):
         log("Setting up Interpolation")
         self.sceneDetect = SceneDetect(
-                sceneChangeMethod=self.sceneDetectMethod,
-                sceneChangeSensitivity=self.sceneDetectSensitivty,
-                width=self.width,
-                height=self.height,
-            )
+            sceneChangeMethod=self.sceneDetectMethod,
+            sceneChangeSensitivity=self.sceneDetectSensitivty,
+            width=self.width,
+            height=self.height,
+        )
         if self.sceneDetectMethod != "none":
             printAndLog("Scene Detection Enabled")
-            
+
         else:
             printAndLog("Scene Detection Disabled")
-            
+
         if self.backend == "ncnn":
             from .ncnn.InterpolateNCNN import InterpolateRIFENCNN
 
@@ -304,7 +316,9 @@ class Render(FFMpegRender):
         if self.backend == "pytorch" or self.backend == "tensorrt":
             from .pytorch.InterpolateTorch import InterpolateFactory
 
-            self.interpolateOption = InterpolateFactory.build_interpolation_method(self.interpolateModel)(
+            self.interpolateOption = InterpolateFactory.build_interpolation_method(
+                self.interpolateModel
+            )(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
                 width=self.width,
@@ -314,5 +328,5 @@ class Render(FFMpegRender):
                 backend=self.backend,
                 trt_optimization_level=self.trt_optimization_level,
             )
-            
+
             self.doEncodingOnFrame = not (self.interpolateOption.rife46)
