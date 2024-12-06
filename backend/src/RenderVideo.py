@@ -302,9 +302,9 @@ class Render(FFMpegRender):
             self.doEncodingOnFrame = False
 
         if self.backend == "pytorch" or self.backend == "tensorrt":
-            from .pytorch.InterpolateTorch import InterpolateRifeTorch
+            from .pytorch.InterpolateTorch import InterpolateFactory
 
-            self.interpolateOption = InterpolateRifeTorch(
+            self.interpolateOption = InterpolateFactory.build_interpolation_method(self.interpolateModel)(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,
                 width=self.width,
