@@ -275,7 +275,9 @@ class ArchDetect:
 
 
 if __name__ == "__main__":
-    pkl_path = "GMFSS.pkl"
-    ra = ArchDetect(pkl_path)
-    print(ra.getArchName())
-    print(ra.getArchBase())
+    import os
+    for file in os.listdir('.'):
+        if '.pkl' in file:
+            ra = ArchDetect(file)
+            print(ra.getArchName())
+            print(ra.getArchBase())
