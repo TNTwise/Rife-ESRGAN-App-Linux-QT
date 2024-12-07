@@ -1,6 +1,8 @@
 import torch
 import torch.nn.functional as F
 from abc import ABCMeta, abstractmethod
+
+from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
 from .InterpolateArchs.DetectInterpolateArch import ArchDetect
 import math
 import os
@@ -29,8 +31,9 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.encode = None
         self.tenFlow_div = None
         self.backwarp_tenGrid = None
+        self.doEncodingOnFrame = False # set this by default
 
-    def handlePrecision(self, precision):
+    def handlePrecision(self, precision) -> torch.dtype:
         if precision == "auto":
             return torch.float16 if check_bfloat16_support() else torch.float32
         if precision == "float32":
@@ -100,10 +103,6 @@ class BaseInterpolate(metaclass=ABCMeta):
 
 
 class InterpolateGIMMTorch(BaseInterpolate):
-    pass
-
-
-class InterpolateGMFSSTorch(BaseInterpolate):
     @torch.inference_mode()
     def __init__(
         self,
@@ -115,6 +114,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
+        *args,
+        **kwargs,
     ):
         if device == "default":
             if torch.cuda.is_available():
@@ -137,6 +138,110 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
         self.scale = 1
+        self.doEncodingOnFrame = False
+        if UHDMode:
+            self.scale = 0.5
+        self._load()
+
+    @torch.inference_mode()
+    def _load(self):
+        self.stream = torch.cuda.Stream()
+        self.prepareStream = torch.cuda.Stream()
+        with torch.cuda.stream(self.prepareStream):
+            from .InterpolateArchs.GIMM.gimmvfi_r import GIMMVFI_R
+
+            self.flownet = GIMMVFI_R(
+                model_path=self.interpolateModel,
+            )
+            self.flownet.eval().to(device=self.device, dtype=self.dtype)
+
+            _pad = 64
+            tmp = max(_pad, int(_pad / self.scale))
+            self.pw = math.ceil(self.width / tmp) * tmp
+            self.ph = math.ceil(self.height / tmp) * tmp
+            self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
+            
+            dummyInput = torch.zeros([1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device)
+            s_shape = dummyInput.shape[-2:]
+            
+            # caching the timestep tensor in a dict with the timestep as a float for the key
+            
+            self.timestepDict = {}
+            self.coordDict = {}
+
+            for n in range(self.ceilInterpolateFactor):
+                timestep = n / (self.ceilInterpolateFactor)
+                timestep_tens = torch.full(
+                    (1, 1, self.ph, self.pw),
+                    timestep,
+                    dtype=self.dtype,
+                    device=self.device,
+                ).to(non_blocking=True).reshape(-1, 1, 1, 1)
+                self.timestepDict[timestep] = timestep_tens
+                coord = self.flownet.sample_coord_input(
+                        1,
+                        s_shape,
+                        [1 / self.ceilInterpolateFactor * n],
+                        device=self.device,
+                        upsample_ratio=self.scale,
+                )
+                self.coordDict[timestep] = coord
+            
+            
+            if self.backend == "tensorrt":
+                warnAndLog(
+                    "TensorRT is not implemented for GIMM yet, falling back to PyTorch"
+                )
+        self.prepareStream.synchronize()
+
+    @torch.inference_mode()
+    def process(self, img0, img1, timestep, f0encode=None, f1encode=None):
+        while self.flownet is None:
+            sleep(1)
+        with torch.cuda.stream(self.stream):
+            timestep = self.timestepDict[timestep]
+            output = self.flownet(img0, img1, timestep)
+        self.stream.synchronize()
+        return self.tensor_to_frame(output)
+
+
+class InterpolateGMFSSTorch(BaseInterpolate):
+    @torch.inference_mode()
+    def __init__(
+        self,
+        modelPath: str,
+        ceilInterpolateFactor: int = 2,
+        width: int = 1920,
+        height: int = 1080,
+        device: str = "default",
+        dtype: str = "auto",
+        backend: str = "pytorch",
+        UHDMode: bool = False,
+        *args,
+        **kwargs,
+    ):
+        if device == "default":
+            if torch.cuda.is_available():
+                device = torch.device(
+                    "cuda", 0
+                )  # 0 is the device index, may have to change later
+            else:
+                device = torch.device("cpu")
+        else:
+            device = torch.device(device)
+
+        printAndLog("Using device: " + str(device))
+
+        self.interpolateModel = modelPath
+        self.width = width
+        self.height = height
+        self.device = device
+        self.dtype = self.handlePrecision(dtype)
+        self.backend = backend
+        self.ceilInterpolateFactor = ceilInterpolateFactor
+        # set up streams for async processing
+        self.scale = 1
+        self.doEncodingOnFrame = False
         if UHDMode:
             self.scale = 0.5
         self._load()
@@ -224,7 +329,6 @@ class InterpolateRifeTorch(BaseInterpolate):
         # set up streams for async processing
         self.scale = 1
         self.doEncodingOnFrame = True
-
 
         self.trt_optimization_level = trt_optimization_level
         self.trt_cache_dir = os.path.dirname(
@@ -521,7 +625,7 @@ class InterpolateFactory:
         match base_arch:
             case "rife":
                 return InterpolateRifeTorch
-            case "gfmss":
+            case "gmfss":
                 return InterpolateGMFSSTorch
             case "gimm":
                 return InterpolateGIMMTorch

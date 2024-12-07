@@ -13,7 +13,7 @@ import torch.nn as nn
 import math
 
 import torch.nn.functional as F
-from .raftarch import RAFT
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 backwarp_tenGrid = {}
@@ -717,16 +717,3 @@ class NewMultiFlowDecoder(nn.Module):
         return flow0, flow1, mask, img_res
 
 
-def initialize_RAFT(model_path="models/GIMM-VFI/raft-things.pth", device="cuda"):
-    """Initializes the RAFT model."""
-    model = RAFT()
-    ckpt = torch.load(model_path, map_location="cpu")
-
-    def convert(param):
-        return {k.replace("module.", ""): v for k, v in param.items() if "module" in k}
-
-    ckpt = convert(ckpt)
-    model.load_state_dict(ckpt, strict=True)
-    print("load raft from " + model_path)
-
-    return model

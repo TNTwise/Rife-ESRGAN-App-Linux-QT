@@ -335,93 +335,108 @@ def softsplat(
 class softsplat_func(torch.autograd.Function):
     @staticmethod
     @torch.cuda.amp.custom_fwd(cast_inputs=torch.float32)
-    def forward(self, tenIn, tenFlow):
-        tenOut = tenIn.new_zeros(
-            [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
-        )
+    def forward(ctx, tenIn, tenFlow):
+        """
+        Forward pass of the Softsplat function.
 
-        if tenIn.is_cuda == True:
-            cuda_launch(
-                cuda_kernel(
-                    "softsplat_out",
-                    """
-                extern "C" __global__ void __launch_bounds__(512) softsplat_out(
-                    const int n,
-                    const {{type}}* __restrict__ tenIn,
-                    const {{type}}* __restrict__ tenFlow,
-                    {{type}}* __restrict__ tenOut
-                ) { for (int intIndex = (blockIdx.x * blockDim.x) + threadIdx.x; intIndex < n; intIndex += blockDim.x * gridDim.x) {
-                    const int intN = ( intIndex / SIZE_3(tenOut) / SIZE_2(tenOut) / SIZE_1(tenOut) ) % SIZE_0(tenOut);
-                    const int intC = ( intIndex / SIZE_3(tenOut) / SIZE_2(tenOut)                  ) % SIZE_1(tenOut);
-                    const int intY = ( intIndex / SIZE_3(tenOut)                                   ) % SIZE_2(tenOut);
-                    const int intX = ( intIndex                                                    ) % SIZE_3(tenOut);
+        Parameters:
+            tenIn (torch.Tensor): Input tensor of shape [N, C, H, W]
+            tenFlow (torch.Tensor): Flow tensor of shape [N, 2, H, W]
 
-                    assert(SIZE_1(tenFlow) == 2);
+        Returns:
+            torch.Tensor: Output tensor of shape [N, C, H, W]
+        """
+        N, C, H, W = tenIn.size()
+        device = tenIn.device
 
-                    {{type}} fltX = ({{type}}) (intX) + VALUE_4(tenFlow, intN, 0, intY, intX);
-                    {{type}} fltY = ({{type}}) (intY) + VALUE_4(tenFlow, intN, 1, intY, intX);
+        # Initialize output tensor
+        tenOut = torch.zeros_like(tenIn)
 
-                    if (isfinite(fltX) == false) { return; }
-                    if (isfinite(fltY) == false) { return; }
+        # Create meshgrid of pixel coordinates
+        gridY, gridX = torch.meshgrid(
+            torch.arange(H, device=device, dtype=tenIn.dtype),
+            torch.arange(W, device=device, dtype=tenIn.dtype),
+            indexing='ij'
+        )  # [H, W]
 
-                    {{type}} fltIn = VALUE_4(tenIn, intN, intC, intY, intX);
+        gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
+        gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
 
-                    int intNorthwestX = (int) (floor(fltX));
-                    int intNorthwestY = (int) (floor(fltY));
-                    int intNortheastX = intNorthwestX + 1;
-                    int intNortheastY = intNorthwestY;
-                    int intSouthwestX = intNorthwestX;
-                    int intSouthwestY = intNorthwestY + 1;
-                    int intSoutheastX = intNorthwestX + 1;
-                    int intSoutheastY = intNorthwestY + 1;
+        # Compute fltX and fltY
+        fltX = gridX + tenFlow[:, 0:1, :, :]
+        fltY = gridY + tenFlow[:, 1:2, :, :]
 
-                    {{type}} fltNorthwest = (({{type}}) (intSoutheastX) - fltX) * (({{type}}) (intSoutheastY) - fltY);
-                    {{type}} fltNortheast = (fltX - ({{type}}) (intSouthwestX)) * (({{type}}) (intSouthwestY) - fltY);
-                    {{type}} fltSouthwest = (({{type}}) (intNortheastX) - fltX) * (fltY - ({{type}}) (intNortheastY));
-                    {{type}} fltSoutheast = (fltX - ({{type}}) (intNorthwestX)) * (fltY - ({{type}}) (intNorthwestY));
+        # Flatten variables
+        fltX_flat = fltX.reshape(-1)
+        fltY_flat = fltY.reshape(-1)
+        tenIn_flat = tenIn.permute(0, 2, 3, 1).reshape(-1, C)
 
-                    if ((intNorthwestX >= 0) && (intNorthwestX < SIZE_3(tenOut)) && (intNorthwestY >= 0) && (intNorthwestY < SIZE_2(tenOut))) {
-                        atomicAdd(&tenOut[OFFSET_4(tenOut, intN, intC, intNorthwestY, intNorthwestX)], fltIn * fltNorthwest);
-                    }
+        # Create batch indices
+        batch_indices = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
 
-                    if ((intNortheastX >= 0) && (intNortheastX < SIZE_3(tenOut)) && (intNortheastY >= 0) && (intNortheastY < SIZE_2(tenOut))) {
-                        atomicAdd(&tenOut[OFFSET_4(tenOut, intN, intC, intNortheastY, intNortheastX)], fltIn * fltNortheast);
-                    }
+        # Finite mask
+        finite_mask = torch.isfinite(fltX_flat) & torch.isfinite(fltY_flat)
+        if not finite_mask.any():
+            return tenOut
 
-                    if ((intSouthwestX >= 0) && (intSouthwestX < SIZE_3(tenOut)) && (intSouthwestY >= 0) && (intSouthwestY < SIZE_2(tenOut))) {
-                        atomicAdd(&tenOut[OFFSET_4(tenOut, intN, intC, intSouthwestY, intSouthwestX)], fltIn * fltSouthwest);
-                    }
+        fltX_flat = fltX_flat[finite_mask]
+        fltY_flat = fltY_flat[finite_mask]
+        tenIn_flat = tenIn_flat[finite_mask]
+        batch_indices = batch_indices[finite_mask]
 
-                    if ((intSoutheastX >= 0) && (intSoutheastX < SIZE_3(tenOut)) && (intSoutheastY >= 0) && (intSoutheastY < SIZE_2(tenOut))) {
-                        atomicAdd(&tenOut[OFFSET_4(tenOut, intN, intC, intSoutheastY, intSoutheastX)], fltIn * fltSoutheast);
-                    }
-                } }
-            """,
-                    {"tenIn": tenIn, "tenFlow": tenFlow, "tenOut": tenOut},
-                )
-            )(
-                grid=tuple([int((tenOut.nelement() + 512 - 1) / 512), 1, 1]),
-                block=tuple([512, 1, 1]),
-                args=[
-                    cuda_int32(tenOut.nelement()),
-                    tenIn.data_ptr(),
-                    tenFlow.data_ptr(),
-                    tenOut.data_ptr(),
-                ],
-                stream=collections.namedtuple("Stream", "ptr")(
-                    torch.cuda.current_stream().cuda_stream
-                ),
-            )
+        # Compute integer positions
+        intNW_X = torch.floor(fltX_flat).long()
+        intNW_Y = torch.floor(fltY_flat).long()
+        intNE_X = intNW_X + 1
+        intNE_Y = intNW_Y
+        intSW_X = intNW_X
+        intSW_Y = intNW_Y + 1
+        intSE_X = intNW_X + 1
+        intSE_Y = intNW_Y + 1
 
-        elif tenIn.is_cuda != True:
-            assert False
+        # Compute weights
+        fltNW = (intSE_X.float() - fltX_flat) * (intSE_Y.float() - fltY_flat)
+        fltNE = (fltX_flat - intSW_X.float()) * (intSW_Y.float() - fltY_flat)
+        fltSW = (intNE_X.float() - fltX_flat) * (fltY_flat - intNE_Y.float())
+        fltSE = (fltX_flat - intNW_X.float()) * (fltY_flat - intNW_Y.float())
 
-        # end
+        # Prepare output tensor flat
+        tenOut_flat = tenOut.permute(0, 2, 3, 1).reshape(-1, C)
 
-        self.save_for_backward(tenIn, tenFlow)
+        # Define positions and weights
+        positions = [
+            (intNW_X, intNW_Y, fltNW),
+            (intNE_X, intNE_Y, fltNE),
+            (intSW_X, intSW_Y, fltSW),
+            (intSE_X, intSE_Y, fltSE),
+        ]
+
+        H, W = int(H), int(W)
+
+        for intX, intY, weight in positions:
+            # Valid indices within image bounds
+            valid_mask = (intX >= 0) & (intX < W) & (intY >= 0) & (intY < H)
+            if not valid_mask.any():
+                continue
+
+            idx_b = batch_indices[valid_mask]
+            idx_x = intX[valid_mask]
+            idx_y = intY[valid_mask]
+            w = weight[valid_mask]
+            vals = tenIn_flat[valid_mask] * w.unsqueeze(1)
+
+            # Compute linear indices
+            idx_NHW = idx_b * H * W + idx_y * W + idx_x
+
+            # Accumulate values using index_add_
+            tenOut_flat.index_add_(0, idx_NHW, vals)
+
+        # Reshape tenOut back to [N, C, H, W]
+        tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
+
+        ctx.save_for_backward(tenIn, tenFlow)
 
         return tenOut
-
     # end
 
     @staticmethod
@@ -433,213 +448,160 @@ class softsplat_func(torch.autograd.Function):
         assert tenOutgrad.is_cuda == True
 
         tenIngrad = (
-            tenIn.new_zeros(
-                [tenIn.shape[0], tenIn.shape[1], tenIn.shape[2], tenIn.shape[3]]
-            )
+            torch.zeros_like(tenIn)
             if self.needs_input_grad[0] == True
             else None
         )
         tenFlowgrad = (
-            tenFlow.new_zeros(
-                [tenFlow.shape[0], tenFlow.shape[1], tenFlow.shape[2], tenFlow.shape[3]]
-            )
+            torch.zeros_like(tenFlow)
             if self.needs_input_grad[1] == True
             else None
         )
 
         if tenIngrad is not None:
-            cuda_launch(
-                cuda_kernel(
-                    "softsplat_ingrad",
-                    """
-                extern "C" __global__ void __launch_bounds__(512) softsplat_ingrad(
-                    const int n,
-                    const {{type}}* __restrict__ tenIn,
-                    const {{type}}* __restrict__ tenFlow,
-                    const {{type}}* __restrict__ tenOutgrad,
-                    {{type}}* __restrict__ tenIngrad,
-                    {{type}}* __restrict__ tenFlowgrad
-                ) { for (int intIndex = (blockIdx.x * blockDim.x) + threadIdx.x; intIndex < n; intIndex += blockDim.x * gridDim.x) {
-                    const int intN = ( intIndex / SIZE_3(tenIngrad) / SIZE_2(tenIngrad) / SIZE_1(tenIngrad) ) % SIZE_0(tenIngrad);
-                    const int intC = ( intIndex / SIZE_3(tenIngrad) / SIZE_2(tenIngrad)                     ) % SIZE_1(tenIngrad);
-                    const int intY = ( intIndex / SIZE_3(tenIngrad)                                         ) % SIZE_2(tenIngrad);
-                    const int intX = ( intIndex                                                             ) % SIZE_3(tenIngrad);
+            N, C, H, W = tenIn.shape
 
-                    assert(SIZE_1(tenFlow) == 2);
-
-                    {{type}} fltIngrad = 0.0f;
-
-                    {{type}} fltX = ({{type}}) (intX) + VALUE_4(tenFlow, intN, 0, intY, intX);
-                    {{type}} fltY = ({{type}}) (intY) + VALUE_4(tenFlow, intN, 1, intY, intX);
-
-                    if (isfinite(fltX) == false) { return; }
-                    if (isfinite(fltY) == false) { return; }
-
-                    int intNorthwestX = (int) (floor(fltX));
-                    int intNorthwestY = (int) (floor(fltY));
-                    int intNortheastX = intNorthwestX + 1;
-                    int intNortheastY = intNorthwestY;
-                    int intSouthwestX = intNorthwestX;
-                    int intSouthwestY = intNorthwestY + 1;
-                    int intSoutheastX = intNorthwestX + 1;
-                    int intSoutheastY = intNorthwestY + 1;
-
-                    {{type}} fltNorthwest = (({{type}}) (intSoutheastX) - fltX) * (({{type}}) (intSoutheastY) - fltY);
-                    {{type}} fltNortheast = (fltX - ({{type}}) (intSouthwestX)) * (({{type}}) (intSouthwestY) - fltY);
-                    {{type}} fltSouthwest = (({{type}}) (intNortheastX) - fltX) * (fltY - ({{type}}) (intNortheastY));
-                    {{type}} fltSoutheast = (fltX - ({{type}}) (intNorthwestX)) * (fltY - ({{type}}) (intNorthwestY));
-
-                    if ((intNorthwestX >= 0) && (intNorthwestX < SIZE_3(tenOutgrad)) && (intNorthwestY >= 0) && (intNorthwestY < SIZE_2(tenOutgrad))) {
-                        fltIngrad += VALUE_4(tenOutgrad, intN, intC, intNorthwestY, intNorthwestX) * fltNorthwest;
-                    }
-
-                    if ((intNortheastX >= 0) && (intNortheastX < SIZE_3(tenOutgrad)) && (intNortheastY >= 0) && (intNortheastY < SIZE_2(tenOutgrad))) {
-                        fltIngrad += VALUE_4(tenOutgrad, intN, intC, intNortheastY, intNortheastX) * fltNortheast;
-                    }
-
-                    if ((intSouthwestX >= 0) && (intSouthwestX < SIZE_3(tenOutgrad)) && (intSouthwestY >= 0) && (intSouthwestY < SIZE_2(tenOutgrad))) {
-                        fltIngrad += VALUE_4(tenOutgrad, intN, intC, intSouthwestY, intSouthwestX) * fltSouthwest;
-                    }
-
-                    if ((intSoutheastX >= 0) && (intSoutheastX < SIZE_3(tenOutgrad)) && (intSoutheastY >= 0) && (intSoutheastY < SIZE_2(tenOutgrad))) {
-                        fltIngrad += VALUE_4(tenOutgrad, intN, intC, intSoutheastY, intSoutheastX) * fltSoutheast;
-                    }
-
-                    tenIngrad[intIndex] = fltIngrad;
-                } }
-            """,
-                    {
-                        "tenIn": tenIn,
-                        "tenFlow": tenFlow,
-                        "tenOutgrad": tenOutgrad,
-                        "tenIngrad": tenIngrad,
-                        "tenFlowgrad": tenFlowgrad,
-                    },
-                )
-            )(
-                grid=tuple([int((tenIngrad.nelement() + 512 - 1) / 512), 1, 1]),
-                block=tuple([512, 1, 1]),
-                args=[
-                    cuda_int32(tenIngrad.nelement()),
-                    tenIn.data_ptr(),
-                    tenFlow.data_ptr(),
-                    tenOutgrad.data_ptr(),
-                    tenIngrad.data_ptr(),
-                    None,
-                ],
-                stream=collections.namedtuple("Stream", "ptr")(
-                    torch.cuda.current_stream().cuda_stream
-                ),
+            gridY, gridX = torch.meshgrid(
+                torch.arange(H, device=tenIn.device),
+                torch.arange(W, device=tenIn.device)
             )
-        # end
+            gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W).float()
+            gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W).float()
+
+            fltX = gridX + tenFlow[:, 0:1, :, :]
+            fltY = gridY + tenFlow[:, 1:2, :, :]
+
+            # Check for finite values
+            finite_mask = torch.isfinite(fltX) & torch.isfinite(fltY)
+
+            intNW_X = torch.floor(fltX).long()
+            intNW_Y = torch.floor(fltY).long()
+            intNE_X = intNW_X + 1
+            intNE_Y = intNW_Y
+            intSW_X = intNW_X
+            intSW_Y = intNW_Y + 1
+            intSE_X = intNW_X + 1
+            intSE_Y = intNW_Y + 1
+
+            fltNW = (intSE_X.float() - fltX) * (intSE_Y.float() - fltY)
+            fltNE = (fltX - intSW_X.float()) * (intSW_Y.float() - fltY)
+            fltSW = (intNE_X.float() - fltX) * (fltY - intNE_Y.float())
+            fltSE = (fltX - intNW_X.float()) * (fltY - intNW_Y.float())
+
+            # Clamp indices to valid range
+            intNW_X = intNW_X.clamp(0, W - 1)
+            intNW_Y = intNW_Y.clamp(0, H - 1)
+            intNE_X = intNE_X.clamp(0, W - 1)
+            intNE_Y = intNE_Y.clamp(0, H - 1)
+            intSW_X = intSW_X.clamp(0, W - 1)
+            intSW_Y = intSW_Y.clamp(0, H - 1)
+            intSE_X = intSE_X.clamp(0, W - 1)
+            intSE_Y = intSE_Y.clamp(0, H - 1)
+
+            # Gather tenOutgrad at neighbor positions
+            def gather(tensor, x, y):
+                N, C, H, W = tensor.shape
+                x = x.view(N, 1, H, W).expand(-1, C, -1, -1)
+                y = y.view(N, 1, H, W).expand(-1, C, -1, -1)
+                return tensor.gather(3, x).gather(2, y)
+
+            outgrad_NW = gather(tenOutgrad, intNW_X, intNW_Y)
+            outgrad_NE = gather(tenOutgrad, intNE_X, intNE_Y)
+            outgrad_SW = gather(tenOutgrad, intSW_X, intSW_Y)
+            outgrad_SE = gather(tenOutgrad, intSE_X, intSE_Y)
+
+            # Compute tenIngrad
+            tenIngrad = (
+                outgrad_NW * fltNW + 
+                outgrad_NE * fltNE + 
+                outgrad_SW * fltSW + 
+                outgrad_SE * fltSE
+            )
+
+            # Mask invalid values
+            tenIngrad = tenIngrad * finite_mask.float()
 
         if tenFlowgrad is not None:
-            cuda_launch(
-                cuda_kernel(
-                    "softsplat_flowgrad",
-                    """
-                extern "C" __global__ void __launch_bounds__(512) softsplat_flowgrad(
-                    const int n,
-                    const {{type}}* __restrict__ tenIn,
-                    const {{type}}* __restrict__ tenFlow,
-                    const {{type}}* __restrict__ tenOutgrad,
-                    {{type}}* __restrict__ tenIngrad,
-                    {{type}}* __restrict__ tenFlowgrad
-                ) { for (int intIndex = (blockIdx.x * blockDim.x) + threadIdx.x; intIndex < n; intIndex += blockDim.x * gridDim.x) {
-                    const int intN = ( intIndex / SIZE_3(tenFlowgrad) / SIZE_2(tenFlowgrad) / SIZE_1(tenFlowgrad) ) % SIZE_0(tenFlowgrad);
-                    const int intC = ( intIndex / SIZE_3(tenFlowgrad) / SIZE_2(tenFlowgrad)                       ) % SIZE_1(tenFlowgrad);
-                    const int intY = ( intIndex / SIZE_3(tenFlowgrad)                                             ) % SIZE_2(tenFlowgrad);
-                    const int intX = ( intIndex                                                                   ) % SIZE_3(tenFlowgrad);
+            N, C_in, H, W = tenIn.shape
 
-                    assert(SIZE_1(tenFlow) == 2);
-
-                    {{type}} fltFlowgrad = 0.0f;
-
-                    {{type}} fltX = ({{type}}) (intX) + VALUE_4(tenFlow, intN, 0, intY, intX);
-                    {{type}} fltY = ({{type}}) (intY) + VALUE_4(tenFlow, intN, 1, intY, intX);
-
-                    if (isfinite(fltX) == false) { return; }
-                    if (isfinite(fltY) == false) { return; }
-
-                    int intNorthwestX = (int) (floor(fltX));
-                    int intNorthwestY = (int) (floor(fltY));
-                    int intNortheastX = intNorthwestX + 1;
-                    int intNortheastY = intNorthwestY;
-                    int intSouthwestX = intNorthwestX;
-                    int intSouthwestY = intNorthwestY + 1;
-                    int intSoutheastX = intNorthwestX + 1;
-                    int intSoutheastY = intNorthwestY + 1;
-
-                    {{type}} fltNorthwest = 0.0f;
-                    {{type}} fltNortheast = 0.0f;
-                    {{type}} fltSouthwest = 0.0f;
-                    {{type}} fltSoutheast = 0.0f;
-
-                    if (intC == 0) {
-                        fltNorthwest = (({{type}}) (-1.0f)) * (({{type}}) (intSoutheastY) - fltY);
-                        fltNortheast = (({{type}}) (+1.0f)) * (({{type}}) (intSouthwestY) - fltY);
-                        fltSouthwest = (({{type}}) (-1.0f)) * (fltY - ({{type}}) (intNortheastY));
-                        fltSoutheast = (({{type}}) (+1.0f)) * (fltY - ({{type}}) (intNorthwestY));
-
-                    } else if (intC == 1) {
-                        fltNorthwest = (({{type}}) (intSoutheastX) - fltX) * (({{type}}) (-1.0f));
-                        fltNortheast = (fltX - ({{type}}) (intSouthwestX)) * (({{type}}) (-1.0f));
-                        fltSouthwest = (({{type}}) (intNortheastX) - fltX) * (({{type}}) (+1.0f));
-                        fltSoutheast = (fltX - ({{type}}) (intNorthwestX)) * (({{type}}) (+1.0f));
-
-                    }
-
-                    for (int intChannel = 0; intChannel < SIZE_1(tenOutgrad); intChannel += 1) {
-                        {{type}} fltIn = VALUE_4(tenIn, intN, intChannel, intY, intX);
-
-                        if ((intNorthwestX >= 0) && (intNorthwestX < SIZE_3(tenOutgrad)) && (intNorthwestY >= 0) && (intNorthwestY < SIZE_2(tenOutgrad))) {
-                            fltFlowgrad += VALUE_4(tenOutgrad, intN, intChannel, intNorthwestY, intNorthwestX) * fltIn * fltNorthwest;
-                        }
-
-                        if ((intNortheastX >= 0) && (intNortheastX < SIZE_3(tenOutgrad)) && (intNortheastY >= 0) && (intNortheastY < SIZE_2(tenOutgrad))) {
-                            fltFlowgrad += VALUE_4(tenOutgrad, intN, intChannel, intNortheastY, intNortheastX) * fltIn * fltNortheast;
-                        }
-
-                        if ((intSouthwestX >= 0) && (intSouthwestX < SIZE_3(tenOutgrad)) && (intSouthwestY >= 0) && (intSouthwestY < SIZE_2(tenOutgrad))) {
-                            fltFlowgrad += VALUE_4(tenOutgrad, intN, intChannel, intSouthwestY, intSouthwestX) * fltIn * fltSouthwest;
-                        }
-
-                        if ((intSoutheastX >= 0) && (intSoutheastX < SIZE_3(tenOutgrad)) && (intSoutheastY >= 0) && (intSoutheastY < SIZE_2(tenOutgrad))) {
-                            fltFlowgrad += VALUE_4(tenOutgrad, intN, intChannel, intSoutheastY, intSoutheastX) * fltIn * fltSoutheast;
-                        }
-                    }
-
-                    tenFlowgrad[intIndex] = fltFlowgrad;
-                } }
-            """,
-                    {
-                        "tenIn": tenIn,
-                        "tenFlow": tenFlow,
-                        "tenOutgrad": tenOutgrad,
-                        "tenIngrad": tenIngrad,
-                        "tenFlowgrad": tenFlowgrad,
-                    },
-                )
-            )(
-                grid=tuple([int((tenFlowgrad.nelement() + 512 - 1) / 512), 1, 1]),
-                block=tuple([512, 1, 1]),
-                args=[
-                    cuda_int32(tenFlowgrad.nelement()),
-                    tenIn.data_ptr(),
-                    tenFlow.data_ptr(),
-                    tenOutgrad.data_ptr(),
-                    None,
-                    tenFlowgrad.data_ptr(),
-                ],
-                stream=collections.namedtuple("Stream", "ptr")(
-                    torch.cuda.current_stream().cuda_stream
-                ),
+            gridY, gridX = torch.meshgrid(
+                torch.arange(H, device=tenIn.device),
+                torch.arange(W, device=tenIn.device)
             )
-        # end
+            gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W).float()
+            gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W).float()
+
+            fltX = gridX + tenFlow[:, 0:1, :, :]
+            fltY = gridY + tenFlow[:, 1:2, :, :]
+
+            finite_mask = torch.isfinite(fltX) & torch.isfinite(fltY)
+
+            intNW_X = torch.floor(fltX).long()
+            intNW_Y = torch.floor(fltY).long()
+            intNE_X = intNW_X + 1
+            intNE_Y = intNW_Y
+            intSW_X = intNW_X
+            intSW_Y = intNW_Y + 1
+            intSE_X = intNW_X + 1
+            intSE_Y = intNW_Y + 1
+
+            intNW_X = intNW_X.clamp(0, W - 1)
+            intNW_Y = intNW_Y.clamp(0, H - 1)
+            intNE_X = intNE_X.clamp(0, W - 1)
+            intNE_Y = intNE_Y.clamp(0, H - 1)
+            intSW_X = intSW_X.clamp(0, W - 1)
+            intSW_Y = intSW_Y.clamp(0, H - 1)
+            intSE_X = intSE_X.clamp(0, W - 1)
+            intSE_Y = intSE_Y.clamp(0, H - 1)
+
+            w_NW_x = -1.0 * (intSE_Y.float() - fltY)
+            w_NE_x = 1.0 * (intSW_Y.float() - fltY)
+            w_SW_x = -1.0 * (fltY - intNE_Y.float())
+            w_SE_x = 1.0 * (fltY - intNW_Y.float())
+
+            w_NW_y = (intSE_X.float() - fltX) * -1.0
+            w_NE_y = (fltX - intSW_X.float()) * -1.0
+            w_SW_y = (intNE_X.float() - fltX) * 1.0
+            w_SE_y = (fltX - intNW_X.float()) * 1.0
+
+            # Gather tenOutgrad at neighbor positions
+            def gather(tensor, x, y):
+                N, C, H, W = tensor.shape
+                x = x.view(N, 1, H, W).expand(-1, C, -1, -1)
+                y = y.view(N, 1, H, W).expand(-1, C, -1, -1)
+                return tensor.gather(3, x).gather(2, y)
+
+            tenFlowgrad = torch.zeros_like(tenFlow)
+
+            for c in range(C_in):
+                tenIn_c = tenIn[:, c:c+1, :, :]
+
+                outgrad_NW = gather(tenOutgrad[:, c:c+1, :, :], intNW_X, intNW_Y)
+                outgrad_NE = gather(tenOutgrad[:, c:c+1, :, :], intNE_X, intNE_Y)
+                outgrad_SW = gather(tenOutgrad[:, c:c+1, :, :], intSW_X, intSW_Y)
+                outgrad_SE = gather(tenOutgrad[:, c:c+1, :, :], intSE_X, intSE_Y)
+
+                flowgrad_x = (
+                    outgrad_NW * tenIn_c * w_NW_x + 
+                    outgrad_NE * tenIn_c * w_NE_x + 
+                    outgrad_SW * tenIn_c * w_SW_x + 
+                    outgrad_SE * tenIn_c * w_SE_x
+                )
+
+                flowgrad_y = (
+                    outgrad_NW * tenIn_c * w_NW_y + 
+                    outgrad_NE * tenIn_c * w_NE_y + 
+                    outgrad_SW * tenIn_c * w_SW_y + 
+                    outgrad_SE * tenIn_c * w_SE_y
+                )
+
+                tenFlowgrad[:, 0:1, :, :] += flowgrad_x
+                tenFlowgrad[:, 1:2, :, :] += flowgrad_y
+
+            tenFlowgrad = tenFlowgrad * finite_mask.float()
 
         return tenIngrad, tenFlowgrad
+        # end
+
 
     # end
-
-
-# end

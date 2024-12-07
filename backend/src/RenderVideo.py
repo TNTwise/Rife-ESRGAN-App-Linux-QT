@@ -329,4 +329,4 @@ class Render(FFMpegRender):
                 trt_optimization_level=self.trt_optimization_level,
             )
 
-            self.doEncodingOnFrame = not (self.interpolateOption.rife46)
+            self.doEncodingOnFrame = self.interpolateOption.doEncodingOnFrame
