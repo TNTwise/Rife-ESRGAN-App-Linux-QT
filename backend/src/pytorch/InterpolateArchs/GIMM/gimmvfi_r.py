@@ -10,11 +10,27 @@
 # ginr-ipc: https://github.com/kakaobrain/ginr-ipc
 # --------------------------------------------------------
 
+from numpy import dtype
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from raft import (
+try:
+    from .raft import (
+        normalize_flow,
+        unnormalize_flow,
+        warp,
+        resize,
+        build_coord,
+        multi_flow_combine,
+        NewInitDecoder,
+        NewMultiFlowDecoder,
+        BasicUpdateBlock,
+        LateralBlock,
+        HypoNet,
+        CoordSampler3D,
+    )
+except ImportError:
+    from raft import (
     normalize_flow,
     unnormalize_flow,
     warp,
@@ -28,9 +44,14 @@ from raft import (
     HypoNet,
     CoordSampler3D,
 )
-from raftarch import RAFT, BidirCorrBlock
-
-from softsplat_torch import softsplat
+try:
+    from .raftarch import RAFT, BidirCorrBlock
+except ImportError:
+    from raftarch import RAFT, BidirCorrBlock
+try:
+    from ..util.softsplat_torch import softsplat
+except ImportError:
+    from softsplat_torch import softsplat
 
 
 class GIMMVFI_R(nn.Module):
@@ -40,7 +61,7 @@ class GIMMVFI_R(nn.Module):
 
         ######### Encoder and Decoder Settings #########
         model = RAFT()
-        ckpt = torch.load(model_path, map_location="cpu")
+        ckpt = torch.load(model_path)
         model.load_state_dict(ckpt["raft"], strict=True)
         self.flow_estimator = model
         
@@ -69,7 +90,7 @@ class GIMMVFI_R(nn.Module):
         self.coord_sampler = CoordSampler3D([-1.0, 1.0])
 
         self.g_filter = torch.nn.Parameter(
-            torch.FloatTensor(
+            torch.Tensor(
                 [
                     [1.0 / 16.0, 1.0 / 8.0, 1.0 / 16.0],
                     [1.0 / 8.0, 1.0 / 4.0, 1.0 / 8.0],
@@ -80,8 +101,8 @@ class GIMMVFI_R(nn.Module):
         )
         self.fwarp_type = "linear"
 
-        self.alpha_v = torch.nn.Parameter(torch.FloatTensor([1]), requires_grad=True)
-        self.alpha_fe = torch.nn.Parameter(torch.FloatTensor([1]), requires_grad=True)
+        self.alpha_v = torch.nn.Parameter(torch.Tensor([1]), requires_grad=True)
+        self.alpha_fe = torch.nn.Parameter(torch.Tensor([1]), requires_grad=True)
 
         channel = 32
         in_dim = 2
@@ -168,7 +189,6 @@ class GIMMVFI_R(nn.Module):
         # b,c,h,w
         pixel_latent_0 = self.cnn_encoder(f[:, :, 0])
         pixel_latent_1 = self.cnn_encoder(f[:, :, 1])
-        pixel_latent = []
 
 
         tmp_pixel_latent_0 = softsplat(
@@ -316,14 +336,10 @@ class GIMMVFI_R(nn.Module):
         other_pred = [img_warp_4]
         return imgt_pred, flowt0_pred, flowt1_pred, other_pred
 
-    def forward(self, img_xs, coord=None, t=None, iters=None, ds_factor=None):
-        cur_t = t[0]
-        cur_coord = coord[0]
+    def forward(self, img_xs, coord=None, timestep=None, iters=None, ds_factor=None):
+        indtype = img_xs.dtype
+        indevice = img_xs.device
 
-
-        assert isinstance(t, list)
-        assert isinstance(coord, list)
-        assert len(t) == len(coord)
         full_size_img = None
         if ds_factor is not None:
             full_size_img = img_xs.clone()
@@ -333,7 +349,7 @@ class GIMMVFI_R(nn.Module):
                     resize(img_xs[:, :, 1], scale_factor=ds_factor).unsqueeze(2),
                 ],
                 dim=2,
-            )
+            ).to(dtype=indtype,device=indevice)
 
         iters = self.raft_iter if iters is None else iters
         (
@@ -349,13 +365,9 @@ class GIMMVFI_R(nn.Module):
         )
 
         # List of flows
-        normal_inr_flows = self.predict_flow(normal_flows, cur_coord, cur_t, flows)
+        normal_inr_flows = self.predict_flow(normal_flows, coord, timestep, flows)
 
         ############ Unnormalize the predicted/reconstructed flow ############
-        
-     
-
-        imgt_preds, flowt0_preds, flowt1_preds, all_others = [], [], [], []
 
         cur_flow_t = unnormalize_flow(normal_inr_flows, flow_scalers).squeeze()
         if cur_flow_t.ndim != 4:
@@ -368,13 +380,12 @@ class GIMMVFI_R(nn.Module):
             features0,
             features1,
             corr_fn,
-            cur_t,
+            timestep,
             full_img=full_size_img,
         )
 
-        
 
-        return imgt_pred
+        return imgt_pred.squeeze().mul(255.0).permute(1, 2, 0)
         
 
     def warp_frame(self, frame, flow):

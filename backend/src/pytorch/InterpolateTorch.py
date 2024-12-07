@@ -137,10 +137,9 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
-        self.scale = 1
+        self.scale = 0.1
         self.doEncodingOnFrame = False
-        if UHDMode:
-            self.scale = 0.5
+        
         self._load()
 
     @torch.inference_mode()
@@ -153,6 +152,8 @@ class InterpolateGIMMTorch(BaseInterpolate):
             self.flownet = GIMMVFI_R(
                 model_path=self.interpolateModel,
             )
+            state_dict = torch.load(self.interpolateModel, map_location=self.device)["gimmvfi_r"]
+            self.flownet.load_state_dict(state_dict)
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
 
             _pad = 64
@@ -162,7 +163,11 @@ class InterpolateGIMMTorch(BaseInterpolate):
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
             
             dummyInput = torch.zeros([1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device)
-            s_shape = dummyInput.shape[-2:]
+            dummyInput2 = torch.zeros([1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device)
+            xs = torch.cat((dummyInput.unsqueeze(2), dummyInput2.unsqueeze(2)), dim=2).to(
+    self.device, non_blocking=True
+)
+            s_shape = xs.shape[-2:]
             
             # caching the timestep tensor in a dict with the timestep as a float for the key
             
@@ -171,20 +176,15 @@ class InterpolateGIMMTorch(BaseInterpolate):
 
             for n in range(self.ceilInterpolateFactor):
                 timestep = n / (self.ceilInterpolateFactor)
-                timestep_tens = torch.full(
-                    (1, 1, self.ph, self.pw),
-                    timestep,
-                    dtype=self.dtype,
-                    device=self.device,
-                ).to(non_blocking=True).reshape(-1, 1, 1, 1)
+                timestep_tens = n * 1 /  self.ceilInterpolateFactor * torch.ones(xs.shape[0]).to(xs.device).to(self.dtype).reshape(-1, 1, 1, 1)
                 self.timestepDict[timestep] = timestep_tens
-                coord = self.flownet.sample_coord_input(
+                coord = (self.flownet.sample_coord_input(
                         1,
                         s_shape,
                         [1 / self.ceilInterpolateFactor * n],
                         device=self.device,
                         upsample_ratio=self.scale,
-                )
+                ).to(non_blocking=True, dtype=self.dtype, device=self.device),None)
                 self.coordDict[timestep] = coord
             
             
@@ -193,14 +193,24 @@ class InterpolateGIMMTorch(BaseInterpolate):
                     "TensorRT is not implemented for GIMM yet, falling back to PyTorch"
                 )
         self.prepareStream.synchronize()
+    
+    @torch.inference_mode()
+    def tensor_to_frame(self,frame):
+        return frame.float().byte().contiguous().detach().cpu().numpy()[:, :, ::-1]
 
     @torch.inference_mode()
-    def process(self, img0, img1, timestep, f0encode=None, f1encode=None):
+    def process(self, img0:torch.Tensor, img1:torch.Tensor, timestep, f0encode=None, f1encode=None):
         while self.flownet is None:
             sleep(1)
         with torch.cuda.stream(self.stream):
+            coord = self.coordDict[timestep]
             timestep = self.timestepDict[timestep]
-            output = self.flownet(img0, img1, timestep)
+            
+            xs = torch.cat((img0.unsqueeze(2), img0.unsqueeze(2)), dim=2).to(
+                self.device, non_blocking=True,dtype=self.dtype
+            )
+            
+            output = self.flownet(xs, coord, timestep, ds_factor=self.scale)
         self.stream.synchronize()
         return self.tensor_to_frame(output)
 
