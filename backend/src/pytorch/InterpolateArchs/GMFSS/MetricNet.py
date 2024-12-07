@@ -5,8 +5,6 @@ import torch.nn.functional as F
 from .gmflow.geometry import forward_backward_consistency_check
 from .util import MyPReLU
 
-torch.fx.wrap("backwarp")
-torch.fx.wrap("forward_backward_consistency_check")
 
 backwarp_tenGrid = {}
 
