@@ -6,9 +6,8 @@ from .FeatureNet import FeatureNet
 from .gmflow.gmflow import GMFlow
 from .IFNet_HDv3 import IFNet
 from .MetricNet import MetricNet
-from .softsplat import softsplat as warp
+from ..util.softsplat_torch import softsplat as warp
 
-torch.fx.wrap("warp")
 
 
 class GMFSS(nn.Module):
