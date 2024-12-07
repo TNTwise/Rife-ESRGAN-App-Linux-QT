@@ -9,6 +9,7 @@ class Arch(metaclass=ABCMeta):
     unique_shapes: dict
     excluded_keys: list
 
+    @staticmethod
     @abstractmethod
     def module() -> torch.nn.Module:
         """The actual module"""
@@ -45,12 +46,12 @@ class RIFE46(Arch):
         "module.caltime.8.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
-
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife46IFNET import IFNet
-
-        return IFNet
+        return IFNet()
 
 
 class RIFE47(Arch):
@@ -76,11 +77,12 @@ class RIFE47(Arch):
         "module.caltime.8.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife47IFNET import IFNet
-
         return IFNet
 
 
@@ -105,11 +107,12 @@ class RIFE413(Arch):
         "module.caltime.8.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife413IFNET import IFNet
-
         return IFNet
 
 
@@ -123,11 +126,12 @@ class RIFE420(Arch):
         "module.encode.1.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife420IFNET import IFNet
-
         return IFNet
 
 
@@ -141,6 +145,7 @@ class RIFE421(Arch):
         "module.encode.1.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
     def module():
@@ -159,11 +164,12 @@ class RIFE422lite(Arch):
         "module.encode.1.bias",
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife422_liteIFNET import IFNet
-
         return IFNet
 
 
@@ -176,11 +182,12 @@ class RIFE425(Arch):
         "module.encode.1.weight",
         "module.encode.1.bias",
         "transformer.layers.4.self_attn.merge.weight",
+        "fnet.layer1.0.conv1.weight",
     ]
 
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .RIFE.rife425IFNET import IFNet
-
         return IFNet
 
 
@@ -194,15 +201,29 @@ class GMFSS(Arch):
         "module.encode.0.bias",
         "module.encode.1.weight",
         "module.encode.1.bias",
+        "fnet.layer1.0.conv1.weight",
     ]
-
-    def module():
+    @staticmethod
+    def module() -> torch.nn.Module:
         from .GMFSS.GMFSS import GMFSS
-
         return GMFSS
 
+class GIMM(Arch):
+    base_arch: str = "gimm"
+    unique_shapes: dict = {"fnet.layer1.0.conv1.weight": "torch.Size([64, 64, 3, 3])"}
+    excluded_keys: list = [
+        "module.encode.0.weight",
+        "module.encode.0.bias",
+        "module.encode.1.weight",
+        "module.encode.1.bias",
+        "transformer.layers.4.self_attn.merge.weight",
+    ]
+    def module() -> torch.nn.Module:
+        from .GIMM.GIMM import GIMMVFI_R
+        return GIMMVFI_R
+    
 
-archs = [RIFE46, RIFE47, RIFE413, RIFE420, RIFE421, RIFE422lite, RIFE425, GMFSS]
+archs = [RIFE46, RIFE47, RIFE413, RIFE420, RIFE421, RIFE422lite, RIFE425, GMFSS, GIMM]
 
 
 class ArchDetect:
@@ -213,7 +234,9 @@ class ArchDetect:
         )
         # this is specific to loading gmfss, as its loaded in as one big pkl
         if "flownet" in self.state_dict:
-            self.state_dict = self.state_dict["flownet"]
+            self.state_dict = self.state_dict["flownet"] # load in GMFSS FLOWNET
+        if "raft" in self.state_dict: # load in GIMM RAFT
+            self.state_dict = self.state_dict["raft"]
         self.keys = self.state_dict.keys()
         self.key_shape_pair = self.detect_weights()
         self.detected_arch = self.compare_arch()
@@ -263,6 +286,6 @@ if __name__ == "__main__":
     import os
 
     for file in os.listdir("."):
-        if ".pkl" in file:
+        if ".pth" in file:
             ra = ArchDetect(file)
             print(ra.getArchName())

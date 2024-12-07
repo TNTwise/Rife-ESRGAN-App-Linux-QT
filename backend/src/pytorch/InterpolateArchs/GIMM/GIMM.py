@@ -70,6 +70,8 @@ I0, I2 = padder.pad(I0, I2)
 xs = torch.cat((I0.unsqueeze(2), I2.unsqueeze(2)), dim=2).to(
     device, non_blocking=True
 )
+print(I0.shape)
+print(xs.shape)
 model.eval()
 batch_size = xs.shape[0]
 s_shape = xs.shape[-2:]
@@ -91,17 +93,16 @@ with torch.no_grad():
         )
         for i in range(1, interp_factor)
     ]
+  
     timesteps = [
         i * 1 /  interp_factor * torch.ones(xs.shape[0]).to(xs.device).to(torch.float).reshape(-1, 1, 1, 1)
         for i in range(1, interp_factor)
     ]
-    output = model(xs, coord_inputs, t=timesteps, ds_factor=ds_factor)
+    output = model(xs, coord_inputs[2], timestep=timesteps[2], ds_factor=ds_factor)
     #out_flowts = [padder.unpad(f) for f in all_outputs["flowt"]]
 
     images.append(
-        (output.squeeze().detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
-            :, :, ::-1
-        ].astype(np.uint8)
+        (output.detach().cpu().numpy()[:, :, ::-1]).astype(np.uint8)
     )
 
 import cv2
