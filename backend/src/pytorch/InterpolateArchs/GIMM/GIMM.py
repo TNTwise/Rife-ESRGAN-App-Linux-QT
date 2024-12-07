@@ -76,7 +76,7 @@ s_shape = xs.shape[-2:]
 
 model.zero_grad()
 ds_factor = .5
-interp_factor = 2
+interp_factor = 4
 with torch.no_grad():
     coord_inputs = [
         (
@@ -92,17 +92,14 @@ with torch.no_grad():
         for i in range(1, interp_factor)
     ]
     timesteps = [
-        i * 1 /  interp_factor * torch.ones(xs.shape[0]).to(xs.device).to(torch.float)
+        i * 1 /  interp_factor * torch.ones(xs.shape[0]).to(xs.device).to(torch.float).reshape(-1, 1, 1, 1)
         for i in range(1, interp_factor)
     ]
-    all_outputs = model(xs, coord_inputs, t=timesteps, ds_factor=ds_factor)
-    out_frames = [padder.unpad(im) for im in all_outputs["imgt_pred"]]
-    out_flowts = [padder.unpad(f) for f in all_outputs["flowt"]]
+    output = model(xs, coord_inputs, t=timesteps, ds_factor=ds_factor)
+    #out_flowts = [padder.unpad(f) for f in all_outputs["flowt"]]
 
-for i in out_frames:
-    i:torch.Tensor
     images.append(
-        (i.squeeze().detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
+        (output.squeeze().detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
             :, :, ::-1
         ].astype(np.uint8)
     )
