@@ -48,8 +48,6 @@ class HandleApplication:
             )
         else:
             half_prec_supp = False
-            gmfss_supp = False
-            vram = 0
             availableBackends = []
             printMSG = ""
 
@@ -75,18 +73,13 @@ class HandleApplication:
                 availableBackends.append("pytorch (cuda)")
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
-                gmfss_supp = checkForGMFSS()
-                vram = get_pytorch_vram()
             if checkForPytorchROCM():
                 availableBackends.append("pytorch (rocm)")
                 import torch
 
                 printMSG += f"PyTorch Version: {torch.__version__}\n"
                 half_prec_supp = check_bfloat16_support()
-                try:
-                    vram = get_pytorch_vram()
-                except Exception:
-                    vram = 0
+                
             if checkForNCNN():
                 availableBackends.append("ncnn")
                 printMSG += f"NCNN Version: 20220729\n"
@@ -98,11 +91,7 @@ class HandleApplication:
                 printMSG += f"ONNXruntime Version: {ort.__version__}\n"
                 half_prec_supp = checkForDirectMLHalfPrecisionSupport()
             printMSG += f"Half precision support: {half_prec_supp}\n"
-            printMSG += f"GMFSS support: {gmfss_supp}\n"
-            if not gmfss_supp and "pytorch (cuda)" in availableBackends:
-                printMSG += "Please install CUDA to enable GMFSS\n"
-            if vram != 0:
-                printMSG += f"VRAM: {vram}mb\n"
+           
             print("Available Backends: " + str(availableBackends))
             print(printMSG)
 
