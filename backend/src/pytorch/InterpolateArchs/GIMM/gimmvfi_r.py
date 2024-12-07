@@ -20,6 +20,7 @@ from raft import (
     warp,
     resize,
     build_coord,
+    multi_flow_combine,
     NewInitDecoder,
     NewMultiFlowDecoder,
     BasicUpdateBlock,
@@ -29,7 +30,7 @@ from raft import (
 )
 from raftarch import RAFT, BidirCorrBlock
 
-from softsplat import softsplat
+from softsplat_torch import softsplat
 
 
 class GIMMVFI_R(nn.Module):

@@ -623,10 +623,10 @@ class RAFT(nn.Module):
         fmap1 = fmap1.float()
         fmap2 = fmap2.float()
 
-        corr_fn = CorrBlock(fmap1, fmap2, radius=self.args.corr_radius)
+        corr_fn = CorrBlock(fmap1, fmap2, radius=4)
 
         # run the context network
-        with autocast(enabled=self.args.mixed_precision):
+        with autocast(enabled=False): # no mixed precision
             cnet, feats = self.cnet(image1, return_feature=True)
             net, inp = torch.split(cnet, [hdim, cdim], dim=1)
             net = torch.tanh(net)
@@ -643,7 +643,7 @@ class RAFT(nn.Module):
             corr = corr_fn(coords1)  # index correlation volume
 
             flow = coords1 - coords0
-            with autocast(enabled=self.args.mixed_precision):
+            with autocast(enabled=False):
                 net, up_mask, delta_flow = self.update_block(net, inp, corr, flow)
 
             # F(t+1) = F(t) + \Delta(t)

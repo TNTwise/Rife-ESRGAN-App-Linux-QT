@@ -11,7 +11,7 @@
 import torch
 import torch.nn as nn
 import math
-
+import einops
 import torch.nn.functional as F
 
 
@@ -301,37 +301,27 @@ class HypoNet(nn.Module):
             ):
                 modulation_param = modulation_params_dict[param_key]
             else:
-                if self.config.use_bias:
-                    modulation_param = torch.ones_like(base_param[:, :-1])
-                else:
-                    modulation_param = torch.ones_like(base_param)
+                modulation_param = torch.ones_like(base_param[:, :-1])
+              
+            ones = torch.ones(*hidden.shape[:-1], 1, device=hidden.device)
+            hidden = torch.cat([hidden, ones], dim=-1)
 
-            if self.config.use_bias:
-                ones = torch.ones(*hidden.shape[:-1], 1, device=hidden.device)
-                hidden = torch.cat([hidden, ones], dim=-1)
+            base_param_w, base_param_b = (
+                base_param[:, :-1, :],
+                base_param[:, -1:, :],
+            )
 
-                base_param_w, base_param_b = (
-                    base_param[:, :-1, :],
-                    base_param[:, -1:, :],
-                )
-
-                if self.ignore_base_param_dict[param_key]:
-                    base_param_w = 1.0
-                param_w = base_param_w * modulation_param
-                if self.normalize_weight:
-                    param_w = F.normalize(param_w, dim=1)
-                modulated_param = torch.cat([param_w, base_param_b], dim=1)
-            else:
-                if self.ignore_base_param_dict[param_key]:
-                    base_param = 1.0
-                if self.normalize_weight:
-                    modulated_param = F.normalize(base_param * modulation_param, dim=1)
-                else:
-                    modulated_param = base_param * modulation_param
+            if self.ignore_base_param_dict[param_key]:
+                base_param_w = 1.0
+            param_w = base_param_w * modulation_param
+            if self.normalize_weight:
+                param_w = F.normalize(param_w, dim=1)
+            modulated_param = torch.cat([param_w, base_param_b], dim=1)
+            
             # print([param_key,hidden.shape,modulated_param.shape])
             hidden = torch.bmm(hidden, modulated_param)
 
-            if idx < (self.config.n_layer - 1):
+            if idx < (5 - 1):
                 hidden = self.activation(hidden)
 
         outputs = hidden + self.output_bias
@@ -717,3 +707,42 @@ class NewMultiFlowDecoder(nn.Module):
         return flow0, flow1, mask, img_res
 
 
+
+def multi_flow_combine(
+    comb_block, img0, img1, flow0, flow1, mask=None, img_res=None, mean=None
+):
+    assert mean is None
+    b, c, h, w = flow0.shape
+    num_flows = c // 2
+    flow0 = flow0.reshape(b, num_flows, 2, h, w).reshape(-1, 2, h, w)
+    flow1 = flow1.reshape(b, num_flows, 2, h, w).reshape(-1, 2, h, w)
+
+    mask = (
+        mask.reshape(b, num_flows, 1, h, w).reshape(-1, 1, h, w)
+        if mask is not None
+        else None
+    )
+    img_res = (
+        img_res.reshape(b, num_flows, 3, h, w).reshape(-1, 3, h, w)
+        if img_res is not None
+        else 0
+    )
+    img0 = torch.stack([img0] * num_flows, 1).reshape(-1, 3, h, w)
+    img1 = torch.stack([img1] * num_flows, 1).reshape(-1, 3, h, w)
+    mean = (
+        torch.stack([mean] * num_flows, 1).reshape(-1, 1, 1, 1)
+        if mean is not None
+        else 0
+    )
+
+    img0_warp = warp(img0, flow0)
+    img1_warp = warp(img1, flow1)
+    img_warps = mask * img0_warp + (1 - mask) * img1_warp + mean + img_res
+    img_warps = img_warps.reshape(b, num_flows, 3, h, w)
+
+    res = comb_block(img_warps.view(b, -1, h, w))
+    imgt_pred = img_warps.mean(1) + res
+
+    imgt_pred = (imgt_pred + 1.0) / 2
+
+    return imgt_pred

@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from .util import MyPixelShuffle
 from .warplayer import warp
 
-torch.fx.wrap("warp")
 
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
