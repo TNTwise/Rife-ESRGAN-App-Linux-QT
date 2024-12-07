@@ -12,34 +12,37 @@
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from .raft import CoordSampler3D
-from .raft import HypoNet
-from .raft import (
+from raft import (
     normalize_flow,
     unnormalize_flow,
     warp,
     resize,
     build_coord,
-    initialize_RAFT,
     NewInitDecoder,
     NewMultiFlowDecoder,
     BasicUpdateBlock,
     LateralBlock,
+    HypoNet,
+    CoordSampler3D,
 )
-import torch.nn.functional as F
+from raftarch import RAFT, BidirCorrBlock
 
-from raftarch import BidirCorrBlock
 from softsplat import softsplat
 
 
 class GIMMVFI_R(nn.Module):
-    def __init__(self):
+    def __init__(self,model_path):
         super().__init__()
         self.raft_iter = 20
 
         ######### Encoder and Decoder Settings #########
-        self.flow_estimator = initialize_RAFT()
+        model = RAFT()
+        ckpt = torch.load(model_path, map_location="cpu")
+        model.load_state_dict(ckpt["raft"], strict=True)
+        self.flow_estimator = model
+        
         cur_f_dims = [128, 96]
         f_dims = [256, 128]
 
