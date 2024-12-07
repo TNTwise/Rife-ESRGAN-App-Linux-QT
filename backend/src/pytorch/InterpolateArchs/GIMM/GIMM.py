@@ -76,28 +76,39 @@ s_shape = xs.shape[-2:]
 
 model.zero_grad()
 ds_factor = .5
+interp_factor = 2
 with torch.no_grad():
     coord_inputs = [
         (
             model.sample_coord_input(
                 batch_size,
                 s_shape,
-                [1 / 4 * i],
+                [1 / interp_factor * i],
                 device=xs.device,
                 upsample_ratio=ds_factor,
             ),
             None,
         )
-        for i in range(1, 4)
+        for i in range(1, interp_factor)
     ]
     timesteps = [
-        i * 1 /  4 * torch.ones(xs.shape[0]).to(xs.device).to(torch.float)
-        for i in range(1, 4)
+        i * 1 /  interp_factor * torch.ones(xs.shape[0]).to(xs.device).to(torch.float)
+        for i in range(1, interp_factor)
     ]
     all_outputs = model(xs, coord_inputs, t=timesteps, ds_factor=ds_factor)
     out_frames = [padder.unpad(im) for im in all_outputs["imgt_pred"]]
     out_flowts = [padder.unpad(f) for f in all_outputs["flowt"]]
 
+for i in out_frames:
+    i:torch.Tensor
+    images.append(
+        (i.squeeze().detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
+            :, :, ::-1
+        ].astype(np.uint8)
+    )
+
+import cv2
+cv2.imwrite("output.png", images[0])
 """I1_pred_img = [
     (I1_pred[0].detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
         :, :, ::-1
