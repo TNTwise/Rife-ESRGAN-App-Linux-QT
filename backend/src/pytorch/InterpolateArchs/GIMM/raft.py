@@ -20,9 +20,6 @@ backwarp_tenGrid = {}
 
 
 def warp(tenInput, tenFlow):
-    origdtype = tenInput.dtype
-    tenInput = tenInput.float()
-    tenFlow = tenFlow.float()
     k = (str(tenFlow.device), str(tenFlow.size()))
     if k not in backwarp_tenGrid:
         tenHorizontal = (
@@ -52,7 +49,7 @@ def warp(tenInput, tenFlow):
         mode="bilinear",
         padding_mode="border",
         align_corners=True,
-    ).to(origdtype)
+    )
 
 
 def normalize_flow(flows):
@@ -78,7 +75,7 @@ def resize(x, scale_factor):
 
 def coords_grid(batch, ht, wd):
     coords = torch.meshgrid(torch.arange(ht), torch.arange(wd))
-    coords = torch.stack(coords[::-1], dim=0)
+    coords = torch.stack(coords[::-1], dim=0).float()
     return coords[None].repeat(batch, 1, 1, 1)
 
 
@@ -145,6 +142,7 @@ class CoordSampler3D(nn.Module):
         coords = []
         assert isinstance(t_ids, list)
         _coords = torch.tensor(t_ids, device=device) / 1.0
+        coords.append(_coords.to(torch.float32))
         for num_s in spatial_shape:
             num_s = int(num_s * upsample_ratio)
             _coords = (0.5 + torch.arange(num_s, device=device)) / num_s
@@ -167,7 +165,7 @@ class CoordSampler3D(nn.Module):
     ):
         coords = []
         _coords = torch.tensor(1, device=device)
-        coords.append(_coords)
+        coords.append(_coords.to(torch.float32))
         for num_s in spatial_shape:
             num_s = int(num_s * upsample_ratio)
             _coords = (0.5 + torch.arange(num_s, device=device)) / num_s

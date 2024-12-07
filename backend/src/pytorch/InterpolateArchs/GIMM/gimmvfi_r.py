@@ -55,9 +55,11 @@ except ImportError:
 
 
 class GIMMVFI_R(nn.Module):
-    def __init__(self,model_path):
+    def __init__(self,model_path,width=1920,height=1080):
         super().__init__()
         self.raft_iter = 20
+        self.width = width
+        self.height = height
 
         ######### Encoder and Decoder Settings #########
         model = RAFT()
@@ -385,7 +387,9 @@ class GIMMVFI_R(nn.Module):
         )
 
 
-        return imgt_pred.squeeze().mul(255.0).permute(1, 2, 0)
+        return imgt_pred[
+                :, :, : self.height, : self.width
+            ][0].mul(255.0).permute(1, 2, 0)
         
 
     def warp_frame(self, frame, flow):

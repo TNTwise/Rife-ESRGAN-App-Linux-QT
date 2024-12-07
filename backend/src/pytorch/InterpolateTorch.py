@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import numpy as np
 from abc import ABCMeta, abstractmethod
 
 #from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
@@ -137,7 +138,7 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
-        self.scale = 0.1
+        self.scale = 0.5
         self.doEncodingOnFrame = False
         
         self._load()
@@ -150,7 +151,7 @@ class InterpolateGIMMTorch(BaseInterpolate):
             from .InterpolateArchs.GIMM.gimmvfi_r import GIMMVFI_R
 
             self.flownet = GIMMVFI_R(
-                model_path=self.interpolateModel,
+                model_path=self.interpolateModel, width=self.width, height=self.height
             )
             state_dict = torch.load(self.interpolateModel, map_location=self.device)["gimmvfi_r"]
             self.flownet.load_state_dict(state_dict)
@@ -194,9 +195,6 @@ class InterpolateGIMMTorch(BaseInterpolate):
                 )
         self.prepareStream.synchronize()
     
-    @torch.inference_mode()
-    def tensor_to_frame(self,frame):
-        return frame.float().byte().contiguous().detach().cpu().numpy()[:, :, ::-1]
 
     @torch.inference_mode()
     def process(self, img0:torch.Tensor, img1:torch.Tensor, timestep, f0encode=None, f1encode=None):
@@ -206,14 +204,13 @@ class InterpolateGIMMTorch(BaseInterpolate):
             coord = self.coordDict[timestep]
             timestep = self.timestepDict[timestep]
             
-            xs = torch.cat((img0.unsqueeze(2), img0.unsqueeze(2)), dim=2).to(
+            xs = torch.cat((img0.unsqueeze(2), img1.unsqueeze(2)), dim=2).to(
                 self.device, non_blocking=True,dtype=self.dtype
             )
             
             output = self.flownet(xs, coord, timestep, ds_factor=self.scale)
         self.stream.synchronize()
         return self.tensor_to_frame(output)
-
 
 class InterpolateGMFSSTorch(BaseInterpolate):
     @torch.inference_mode()

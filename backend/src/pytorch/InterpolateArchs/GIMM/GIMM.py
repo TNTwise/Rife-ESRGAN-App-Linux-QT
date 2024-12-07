@@ -93,7 +93,6 @@ with torch.no_grad():
         )
         for i in range(1, interp_factor)
     ]
-  
     timesteps = [
         i * 1 /  interp_factor * torch.ones(xs.shape[0]).to(xs.device).to(torch.float).reshape(-1, 1, 1, 1)
         for i in range(1, interp_factor)
@@ -102,7 +101,7 @@ with torch.no_grad():
     #out_flowts = [padder.unpad(f) for f in all_outputs["flowt"]]
 
     images.append(
-        (output.detach().cpu().numpy()[:, :, ::-1]).astype(np.uint8)
+        (output.detach().cpu().numpy()).astype(np.uint8)
     )
 
 import cv2
