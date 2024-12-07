@@ -150,14 +150,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for line in self.fullOutput.lower().split("\n"):
             if "half precision support:" in line:
                 halfPrecisionSupport = "true" in line
-            if "gmfss support:" in line:
-                gmfssSupport = "true" in line
         settings = Settings()
         settings.readSettings()
         self.settings = settings
         self.processTab = ProcessTab(
             parent=self,
-            gmfssSupport=gmfssSupport,
         )
         self.homeTab = HomeTab(parent=self)
         self.downloadTab = DownloadTab(parent=self)
