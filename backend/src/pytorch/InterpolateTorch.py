@@ -50,11 +50,11 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.stream.synchronize()
 
     def hotUnload(self):
-        del self.flownet
-        del self.encode
-        del self.tenFlow_div
-        del self.backwarp_tenGrid
-        del self.f0encode
+        self.flownet = None
+        self.encode = None
+        self.tenFlow_div = None
+        self.backwarp_tenGrid = None
+        self.f0encode = None
         gc.collect()
         torch.cuda.empty_cache()
         torch.cuda.reset_max_memory_allocated()
