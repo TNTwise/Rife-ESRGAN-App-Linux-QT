@@ -1,4 +1,3 @@
-from numpy import dtype
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -451,21 +450,19 @@ class SmallEncoder(nn.Module):
 
 def bilinear_sampler(img, coords, mode="bilinear", mask=False):
     """Wrapper for grid_sample, uses pixel coordinates"""
-    indtype = img.dtype
     H, W = img.shape[-2:]
-    coords = coords.float()
     xgrid, ygrid = coords.split([1, 1], dim=-1)
     xgrid = 2 * xgrid / (W - 1) - 1
     ygrid = 2 * ygrid / (H - 1) - 1
 
-    grid = torch.cat([xgrid, ygrid], dim=-1).float()
-    img = F.grid_sample(img.float(), grid.float(), align_corners=True)
+    grid = torch.cat([xgrid, ygrid], dim=-1)
+    img = F.grid_sample(img, grid, align_corners=True)
 
     if mask:
         mask = (xgrid > -1) & (ygrid > -1) & (xgrid < 1) & (ygrid < 1)
-        return img, mask
+        return img, mask.float()
 
-    return img.to(indtype)
+    return img
 
 
 class CorrBlock:
@@ -506,7 +503,7 @@ class CorrBlock:
             out_pyramid.append(corr)
 
         out = torch.cat(out_pyramid, dim=-1)
-        return out.permute(0, 3, 1, 2).contiguous()
+        return out.permute(0, 3, 1, 2).contiguous().float()
 
     @staticmethod
     def corr(fmap1, fmap2):
@@ -516,14 +513,14 @@ class CorrBlock:
 
         corr = torch.matmul(fmap1.transpose(1, 2), fmap2)
         corr = corr.view(batch, ht, wd, 1, ht, wd)
-        return corr / torch.sqrt(torch.tensor(dim))
+        return corr / torch.sqrt(torch.tensor(dim).float())
 
 
 def coords_grid(batch, ht, wd, device):
     coords = torch.meshgrid(
         torch.arange(ht, device=device), torch.arange(wd, device=device)
     )
-    coords = torch.stack(coords[::-1], dim=0)
+    coords = torch.stack(coords[::-1], dim=0).float()
     return coords[None].repeat(batch, 1, 1, 1)
 
 
@@ -579,8 +576,8 @@ class RAFT(nn.Module):
     def initialize_flow(self, img):
         """Flow is represented as difference between two coordinate grids flow = coords1 - coords0"""
         N, C, H, W = img.shape
-        coords0 = coords_grid(N, H // 8, W // 8, device=img.device).to(dtype=img.dtype)
-        coords1 = coords_grid(N, H // 8, W // 8, device=img.device).to(dtype=img.dtype)
+        coords0 = coords_grid(N, H // 8, W // 8, device=img.device)
+        coords1 = coords_grid(N, H // 8, W // 8, device=img.device)
 
         # optical flow computed as difference: flow = coords1 - coords0
         return coords0, coords1
@@ -623,6 +620,8 @@ class RAFT(nn.Module):
         with autocast(enabled=False):
             fmap1, fmap2 = self.fnet([image1, image2])
 
+        fmap1 = fmap1.float()
+        fmap2 = fmap2.float()
 
         corr_fn = CorrBlock(fmap1, fmap2, radius=4)
 
@@ -725,8 +724,8 @@ class BidirCorrBlock:
         out = torch.cat(out_pyramid, dim=-1)
         out_T = torch.cat(out_pyramid_T, dim=-1)
         return (
-            out.permute(0, 3, 1, 2).contiguous(),
-            out_T.permute(0, 3, 1, 2).contiguous(),
+            out.permute(0, 3, 1, 2).contiguous().float(),
+            out_T.permute(0, 3, 1, 2).contiguous().float(),
         )
 
     @staticmethod
@@ -737,4 +736,4 @@ class BidirCorrBlock:
 
         corr = torch.matmul(fmap1.transpose(1, 2), fmap2)
         corr = corr.view(batch, ht, wd, 1, ht, wd)
-        return corr / torch.sqrt(torch.tensor(dim))
+        return corr / torch.sqrt(torch.tensor(dim).float())
