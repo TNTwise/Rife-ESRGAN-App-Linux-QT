@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from abc import ABCMeta, abstractmethod
 
-from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
+#from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
 from .InterpolateArchs.DetectInterpolateArch import ArchDetect
 import math
 import os
