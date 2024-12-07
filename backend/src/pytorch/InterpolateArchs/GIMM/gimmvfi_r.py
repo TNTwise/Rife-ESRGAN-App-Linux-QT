@@ -157,7 +157,7 @@ class GIMMVFI_R(nn.Module):
             torch.cat([f01.unsqueeze(2), f10.unsqueeze(2)], dim=2),
         )
 
-    def predict_flow(self, f, coord, t, flows):
+    def predict_flow(self, f, cur_coord, cur_t, flows):
         raft_flow01 = flows[:, :, 0].detach()
         raft_flow10 = flows[:, :, 1].detach()
 
@@ -170,47 +170,40 @@ class GIMMVFI_R(nn.Module):
         pixel_latent_1 = self.cnn_encoder(f[:, :, 1])
         pixel_latent = []
 
-        for i, cur_t in enumerate(t):
-            cur_t = cur_t.reshape(-1, 1, 1, 1)
 
-            tmp_pixel_latent_0 = softsplat(
-                tenIn=pixel_latent_0,
-                tenFlow=raft_flow01 * cur_t,
-                tenMetric=weights1,
-                strMode=strtype,
-            )
-            tmp_pixel_latent_1 = softsplat(
-                tenIn=pixel_latent_1,
-                tenFlow=raft_flow10 * (1 - cur_t),
-                tenMetric=weights2,
-                strMode=strtype,
-            )
+        tmp_pixel_latent_0 = softsplat(
+            tenIn=pixel_latent_0,
+            tenFlow=raft_flow01 * cur_t,
+            tenMetric=weights1,
+            strMode=strtype,
+        )
+        tmp_pixel_latent_1 = softsplat(
+            tenIn=pixel_latent_1,
+            tenFlow=raft_flow10 * (1 - cur_t),
+            tenMetric=weights2,
+            strMode=strtype,
+        )
 
-            tmp_pixel_latent = torch.cat(
-                [tmp_pixel_latent_0, tmp_pixel_latent_1], dim=1
-            )
-            tmp_pixel_latent = tmp_pixel_latent + self.res_conv(
-                torch.cat([pixel_latent_0, pixel_latent_1, tmp_pixel_latent], dim=1)
-            )
-            pixel_latent.append(tmp_pixel_latent.permute(0, 2, 3, 1))
+        tmp_pixel_latent = torch.cat(
+            [tmp_pixel_latent_0, tmp_pixel_latent_1], dim=1
+        )
+        tmp_pixel_latent = tmp_pixel_latent + self.res_conv(
+            torch.cat([pixel_latent_0, pixel_latent_1, tmp_pixel_latent], dim=1)
+        )
 
-        all_outputs = []
         permute_idx_range = [i for i in range(1, f.ndim - 1)]
-        for idx, c in enumerate(coord):
-            assert c[0][0, 0, 0, 0, 0] == t[idx][0].squeeze()
-            assert isinstance(c, tuple)
+        
 
-            if c[1] is None:
-                outputs = self.hyponet(
-                    c, modulation_params_dict=None, pixel_latent=pixel_latent[idx]
-                ).permute(0, -1, *permute_idx_range)
-            else:
-                outputs = self.hyponet(
-                    c, modulation_params_dict=None, pixel_latent=pixel_latent[idx]
-                )
-            all_outputs.append(outputs)
+        if cur_coord[1] is None:
+            outputs = self.hyponet(
+                cur_coord, modulation_params_dict=None, pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1)
+            ).permute(0, -1, *permute_idx_range)
+        else:
+            outputs = self.hyponet(
+                cur_coord, modulation_params_dict=None, pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1)
+            )
 
-        return all_outputs
+        return outputs
 
     def warp_w_mask(self, img0, img1, ft0, ft1, mask, scale=1):
         ft0 = scale * resize(ft0, scale_factor=scale)
@@ -324,6 +317,10 @@ class GIMMVFI_R(nn.Module):
         return imgt_pred, flowt0_pred, flowt1_pred, other_pred
 
     def forward(self, img_xs, coord=None, t=None, iters=None, ds_factor=None):
+        cur_t = t[0]
+        cur_coord = coord[0]
+
+
         assert isinstance(t, list)
         assert isinstance(coord, list)
         assert len(t) == len(coord)
@@ -350,63 +347,35 @@ class GIMMVFI_R(nn.Module):
         ) = self.cal_bidirection_flow(
             255 * img_xs[:, :, 0], 255 * img_xs[:, :, 1], iters=iters
         )
-        assert coord is not None
 
         # List of flows
-        normal_inr_flows = self.predict_flow(normal_flows, coord, t, flows)
+        normal_inr_flows = self.predict_flow(normal_flows, cur_coord, cur_t, flows)
 
         ############ Unnormalize the predicted/reconstructed flow ############
-        start_idx = 0
-        if coord[0][1] is not None:
-            # Subsmapled flows for reconstruction supervision in the GIMM module
-            # In such case, by default, first two coords are subsampled for supervision up-mentioned
-            # normalized flow_t versus positive t-axis
-            assert len(coord) > 2
-            flow_t = [
-                unnormalize_flow(normal_inr_flows[i], flow_scalers).squeeze()
-                for i in range(2, len(coord))
-            ]
-            start_idx = 2
-        else:
-            flow_t = [
-                unnormalize_flow(normal_inr_flows[i], flow_scalers).squeeze()
-                for i in range(len(coord))
-            ]
+        
+     
 
         imgt_preds, flowt0_preds, flowt1_preds, all_others = [], [], [], []
 
-        for idx in range(start_idx, len(coord)):
-            cur_flow_t = flow_t[idx - start_idx]
-            cur_t = t[idx].reshape(-1, 1, 1, 1)
-            if cur_flow_t.ndim != 4:
-                cur_flow_t = cur_flow_t.unsqueeze(0)
-                assert cur_flow_t.ndim == 4
+        cur_flow_t = unnormalize_flow(normal_inr_flows, flow_scalers).squeeze()
+        if cur_flow_t.ndim != 4:
+            cur_flow_t = cur_flow_t.unsqueeze(0)
+            assert cur_flow_t.ndim == 4
 
-            imgt_pred, flowt0_pred, flowt1_pred, others = self.frame_synthesize(
-                img_xs,
-                cur_flow_t,
-                features0,
-                features1,
-                corr_fn,
-                cur_t,
-                full_img=full_size_img,
-            )
+        imgt_pred, flowt0_pred, flowt1_pred, others = self.frame_synthesize(
+            img_xs,
+            cur_flow_t,
+            features0,
+            features1,
+            corr_fn,
+            cur_t,
+            full_img=full_size_img,
+        )
 
-            imgt_preds.append(imgt_pred)
-            flowt0_preds.append(flowt0_pred)
-            flowt1_preds.append(flowt1_pred)
-            all_others.append(others)
+        
 
-        return {
-            "imgt_pred": imgt_preds,
-            "other_pred": all_others,
-            "flowt0_pred": flowt0_preds,
-            "flowt1_pred": flowt1_preds,
-            "raft_flow": preserved_raft_flows,
-            "ninrflow": normal_inr_flows,
-            "nflow": normal_flows,
-            "flowt": flow_t,
-        }
+        return imgt_pred
+        
 
     def warp_frame(self, frame, flow):
         return warp(frame, flow)
