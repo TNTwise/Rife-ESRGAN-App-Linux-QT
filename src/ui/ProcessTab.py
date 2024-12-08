@@ -329,6 +329,7 @@ class ProcessTab:
             "--paused_file",
             f"{self.pausedFile}",
         ]
+
         if upscaleModelFile:
             modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
             if upscaleModelArch == "custom":
@@ -342,6 +343,7 @@ class ProcessTab:
                     "--tilesize",
                     f"{self.tilesize}",
                 ]
+
         if interpolateModelFile:
             command += [
                 "--interpolate_model",
@@ -352,11 +354,13 @@ class ProcessTab:
                 "--interpolate_factor",
                 f"{interpolateTimes}",
             ]
+
         if self.settings["preview_enabled"] == "True":
             command += [
                 "--shared_memory_id",
                 f"{self.imagePreviewSharedMemoryID}",
             ]
+
         if self.settings["scene_change_detection_enabled"] == "False":
             command += ["--scene_detect_method", "none"]
         else:
@@ -366,8 +370,16 @@ class ProcessTab:
                 "--scene_detect_threshold",
                 self.settings["scene_change_detection_threshold"],
             ]
+
         if self.benchmarkMode:
             command += ["--benchmark"]
+        
+        if self.settings["uhd_mode"] == "True":
+            if self.videoWidth > 1920 or self.videoHeight > 1080:
+                command += ["--UHD_mode"]
+                log("UHD mode enabled")
+
+
         self.renderProcess = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,

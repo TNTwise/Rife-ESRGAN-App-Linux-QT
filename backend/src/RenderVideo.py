@@ -59,7 +59,7 @@ class Render(FFMpegRender):
         sharedMemoryID: str = None,
         trt_optimization_level: int = 3,
         upscale_output_resolution: str = None,
-        UHD_Mode: bool = False,
+        UHD_mode: bool = False,
     ):
         if pausedFile is None:
             pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
@@ -90,7 +90,7 @@ class Render(FFMpegRender):
         self.sharedMemoryID = sharedMemoryID
         self.trt_optimization_level = trt_optimization_level
         self.uncacheNextFrame = False
-        self.UHD_Mode = UHD_Mode
+        self.UHD_mode = UHD_mode
         # get video properties early
         self.getVideoProperties(inputFile)
 
@@ -328,7 +328,7 @@ class Render(FFMpegRender):
                 device=self.device,
                 dtype=self.precision,
                 backend=self.backend,
-                UHDMode=self.UHD_Mode,
+                UHDMode=self.UHD_mode,
                 trt_optimization_level=self.trt_optimization_level,
             )
 

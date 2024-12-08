@@ -45,7 +45,7 @@ class HandleApplication:
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 upscale_output_resolution=self.args.upscale_output_resolution,
-                UHD_Mode=self.args.UHD_mode,
+                UHD_mode=self.args.UHD_mode,
             )
         else:
             half_prec_supp = False
