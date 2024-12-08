@@ -449,6 +449,9 @@ class SmallEncoder(nn.Module):
 
 
 def bilinear_sampler(img, coords, mode="bilinear", mask=False):
+    orig_dtype = img.dtype
+    img = img.float()
+    coords = coords.float()
     """Wrapper for grid_sample, uses pixel coordinates"""
     H, W = img.shape[-2:]
     xgrid, ygrid = coords.split([1, 1], dim=-1)
@@ -460,9 +463,9 @@ def bilinear_sampler(img, coords, mode="bilinear", mask=False):
 
     if mask:
         mask = (xgrid > -1) & (ygrid > -1) & (xgrid < 1) & (ygrid < 1)
-        return img, mask.float()
+        return img, mask
 
-    return img
+    return img.to(dtype=orig_dtype)
 
 
 class CorrBlock:
@@ -503,7 +506,7 @@ class CorrBlock:
             out_pyramid.append(corr)
 
         out = torch.cat(out_pyramid, dim=-1)
-        return out.permute(0, 3, 1, 2).contiguous().float()
+        return out.permute(0, 3, 1, 2).contiguous()
 
     @staticmethod
     def corr(fmap1, fmap2):
@@ -513,14 +516,14 @@ class CorrBlock:
 
         corr = torch.matmul(fmap1.transpose(1, 2), fmap2)
         corr = corr.view(batch, ht, wd, 1, ht, wd)
-        return corr / torch.sqrt(torch.tensor(dim).float())
+        return corr / torch.sqrt(torch.tensor(dim))
 
 
 def coords_grid(batch, ht, wd, device):
     coords = torch.meshgrid(
         torch.arange(ht, device=device), torch.arange(wd, device=device)
     )
-    coords = torch.stack(coords[::-1], dim=0).float()
+    coords = torch.stack(coords[::-1], dim=0)
     return coords[None].repeat(batch, 1, 1, 1)
 
 
@@ -606,6 +609,7 @@ class RAFT(nn.Module):
         return_feat=True,
     ):
         """Estimate optical flow between pair of frames"""
+        imgdtype = image1.dtype
 
         image1 = 2 * (image1 / 255.0) - 1.0
         image2 = 2 * (image2 / 255.0) - 1.0
@@ -619,9 +623,6 @@ class RAFT(nn.Module):
         # run the feature network
         with autocast(enabled=False):
             fmap1, fmap2 = self.fnet([image1, image2])
-
-        fmap1 = fmap1.float()
-        fmap2 = fmap2.float()
 
         corr_fn = CorrBlock(fmap1, fmap2, radius=4)
 
@@ -644,7 +645,7 @@ class RAFT(nn.Module):
 
             flow = coords1 - coords0
             with autocast(enabled=False):
-                net, up_mask, delta_flow = self.update_block(net, inp, corr, flow)
+                net, up_mask, delta_flow = self.update_block(net.to(dtype=imgdtype), inp.to(dtype=imgdtype), corr.to(dtype=imgdtype), flow.to(dtype=imgdtype))
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
@@ -724,8 +725,8 @@ class BidirCorrBlock:
         out = torch.cat(out_pyramid, dim=-1)
         out_T = torch.cat(out_pyramid_T, dim=-1)
         return (
-            out.permute(0, 3, 1, 2).contiguous().float(),
-            out_T.permute(0, 3, 1, 2).contiguous().float(),
+            out.permute(0, 3, 1, 2).contiguous(),
+            out_T.permute(0, 3, 1, 2).contiguous(),
         )
 
     @staticmethod
@@ -736,4 +737,4 @@ class BidirCorrBlock:
 
         corr = torch.matmul(fmap1.transpose(1, 2), fmap2)
         corr = corr.view(batch, ht, wd, 1, ht, wd)
-        return corr / torch.sqrt(torch.tensor(dim).float())
+        return corr / torch.sqrt(torch.tensor(dim))
