@@ -193,6 +193,8 @@ class InterpolateGIMMTorch(BaseInterpolate):
             log("GIMM loaded")
             log("Scale: " + str(self.scale))
             log("Using System CUDA: " + str(HAS_SYSTEM_CUDA))
+            if not HAS_SYSTEM_CUDA:
+                print("WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",file=sys.stderr)
             if self.backend == "tensorrt":
                 warnAndLog(
                     "TensorRT is not implemented for GIMM yet, falling back to PyTorch"
@@ -287,6 +289,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
             log("GMFSS loaded")
             log("Scale: " + str(self.scale))
             log("Using System CUDA: " + str(HAS_SYSTEM_CUDA))
+            if not HAS_SYSTEM_CUDA:
+                print("WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",file=sys.stderr)
             if self.backend == "tensorrt":
                 warnAndLog(
                     "TensorRT is not implemented for GMFSS yet, falling back to PyTorch"
