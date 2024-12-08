@@ -62,9 +62,9 @@ class DownloadDependencies:
 
     def __init__(self):
         if PLATFORM == "win32":
-            self.__torchVersion = "dev20241120"
+            self.__torchVersion = "dev20241207"
         elif PLATFORM == "linux":
-            self.__torchVersion = "dev20241202"
+            self.__torchVersion = "dev20241207"
 
         createDirectory(os.path.join(CWD, "python"))
         createDirectory(os.path.join(CWD, "bin"))
