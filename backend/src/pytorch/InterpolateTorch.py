@@ -137,7 +137,9 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
-        self.scale = 0.5
+        self.scale = 0.5 # GIMM uses fat amounts of vram, needs really low flow resolution for regular resolutions
+        if UHDMode:
+            self.scale = 0.25 # GIMM uses fat amounts of vram, needs really low flow resolution for UHD
         self.doEncodingOnFrame = False
         
         self._load()
