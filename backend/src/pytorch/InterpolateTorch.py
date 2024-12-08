@@ -137,7 +137,6 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
-        # set up streams for async processing
         self.scale = 0.5
         self.doEncodingOnFrame = False
         
