@@ -208,15 +208,21 @@ class InterpolateGIMMTorch(BaseInterpolate):
             sleep(1)
         with torch.cuda.stream(self.stream):
             coord = self.coordDict[timestep]
-            timestep = self.timestepDict[timestep]
+            timestep_tens = self.timestepDict[timestep]
             
             xs = torch.cat((img0.unsqueeze(2), img1.unsqueeze(2)), dim=2).to(
                 self.device, non_blocking=True,dtype=self.dtype
             )
             
-            output = self.flownet(xs, coord, timestep, ds_factor=self.scale)
+            output = self.flownet(xs, coord, timestep_tens, ds_factor=self.scale)
+            if torch.isnan(output).any():
+                # if there are nans in output, reload with float32 precision and process.... dumb fix but whatever
+                print("NaNs in output, returning the first image",file=sys.stderr)
+                return self.tensor_to_frame(img0[:, :, : self.height, : self.width][0].mul(255.0).permute(1, 2, 0))
+            output = self.tensor_to_frame(output)
+            
         self.stream.synchronize()
-        return self.tensor_to_frame(output)
+        return output
 
 class InterpolateGMFSSTorch(BaseInterpolate):
     @torch.inference_mode()
