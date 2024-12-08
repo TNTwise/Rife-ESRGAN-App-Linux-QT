@@ -10,7 +10,7 @@
 # ginr-ipc: https://github.com/kakaobrain/ginr-ipc
 # --------------------------------------------------------
 
-from numpy import dtype
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
