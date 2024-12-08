@@ -14,6 +14,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from ....constants import HAS_SYSTEM_CUDA
 try:
     from .raft import (
         normalize_flow,
@@ -49,7 +50,10 @@ try:
 except ImportError:
     from raftarch import RAFT, BidirCorrBlock
 try:
-    from ..util.softsplat_torch import softsplat
+    if HAS_SYSTEM_CUDA:
+        from ..util.softsplat_cupy import softsplat
+    else:
+        from ..util.softsplat_torch import softsplat
 except ImportError:
     from softsplat_torch import softsplat
 
