@@ -109,6 +109,13 @@ class SettingsTab:
 
         self.parent.resetSettingsBtn.clicked.connect(self.resetSettings)
 
+        self.parent.uhd_mode.stateChanged.connect(
+            lambda: self.settings.writeSetting(
+                "uhd_mode",
+                "True" if self.parent.uhd_mode.isChecked() else "False",
+            )
+        )
+
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
         if os.path.exists(outputlocation) and os.path.isdir(outputlocation):
@@ -160,6 +167,9 @@ class SettingsTab:
         self.parent.select_output_folder_location_btn.clicked.connect(
             self.selectOutputFolder
         )
+        self.parent.uhd_mode.setChecked(
+            self.settings.settings["uhd_mode"] == "True"
+        )
 
     def selectOutputFolder(self):
         outputFile = QFileDialog.getExistingDirectory(
@@ -200,6 +210,7 @@ class Settings:
             "output_folder_location": os.path.join(f"{HOME_PATH}", "Videos")
             if PLATFORM != "darwin"
             else os.path.join(f"{HOME_PATH}", "Desktop"),
+            "uhd_mode": "True"
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
@@ -218,6 +229,7 @@ class Settings:
             "discord_rich_presence": ("True", "False"),
             "video_quality": ("Low", "Medium", "High", "Very High"),
             "output_folder_location": "ANY",
+            "uhd_mode": ("True", "False")
         }
         self.settings = self.defaultSettings.copy()
         if not os.path.isfile(self.settingsFile):
