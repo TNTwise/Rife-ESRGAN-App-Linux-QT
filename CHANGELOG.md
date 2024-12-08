@@ -12,7 +12,7 @@
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials. (thanks zeptofine!) 
  - Make GUI more compact.
- - Bump torch to 2.6.0-dev20241207.
+ - Bump torch to 2.6.0-dev20241206.
  - Remove CUDA install requirement for GMFSS
 # RVE 2.1.0
 ### Added
