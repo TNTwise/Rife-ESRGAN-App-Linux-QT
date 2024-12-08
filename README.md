@@ -118,6 +118,7 @@ python3 build.py --build_exe
 | rife-ncnn-vulkan | Video frame interpolation implementation using NCNN and Vulkan | https://github.com/nihui/rife-ncnn-vulkan 
 | rife ncnn vulkan python | Python bindings for RIFE NCNN Vulkan implementation | https://github.com/media2x/rife-ncnn-vulkan-python 
 | GMFSS | GMFlow based Anime VFI | https://github.com/98mxr/GMFSS_Fortuna
+| GIMM | Motion Modeling Realistic VFI | https://github.com/GSeanCDAT/GIMM-VFI 
 | ncnn python | Python bindings for NCNN Vulkan framework | https://pypi.org/project/ncnn 
 | Real-ESRGAN | Upscaling | https://github.com/xinntao/Real-ESRGAN 
 | SPAN | Upscaling | https://github.com/hongyuanyu/SPAN 

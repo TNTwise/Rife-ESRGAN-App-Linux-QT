@@ -45,6 +45,7 @@ class HandleApplication:
                 sharedMemoryID=self.args.shared_memory_id,
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 upscale_output_resolution=self.args.upscale_output_resolution,
+                UHD_Mode=self.args.UHD_mode,
             )
         else:
             half_prec_supp = False
@@ -202,10 +203,10 @@ class HandleApplication:
             action="store_true",
         )
         parser.add_argument(
-            "--auto_rife_uhd_mode",
-            help="Sets the scale of rife to .5 automatically if the video is greater than 1080p",
+            "--UHD_mode",
+            help="Lowers the resoltion flow is calculated at, speeding up model and saving vram. Helpful for higher resultions.",
             action="store_true",
-            default=True,
+            default=False,
         )
         parser.add_argument(
             "--shared_memory_id",
