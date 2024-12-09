@@ -2,8 +2,6 @@ import torch
 
 ##########################################################
 
-
-objCudacache = {}
 grid_cache = {}
 batch_cache = {}
 torch.set_float32_matmul_precision("medium")
@@ -13,7 +11,7 @@ torch.set_grad_enabled(False)
 
 @torch.inference_mode()
 def softsplat(
-    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str, dtype: torch.dtype = torch.float32
+    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str
 ):
     mode_parts = strMode.split("-")
     mode_main = mode_parts[0]
@@ -25,10 +23,6 @@ def softsplat(
     if mode_main in ["linear", "soft"]:
         assert tenMetric is not None
 
-    #tenIn = tenIn.float()
-    #tenFlow = tenFlow.float()
-    #if tenMetric is not None:
-    #    tenMetric = tenMetric.float()
 
     mode_to_operation = {
         "avg": lambda: torch.cat(
@@ -88,6 +82,7 @@ class softsplat_func(torch.autograd.Function):
 
         # Initialize output tensor
         tenOut = torch.zeros_like(tenIn)
+        
 
         key = (H, W, device, origdtype)
         if key not in grid_cache:
