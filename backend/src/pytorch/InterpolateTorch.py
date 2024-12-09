@@ -291,6 +291,15 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 width=self.width,
                 height=self.height,
             )
+            torch.onnx.export(
+                self.flownet,
+                (torch.zeros([1, 3, self.ph, self.pw]), torch.zeros([1, 3, self.ph, self.pw]), timestep_tens.cpu()),
+                "gmfss.onnx",
+                export_params=True,
+                opset_version=20,
+
+            )
+            exit()
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
             log("GMFSS loaded")
             log("Scale: " + str(self.scale))
