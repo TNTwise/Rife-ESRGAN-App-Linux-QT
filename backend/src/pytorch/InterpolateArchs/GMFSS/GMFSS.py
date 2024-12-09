@@ -7,10 +7,8 @@ from .gmflow.gmflow import GMFlow
 from .IFNet_HDv3 import IFNet
 from .MetricNet import MetricNet
 from ....constants import HAS_SYSTEM_CUDA
-if HAS_SYSTEM_CUDA:
-    from ..util.softsplat_cupy import softsplat as warp
-else:
-    from ..util.softsplat_torch import softsplat as warp
+
+from ..util.softsplat_torch import softsplat as warp
 
 
 

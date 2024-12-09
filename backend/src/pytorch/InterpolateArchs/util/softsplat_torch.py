@@ -4,14 +4,16 @@ import torch
 
 
 objCudacache = {}
-
-
+grid_cache = {}
+batch_cache = {}
+torch.set_float32_matmul_precision("medium")
+torch.set_grad_enabled(False)
 
 ##########################################################
 
-
+@torch.inference_mode()
 def softsplat(
-    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str
+    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str, dtype: torch.dtype = torch.float32
 ):
     mode_parts = strMode.split("-")
     mode_main = mode_parts[0]
@@ -67,7 +69,8 @@ def softsplat(
 
 class softsplat_func(torch.autograd.Function):
     @staticmethod
-    @torch.cuda.amp.custom_fwd()
+    @torch.inference_mode()
+    @torch.cuda.amp.custom_fwd
     def forward(ctx, tenIn, tenFlow):
         """
         Forward pass of the Softsplat function.
@@ -81,19 +84,29 @@ class softsplat_func(torch.autograd.Function):
         """
         N, C, H, W = tenIn.size()
         device = tenIn.device
+        origdtype = tenIn.dtype
 
         # Initialize output tensor
         tenOut = torch.zeros_like(tenIn)
 
-        # Create meshgrid of pixel coordinates
-        gridY, gridX = torch.meshgrid(
-            torch.arange(H, device=device, dtype=tenIn.dtype),
-            torch.arange(W, device=device, dtype=tenIn.dtype),
-            indexing='ij'
-        )  # [H, W]
+        key = (H, W, device, origdtype)
+        if key not in grid_cache:
+            # Create meshgrid of pixel coordinates
+            gridY, gridX = torch.meshgrid(
+                torch.arange(H, device=device, dtype=origdtype),
+                torch.arange(W, device=device, dtype=origdtype),
+                indexing='ij'
+            )  # [H, W]
+            # Cache the grids
+            grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
+        
 
-        gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
-        gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
+        if key not in batch_cache:
+            batch_cache[key] = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+        
+        gridY, gridX = grid_cache[key]
+        batch_indices = batch_cache[key]
+            
 
         # Compute fltX and fltY
         fltX = gridX + tenFlow[:, 0:1, :, :]
@@ -104,8 +117,7 @@ class softsplat_func(torch.autograd.Function):
         fltY_flat = fltY.reshape(-1)
         tenIn_flat = tenIn.permute(0, 2, 3, 1).reshape(-1, C)
 
-        # Create batch indices
-        batch_indices = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+        
 
         # Finite mask
         finite_mask = torch.isfinite(fltX_flat) & torch.isfinite(fltY_flat)
@@ -173,6 +185,7 @@ class softsplat_func(torch.autograd.Function):
     # end
 
     @staticmethod
+    @torch.inference_mode()
     @torch.cuda.amp.custom_bwd
     def backward(self, tenOutgrad):
         tenIn, tenFlow = self.saved_tensors
@@ -193,13 +206,19 @@ class softsplat_func(torch.autograd.Function):
 
         if tenIngrad is not None:
             N, C, H, W = tenIn.shape
-
-            gridY, gridX = torch.meshgrid(
-                torch.arange(H, device=tenIn.device),
-                torch.arange(W, device=tenIn.device)
-            )
-            gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
-            gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
+            device = tenIn.device
+            origdtype = tenIn.dtype
+            key = (H, W, device, origdtype)
+            if key not in grid_cache:
+                # Create meshgrid of pixel coordinates
+                gridY, gridX = torch.meshgrid(
+                    torch.arange(H, device=device, dtype=origdtype),
+                    torch.arange(W, device=device, dtype=origdtype),
+                    indexing='ij'
+                )  # [H, W]
+                # Cache the grids
+                grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
+            gridY, gridX = grid_cache[key]
 
             fltX = gridX + tenFlow[:, 0:1, :, :]
             fltY = gridY + tenFlow[:, 1:2, :, :]
@@ -221,7 +240,6 @@ class softsplat_func(torch.autograd.Function):
             fltSW = (intNE_X - fltX) * (fltY - intNE_Y)
             fltSE = (fltX - intNW_X) * (fltY - intNW_Y)
 
-            # Clamp indices to valid range
             intNW_X = intNW_X.clamp(0, W - 1)
             intNW_Y = intNW_Y.clamp(0, H - 1)
             intNE_X = intNE_X.clamp(0, W - 1)
@@ -257,12 +275,20 @@ class softsplat_func(torch.autograd.Function):
         if tenFlowgrad is not None:
             N, C_in, H, W = tenIn.shape
 
-            gridY, gridX = torch.meshgrid(
-                torch.arange(H, device=tenIn.device),
-                torch.arange(W, device=tenIn.device)
-            )
-            gridY = gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
-            gridX = gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W)
+            device = tenIn.device
+            origdtype = tenIn.dtype
+            key = (H, W, device, origdtype)
+            if key not in grid_cache:
+                # Create meshgrid of pixel coordinates
+                gridY, gridX = torch.meshgrid(
+                    torch.arange(H, device=device, dtype=origdtype),
+                    torch.arange(W, device=device, dtype=origdtype),
+                    indexing='ij'
+                )  # [H, W]
+                # Cache the grids
+                grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
+            gridY, gridX = grid_cache[key]
+
 
             fltX = gridX + tenFlow[:, 0:1, :, :]
             fltY = gridY + tenFlow[:, 1:2, :, :]
