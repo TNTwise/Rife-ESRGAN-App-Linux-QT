@@ -130,8 +130,8 @@ class softsplat_func(torch.autograd.Function):
         batch_indices = batch_indices[finite_mask]
 
         # Compute integer positions
-        intNW_X = torch.floor(fltX_flat).long()
-        intNW_Y = torch.floor(fltY_flat).long()
+        intNW_X = torch.floor(fltX_flat).to(dtype=torch.int32)
+        intNW_Y = torch.floor(fltY_flat).to(dtype=torch.int32)
         intNE_X = intNW_X + 1
         intNE_Y = intNW_Y
         intSW_X = intNW_X
@@ -179,187 +179,11 @@ class softsplat_func(torch.autograd.Function):
         # Reshape tenOut back to [N, C, H, W]
         tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
 
-        ctx.save_for_backward(tenIn, tenFlow)
 
         return tenOut
     # end
 
-    @staticmethod
-    @torch.inference_mode()
-    @torch.cuda.amp.custom_bwd
-    def backward(self, tenOutgrad):
-        tenIn, tenFlow = self.saved_tensors
-
-        tenOutgrad = tenOutgrad.contiguous()
-        assert tenOutgrad.is_cuda == True
-
-        tenIngrad = (
-            torch.zeros_like(tenIn)
-            if self.needs_input_grad[0] == True
-            else None
-        )
-        tenFlowgrad = (
-            torch.zeros_like(tenFlow)
-            if self.needs_input_grad[1] == True
-            else None
-        )
-
-        if tenIngrad is not None:
-            N, C, H, W = tenIn.shape
-            device = tenIn.device
-            origdtype = tenIn.dtype
-            key = (H, W, device, origdtype)
-            if key not in grid_cache:
-                # Create meshgrid of pixel coordinates
-                gridY, gridX = torch.meshgrid(
-                    torch.arange(H, device=device, dtype=origdtype),
-                    torch.arange(W, device=device, dtype=origdtype),
-                    indexing='ij'
-                )  # [H, W]
-                # Cache the grids
-                grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
-            gridY, gridX = grid_cache[key]
-
-            fltX = gridX + tenFlow[:, 0:1, :, :]
-            fltY = gridY + tenFlow[:, 1:2, :, :]
-
-            # Check for finite values
-            finite_mask = torch.isfinite(fltX) & torch.isfinite(fltY)
-
-            intNW_X = torch.floor(fltX).long()
-            intNW_Y = torch.floor(fltY).long()
-            intNE_X = intNW_X + 1
-            intNE_Y = intNW_Y
-            intSW_X = intNW_X
-            intSW_Y = intNW_Y + 1
-            intSE_X = intNW_X + 1
-            intSE_Y = intNW_Y + 1
-
-            fltNW = (intSE_X - fltX) * (intSE_Y - fltY)
-            fltNE = (fltX - intSW_X) * (intSW_Y - fltY)
-            fltSW = (intNE_X - fltX) * (fltY - intNE_Y)
-            fltSE = (fltX - intNW_X) * (fltY - intNW_Y)
-
-            intNW_X = intNW_X.clamp(0, W - 1)
-            intNW_Y = intNW_Y.clamp(0, H - 1)
-            intNE_X = intNE_X.clamp(0, W - 1)
-            intNE_Y = intNE_Y.clamp(0, H - 1)
-            intSW_X = intSW_X.clamp(0, W - 1)
-            intSW_Y = intSW_Y.clamp(0, H - 1)
-            intSE_X = intSE_X.clamp(0, W - 1)
-            intSE_Y = intSE_Y.clamp(0, H - 1)
-
-            # Gather tenOutgrad at neighbor positions
-            def gather(tensor, x, y):
-                N, C, H, W = tensor.shape
-                x = x.view(N, 1, H, W).expand(-1, C, -1, -1)
-                y = y.view(N, 1, H, W).expand(-1, C, -1, -1)
-                return tensor.gather(3, x).gather(2, y)
-
-            outgrad_NW = gather(tenOutgrad, intNW_X, intNW_Y)
-            outgrad_NE = gather(tenOutgrad, intNE_X, intNE_Y)
-            outgrad_SW = gather(tenOutgrad, intSW_X, intSW_Y)
-            outgrad_SE = gather(tenOutgrad, intSE_X, intSE_Y)
-
-            # Compute tenIngrad
-            tenIngrad = (
-                outgrad_NW * fltNW + 
-                outgrad_NE * fltNE + 
-                outgrad_SW * fltSW + 
-                outgrad_SE * fltSE
-            )
-
-            # Mask invalid values
-            tenIngrad = tenIngrad * finite_mask
-
-        if tenFlowgrad is not None:
-            N, C_in, H, W = tenIn.shape
-
-            device = tenIn.device
-            origdtype = tenIn.dtype
-            key = (H, W, device, origdtype)
-            if key not in grid_cache:
-                # Create meshgrid of pixel coordinates
-                gridY, gridX = torch.meshgrid(
-                    torch.arange(H, device=device, dtype=origdtype),
-                    torch.arange(W, device=device, dtype=origdtype),
-                    indexing='ij'
-                )  # [H, W]
-                # Cache the grids
-                grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
-            gridY, gridX = grid_cache[key]
-
-
-            fltX = gridX + tenFlow[:, 0:1, :, :]
-            fltY = gridY + tenFlow[:, 1:2, :, :]
-
-            finite_mask = torch.isfinite(fltX) & torch.isfinite(fltY)
-
-            intNW_X = torch.floor(fltX).long()
-            intNW_Y = torch.floor(fltY).long()
-            intNE_X = intNW_X + 1
-            intNE_Y = intNW_Y
-            intSW_X = intNW_X
-            intSW_Y = intNW_Y + 1
-            intSE_X = intNW_X + 1
-            intSE_Y = intNW_Y + 1
-
-            intNW_X = intNW_X.clamp(0, W - 1)
-            intNW_Y = intNW_Y.clamp(0, H - 1)
-            intNE_X = intNE_X.clamp(0, W - 1)
-            intNE_Y = intNE_Y.clamp(0, H - 1)
-            intSW_X = intSW_X.clamp(0, W - 1)
-            intSW_Y = intSW_Y.clamp(0, H - 1)
-            intSE_X = intSE_X.clamp(0, W - 1)
-            intSE_Y = intSE_Y.clamp(0, H - 1)
-
-            w_NW_x = -1.0 * (intSE_Y - fltY)
-            w_NE_x = 1.0 * (intSW_Y - fltY)
-            w_SW_x = -1.0 * (fltY - intNE_Y)
-            w_SE_x = 1.0 * (fltY - intNW_Y)
-
-            w_NW_y = (intSE_X - fltX) * -1.0
-            w_NE_y = (fltX - intSW_X) * -1.0
-            w_SW_y = (intNE_X - fltX) * 1.0
-            w_SE_y = (fltX - intNW_X) * 1.0
-
-            # Gather tenOutgrad at neighbor positions
-            def gather(tensor, x, y):
-                N, C, H, W = tensor.shape
-                x = x.view(N, 1, H, W).expand(-1, C, -1, -1)
-                y = y.view(N, 1, H, W).expand(-1, C, -1, -1)
-                return tensor.gather(3, x).gather(2, y)
-
-            tenFlowgrad = torch.zeros_like(tenFlow)
-
-            for c in range(C_in):
-                tenIn_c = tenIn[:, c:c+1, :, :]
-
-                outgrad_NW = gather(tenOutgrad[:, c:c+1, :, :], intNW_X, intNW_Y)
-                outgrad_NE = gather(tenOutgrad[:, c:c+1, :, :], intNE_X, intNE_Y)
-                outgrad_SW = gather(tenOutgrad[:, c:c+1, :, :], intSW_X, intSW_Y)
-                outgrad_SE = gather(tenOutgrad[:, c:c+1, :, :], intSE_X, intSE_Y)
-
-                flowgrad_x = (
-                    outgrad_NW * tenIn_c * w_NW_x + 
-                    outgrad_NE * tenIn_c * w_NE_x + 
-                    outgrad_SW * tenIn_c * w_SW_x + 
-                    outgrad_SE * tenIn_c * w_SE_x
-                )
-
-                flowgrad_y = (
-                    outgrad_NW * tenIn_c * w_NW_y + 
-                    outgrad_NE * tenIn_c * w_NE_y + 
-                    outgrad_SW * tenIn_c * w_SW_y + 
-                    outgrad_SE * tenIn_c * w_SE_y
-                )
-
-                tenFlowgrad[:, 0:1, :, :] += flowgrad_x
-                tenFlowgrad[:, 1:2, :, :] += flowgrad_y
-
-            tenFlowgrad = tenFlowgrad * finite_mask
-
-        return tenIngrad, tenFlowgrad
+   
         # end
 
 
