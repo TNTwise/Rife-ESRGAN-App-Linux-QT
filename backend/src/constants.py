@@ -5,9 +5,9 @@ def checkForCUDA() -> bool:
         import torch
         import torchvision
         import cupy
+        if cupy.cuda.get_cuda_path() == None:
+            return False
     except Exception as e:
-        return False
-    if cupy.cuda.get_cuda_path() == None:
         return False
     return True
 
