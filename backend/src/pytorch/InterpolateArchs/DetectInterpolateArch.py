@@ -1,4 +1,3 @@
-from sympy import Order
 import torch
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
@@ -48,6 +47,7 @@ class RIFE46(Arch):
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
         "fnet.layer1.0.conv1.weight",
+        "caltime.8.bias", # thos is because for some reason, this arch is detected when loading gmfss pro's rife component.
     ]
     @staticmethod
     def module() -> torch.nn.Module:
