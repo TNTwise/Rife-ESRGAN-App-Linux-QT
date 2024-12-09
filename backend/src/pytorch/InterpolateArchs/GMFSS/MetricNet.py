@@ -64,8 +64,12 @@ class MetricNet(nn.Module):
         self.metric_out = nn.Sequential(MyPReLU(), nn.Conv2d(64, 2, 3, 1, 1))
 
     def forward(self, img0, img1, flow01, flow10):
-        metric0 = torch.abs(img0 - backwarp(img1, flow01)).mean([1], True)
-        metric1 = torch.abs(img1 - backwarp(img0, flow10)).mean([1], True)
+        metric0 = F.l1_loss(img0, backwarp(img1, flow01), reduction="none").mean(
+            [1], True
+        )
+        metric1 = F.l1_loss(img1, backwarp(img0, flow10), reduction="none").mean(
+            [1], True
+        )
 
         fwd_occ, bwd_occ = forward_backward_consistency_check(flow01, flow10)
 
