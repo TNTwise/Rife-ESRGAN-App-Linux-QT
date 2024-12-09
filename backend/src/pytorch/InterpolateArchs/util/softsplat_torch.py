@@ -1,6 +1,7 @@
 import torch
 
 ##########################################################
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 grid_cache = {}
 batch_cache = {}
@@ -64,7 +65,7 @@ def softsplat(
 class softsplat_func(torch.autograd.Function):
     @staticmethod
     @torch.inference_mode()
-    @torch.cuda.amp.custom_fwd
+    @torch.amp.custom_fwd(device_type=device)
     def forward(ctx, tenIn, tenFlow):
         """
         Forward pass of the Softsplat function.
