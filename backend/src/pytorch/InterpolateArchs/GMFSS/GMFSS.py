@@ -36,10 +36,10 @@ class GMFSS(nn.Module):
         #print(rife_version)
         if rife_version.lower() == "rife46":
             from .IFNet_HDv3 import IFNet
-        elif rife_version.lower() == "rife421":
-            from .IFNet_HDv3_422 import IFNet
         else:
-            raise ValueError(f"Unsupported RIFE version for GMFSS: {rife_version}")
+            # this is dumb, it detects rife4.7 with a stupid hack, so we need to just force load 422
+            from .IFNet_HDv3_422 import IFNet
+        
         # get gmfss from here, as its a combination of all the models https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/GMFSS.pkl
         self.width = width
         self.height = height
