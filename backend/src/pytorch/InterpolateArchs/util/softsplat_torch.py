@@ -174,7 +174,6 @@ class softsplat_func(torch.autograd.Function):
         # Reshape tenOut back to [N, C, H, W]
         tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
 
-
         return tenOut
     # end
 

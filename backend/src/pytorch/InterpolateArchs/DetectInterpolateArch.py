@@ -1,7 +1,8 @@
+from sympy import Order
 import torch
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
-
+from collections import OrderedDict
 
 @dataclass
 class Arch(metaclass=ABCMeta):
@@ -229,9 +230,12 @@ archs = [RIFE46, RIFE47, RIFE413, RIFE420, RIFE421, RIFE422lite, RIFE425, GMFSS,
 class ArchDetect:
     def __init__(self, pkl_path):
         self.pkl_path = pkl_path
-        self.state_dict = torch.load(
-            pkl_path, weights_only=True, map_location=torch.device("cpu")
-        )
+        if type(pkl_path) is OrderedDict:
+            self.state_dict = pkl_path
+        else:
+            self.state_dict = torch.load(
+                pkl_path, weights_only=True, map_location=torch.device("cpu")
+            )
         # this is specific to loading gmfss, as its loaded in as one big pkl
         if "flownet" in self.state_dict:
             self.state_dict = self.state_dict["flownet"] # load in GMFSS FLOWNET
@@ -286,6 +290,6 @@ if __name__ == "__main__":
     import os
 
     for file in os.listdir("."):
-        if ".pth" in file:
+        if ".pkl" in file:
             ra = ArchDetect(file)
             print(ra.getArchName())

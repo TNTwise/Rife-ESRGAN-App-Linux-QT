@@ -1,3 +1,4 @@
+from math import comb
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,6 +8,7 @@ from .gmflow.gmflow import GMFlow
 from .IFNet_HDv3 import IFNet
 from .MetricNet import MetricNet
 from ....constants import HAS_SYSTEM_CUDA
+from ..DetectInterpolateArch import ArchDetect
 if HAS_SYSTEM_CUDA:
     from ..util.softsplat_cupy import softsplat as warp
 else:
@@ -27,21 +29,34 @@ class GMFSS(nn.Module):
         super(GMFSS, self).__init__()
         from .FusionNet_u import GridNet
 
+        combined_state_dict = torch.load(model_path, map_location="cpu")
+
+        archDetect = ArchDetect(combined_state_dict["rife"])
+        rife_version = archDetect.getArchName()
+        #print(rife_version)
+        if rife_version.lower() == "rife46":
+            from .IFNet_HDv3 import IFNet
+        elif rife_version.lower() == "rife421":
+            from .IFNet_HDv3_422 import IFNet
+        else:
+            raise ValueError(f"Unsupported RIFE version for GMFSS: {rife_version}")
         # get gmfss from here, as its a combination of all the models https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/GMFSS.pkl
         self.width = width
         self.height = height
-        self.ifnet = IFNet(ensemble)
+        self.ifnet = IFNet()
         self.flownet = GMFlow()
         self.metricnet = MetricNet()
         self.feat_ext = FeatureNet()
         self.fusionnet = GridNet()
-        combined_state_dict = torch.load(model_path, map_location="cpu")
+        
+        
         if model_type != "base":
             self.ifnet.load_state_dict(combined_state_dict["rife"])
         self.flownet.load_state_dict(combined_state_dict["flownet"])
         self.metricnet.load_state_dict(combined_state_dict["metricnet"])
         self.feat_ext.load_state_dict(combined_state_dict["feat_ext"])
         self.fusionnet.load_state_dict(combined_state_dict["fusionnet"])
+        
 
         self.model_type = model_type
         self.scale = scale
