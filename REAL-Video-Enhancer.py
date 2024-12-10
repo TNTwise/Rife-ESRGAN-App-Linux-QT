@@ -277,11 +277,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return output_file
 
     def updateVideoGUIDetails(self):
+        isInterpolate = self.interpolateModelComboBox.currentText() != "None"
+        isUpscale = self.upscaleModelComboBox.currentText() != "None"
+
         self.interpolationContainer.setVisible(
-            self.interpolateModelComboBox.currentText() != "None"
-        )  # set interpolation container visible if interpolate model is not none
+            isInterpolate
+        )
+        self.sloMoModeContainer.setVisible(
+            isInterpolate   
+        )
+          # set interpolation container visible if interpolate model is not none
         self.upscaleContainer.setVisible(
-            self.upscaleModelComboBox.currentText() != "None"
+            isUpscale
         )
         self.settings.readSettings()
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
@@ -312,7 +319,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
-
+        
         self.processTab.run(
             inputFile=self.inputFileText.text(),
             outputPath=self.outputFileText.text(),
@@ -329,6 +336,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.interpolateModelComboBox.currentText()
             ),
             benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
+            sloMoMode=self.sloMoModeCheckBox.isChecked(),
         )
 
     def disableProcessPage(self):

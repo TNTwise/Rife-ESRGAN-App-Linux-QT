@@ -970,16 +970,6 @@ QScrollBar:horizontal{
                          </spacer>
                         </item>
                         <item>
-                         <widget class="QCheckBox" name="benchmarkModeCheckBox">
-                          <property name="styleSheet">
-                           <string notr="true"/>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
                          <widget class="QLabel" name="label_5">
                           <property name="maximumSize">
                            <size>
@@ -998,6 +988,16 @@ QScrollBar:horizontal{
                           </property>
                           <property name="scaledContents">
                            <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QCheckBox" name="benchmarkModeCheckBox">
+                          <property name="styleSheet">
+                           <string notr="true"/>
+                          </property>
+                          <property name="text">
+                           <string/>
                           </property>
                          </widget>
                         </item>
@@ -1057,13 +1057,6 @@ QScrollBar:horizontal{
                             </spacer>
                            </item>
                            <item>
-                            <widget class="QCheckBox" name="tilingCheckBox">
-                             <property name="text">
-                              <string/>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
                             <widget class="QLabel" name="label_34">
                              <property name="maximumSize">
                               <size>
@@ -1082,6 +1075,13 @@ QScrollBar:horizontal{
                              </property>
                              <property name="scaledContents">
                               <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QCheckBox" name="tilingCheckBox">
+                             <property name="text">
+                              <string/>
                              </property>
                             </widget>
                            </item>
@@ -1178,6 +1178,70 @@ QScrollBar:horizontal{
                         </item>
                        </layout>
                       </widget>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="interpolateContainer">
+                       <item>
+                        <widget class="QWidget" name="sloMoModeContainer" native="true">
+                         <layout class="QHBoxLayout" name="horizontalLayout_31">
+                          <item>
+                           <widget class="QLabel" name="label_36">
+                            <property name="font">
+                             <font>
+                              <pointsize>15</pointsize>
+                             </font>
+                            </property>
+                            <property name="text">
+                             <string>SloMo Mode</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <spacer name="horizontalSpacer_16">
+                            <property name="orientation">
+                             <enum>Qt::Orientation::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>226</width>
+                              <height>20</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                          <item>
+                           <widget class="QLabel" name="label_39">
+                            <property name="maximumSize">
+                             <size>
+                              <width>25</width>
+                              <height>25</height>
+                             </size>
+                            </property>
+                            <property name="toolTip">
+                             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Increase video length instead of framerate when interpolating.&lt;/p&gt;&lt;p&gt;Audio and Subtitles will not be transfered to output video.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                            </property>
+                            <property name="text">
+                             <string/>
+                            </property>
+                            <property name="pixmap">
+                             <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
+                            </property>
+                            <property name="scaledContents">
+                             <bool>true</bool>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QCheckBox" name="sloMoModeCheckBox">
+                            <property name="text">
+                             <string/>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </widget>
+                       </item>
+                      </layout>
                      </item>
                      <item>
                       <spacer name="verticalSpacer_4">

@@ -46,6 +46,7 @@ class HandleApplication:
                 trt_optimization_level=self.args.tensorrt_opt_profile,
                 upscale_output_resolution=self.args.upscale_output_resolution,
                 UHD_mode=self.args.UHD_mode,
+                slomo_mode=self.args.slomo_mode,
             )
         else:
             half_prec_supp = False
@@ -205,6 +206,12 @@ class HandleApplication:
         parser.add_argument(
             "--UHD_mode",
             help="Lowers the resoltion flow is calculated at, speeding up model and saving vram. Helpful for higher resultions.",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "--slomo_mode",
+            help="Instead of increasing framerate, it will remain the same while just increasing the length of the video.",
             action="store_true",
             default=False,
         )

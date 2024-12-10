@@ -118,6 +118,8 @@ class ProcessTab:
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
         # set tile size visible to false by default
         self.parent.tileSizeContainer.setVisible(False)
+        #set slo mo container visable to false by default
+        self.parent.sloMoModeContainer.setVisible(False)
         # connect up tilesize container visiable
         self.parent.tilingCheckBox.stateChanged.connect(self.onTilingSwitch)
 
@@ -196,6 +198,7 @@ class ProcessTab:
         upscaleModel: str,
         interpolateModel: str,
         benchmarkMode: bool,
+        sloMoMode: bool,
     ):
         interpolateModels, upscaleModels = self.getModels(backend)
         if interpolateModel == "None":
@@ -221,6 +224,7 @@ class ProcessTab:
         Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
         """
         self.benchmarkMode = benchmarkMode
+        self.sloMoMode = sloMoMode
         # get model attributes
 
         if interpolateModel:
@@ -354,6 +358,10 @@ class ProcessTab:
                 "--interpolate_factor",
                 f"{interpolateTimes}",
             ]
+            if self.sloMoMode:
+                command += [
+                    "--slomo_mode",
+                ]
 
         if self.settings["preview_enabled"] == "True":
             command += [
