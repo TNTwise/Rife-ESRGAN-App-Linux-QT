@@ -10,6 +10,7 @@
  - Sudo shuffle span for pytorch backend
  - [GIMM-VFI](https://github.com/GSeanCDAT/GIMM-VFI)
  - GMFSS Pro, which helps fix text warping.
+ - SloMo mode
 ### Changed
  - Make RVE smaller by switching to pyside6-essentials. (thanks zeptofine!) 
  - Make GUI more compact.

@@ -60,6 +60,7 @@ class Render(FFMpegRender):
         trt_optimization_level: int = 3,
         upscale_output_resolution: str = None,
         UHD_mode: bool = False,
+        slomo_mode: bool = False,
     ):
         if pausedFile is None:
             pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
@@ -118,6 +119,7 @@ class Render(FFMpegRender):
             sharedMemoryID=sharedMemoryID,
             channels=3,
             upscale_output_resolution=upscale_output_resolution,
+            slowmo_mode=slomo_mode,
         )
 
         self.sharedMemoryThread.start()

@@ -93,6 +93,7 @@ class FFMpegRender:
         sharedMemoryID: str = None,
         channels=3,
         upscale_output_resolution: str = None,
+        slowmo_mode: bool = False,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -120,6 +121,7 @@ class FFMpegRender:
         self.writingDone = False
         self.writeOutPipe = False
         self.previewFrame = None
+        self.slowmo_mode = slowmo_mode
         self.crf = crf
         self.sharedMemoryID = sharedMemoryID
         self.upscale_output_resolution = upscale_output_resolution
@@ -179,6 +181,9 @@ class FFMpegRender:
 
     def getFFmpegWriteCommand(self):
         log("Generating FFmpeg WRITE command...")
+        if self.slowmo_mode:
+            log("Slowmo mode enabled, will not merge audio or subtitles.")
+        multiplier = (self.fps * self.ceilInterpolateFactor) if not self.slowmo_mode else self.fps 
         if not self.benchmark:
             # maybe i can split this so i can just use ffmpeg normally like with vspipe
             command = [
@@ -192,17 +197,25 @@ class FFMpegRender:
                 "-s",
                 f"{self.width * self.upscaleTimes}x{self.height * self.upscaleTimes}",
                 "-r",
-                f"{self.fps * self.ceilInterpolateFactor}",
+                f"{multiplier}",
                 "-i",
                 "-",
-                "-i",
-                f"{self.inputFile}",
-                "-map",
-                "0:v",  # Map video stream from input 0
-                "-map",
-                "1:a?",  # Map all audio streams from input 1
-                "-map",
-                "1:s?",  # Map all subtitle streams from input 1
+                
+            ]
+
+            if not self.slowmo_mode:
+                command += [
+                    "-i",
+                    f"{self.inputFile}",
+                    "-map",
+                    "0:v",  # Map video stream from input 0
+                    "-map",
+                    "1:a?",  # Map all audio streams from input 1
+                    "-map",
+                    "1:s?",  # Map all subtitle streams from input 1
+                ]
+
+            command += [
                 "-crf",
                 f"{self.crf}",
                 "-pix_fmt",
@@ -252,7 +265,7 @@ class FFMpegRender:
                 "-pix_fmt",
                 "rgb24",
                 "-r",
-                str(self.fps * self.ceilInterpolateFactor),
+                str(multiplier),
                 "-i",
                 "-",
                 "-benchmark",
