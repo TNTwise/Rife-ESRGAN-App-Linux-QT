@@ -16,6 +16,8 @@
  - Make GUI more compact.
  - Bump torch to 2.6.0-dev20241206.
  - Remove CUDA install requirement for GMFSS
+### Fixed
+ - ROCm upscaling not working. 
 # RVE 2.1.0
 ### Added
  - Custom Upscale Model Support (TensorRT/Pytorch/NCNN)
