@@ -291,37 +291,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 width=self.width,
                 height=self.height,
             )
-            h, w = self.ph, self.pw
-            img0 = torch.randn(1, 3, h, w)
-            img1 = torch.randn(1, 3, h, w)
-            timestep = torch.full(
-                    (1, 1, h, w),
-                    0.5,
-
-                )
-            print(self.pw,self.ph)
-
-            input = torch.cat((img0, img1, timestep), dim=1)
-
-
-            filename = "gmfss.onnx"
-            self.flownet.eval().to(device=self.device, dtype=self.dtype)
-            #self.flownet(input.to(device=self.device,dtype=self.dtype))
-
-            """torch.onnx.export(
-                self.flownet, input.to(device=self.device,dtype=self.dtype), filename,
-                export_params=True,
-                opset_version=20,
-                )"""
-            inputs = torch.cat((torch.zeros([1, 3, 768, 1280]), torch.zeros([1, 3, 768, 1280])))
-            torch.onnx.export(
-                self.flownet.float().cpu(), input, filename,
-                input_names=['input'], output_names=['output'],
-                export_params=True,
-                opset_version=20,
-                )
-            exit()
             
+            self.flownet.eval().to(device=self.device, dtype=self.dtype)
             log("GMFSS loaded")
             log("Scale: " + str(self.scale))
             log("Using System CUDA: " + str(HAS_SYSTEM_CUDA))
