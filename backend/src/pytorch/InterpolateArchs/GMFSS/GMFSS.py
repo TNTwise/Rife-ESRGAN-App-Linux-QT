@@ -48,13 +48,6 @@ class GMFSS(nn.Module):
         self.metricnet = MetricNet()
         self.feat_ext = FeatureNet()
         self.fusionnet = GridNet()
-
-        import math
-        _pad = 64
-        tmp = max(_pad, int(_pad / scale))
-        self.pw = math.ceil(self.width / tmp) * tmp
-        self.ph = math.ceil(self.height / tmp) * tmp
-        self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
         
         
         if model_type != "base":
@@ -99,14 +92,7 @@ class GMFSS(nn.Module):
 
         return flow01, flow10, metric0, metric1, feat_ext0, feat_ext1
 
-    def forward(self, x):
-        
-        img0, img1, timestep = torch.split(x, [3,3,1], dim=1)
-        #img0 = F.pad(img0, self.padding)
-        #img1 = F.pad(img1, self.padding)
-        timestep = torch.tensor(
-                    [timestep[0][0][0][0].item()], dtype=img0.dtype, device=img1.device
-                )
+    def forward(self, img0, img1, timestep):
         dtype = img0.dtype
         reuse_things = self.reuse(img0, img1)
         flow01, metric0, feat11, feat12, feat13 = (
@@ -166,4 +152,5 @@ class GMFSS(nn.Module):
             torch.cat([feat1t2, feat2t2], dim=1),
             torch.cat([feat1t3, feat2t3], dim=1),
         )
-        return torch.clamp(out, 0, 1)#.squeeze(0).mul(255.0).permute(1, 2, 0)
+        out = out[:, :, : self.height, : self.width]
+        return torch.clamp(out, 0, 1).squeeze(0).mul(255.0).permute(1, 2, 0)
