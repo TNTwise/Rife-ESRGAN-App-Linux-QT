@@ -140,7 +140,6 @@ python3 build.py --build_exe
 | 2x-AnimeJaNai V3 Sharp | The Database | https://github.com/the-database/mpv-upscale-2x_animejanai
 
 # FAQ
-
 ### General Application Usage
 * **Q:** What does this program attempt to accomplish?
   * **A:**  Fast, efficient and easily accessable video interpolation (Ex: 24->48FPS) and video upscaling (Ex: 1920->3840)
@@ -167,3 +166,5 @@ python3 build.py --build_exe
 * **Q:** Why am I getting (Insert Vulkan Error here)?
   * **A:**  This usually is an OOM (Out Of Memory) error, this can indicate a weak iGPU or very old GPU, I recommeding trying out the <a href="https://github.com/TNTwise/REAL-Video-Enhancer-Colab">Colab Notebook</a>  instead.
 
+# Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=tntwise/real-video-enhancer&type=Date)](https://star-history.com/#tntwise/real-video-enhancer&Date)
