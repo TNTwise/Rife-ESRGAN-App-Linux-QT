@@ -1,5 +1,4 @@
 import torch
-torch._dynamo.config.capture_dynamic_output_shape_ops = True
 ##########################################################
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
