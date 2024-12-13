@@ -65,8 +65,8 @@ def forward(tenIn, tenFlow):
     batch_indices = batch_indices[finite_mask]
 
     # Compute integer positions
-    intNW_X = torch.floor(fltX_flat).to(dtype=torch.int32)
-    intNW_Y = torch.floor(fltY_flat).to(dtype=torch.int32)
+    intNW_X = torch.floor(fltX_flat).to(dtype=origdtype)
+    intNW_Y = torch.floor(fltY_flat).to(dtype=origdtype)
     intNE_X = intNW_X + 1
     intNE_Y = intNW_Y
     intSW_X = intNW_X
@@ -109,7 +109,7 @@ def forward(tenIn, tenFlow):
         idx_NHW = idx_b * H * W + idx_y * W + idx_x
 
         # Accumulate values using index_add_
-        tenOut_flat.index_add_(0, idx_NHW, vals).to(dtype=origdtype)
+        tenOut_flat.index_add_(0, idx_NHW.to(dtype=torch.int32), vals).to(dtype=origdtype)
 
     # Reshape tenOut back to [N, C, H, W]
     tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
