@@ -155,7 +155,7 @@ class SoftSplat(torch.nn.Module):
     
     @staticmethod
     @torch.inference_mode()
-    @torch.compile
+    @torch.jit.script
     def soft(tenIn: torch.Tensor, tenMetric: torch.Tensor):
         return torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1)
 
