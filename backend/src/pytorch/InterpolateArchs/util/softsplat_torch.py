@@ -38,7 +38,7 @@ def forward(tenIn, tenFlow):
     gridY,gridX = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
     
 
-    batch_indices = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+    batch_indices = torch.arange(N, device=device,dtype=origdtype).view(N, 1, 1).expand(N, H, W).reshape(-1)
     
         
 
