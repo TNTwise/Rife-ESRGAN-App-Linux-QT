@@ -10,6 +10,7 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
+@torch.jit.script
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
@@ -38,7 +39,7 @@ def forward(tenIn, tenFlow):
     gridY,gridX = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
     
 
-    batch_indices = torch.arange(N, device=device,dtype=origdtype).view(N, 1, 1).expand(N, H, W).reshape(-1)
+    batch_indices = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
     
         
 
@@ -55,6 +56,8 @@ def forward(tenIn, tenFlow):
 
     # Finite mask
     finite_mask = torch.isfinite(fltX_flat) & torch.isfinite(fltY_flat)
+    if not finite_mask.any():
+        return tenOut
 
     fltX_flat = fltX_flat[finite_mask]
     fltY_flat = fltY_flat[finite_mask]
@@ -62,8 +65,8 @@ def forward(tenIn, tenFlow):
     batch_indices = batch_indices[finite_mask]
 
     # Compute integer positions
-    intNW_X = torch.floor(fltX_flat).to(dtype=origdtype)
-    intNW_Y = torch.floor(fltY_flat).to(dtype=origdtype)
+    intNW_X = torch.floor(fltX_flat).to(dtype=torch.int32)
+    intNW_Y = torch.floor(fltY_flat).to(dtype=torch.int32)
     intNE_X = intNW_X + 1
     intNE_Y = intNW_Y
     intSW_X = intNW_X
@@ -93,6 +96,8 @@ def forward(tenIn, tenFlow):
     for intX, intY, weight in positions:
         # Valid indices within image bounds
         valid_mask = (intX >= 0) & (intX < W) & (intY >= 0) & (intY < H)
+        if not valid_mask.any():
+            continue
 
         idx_b = batch_indices[valid_mask]
         idx_x = intX[valid_mask]
@@ -104,7 +109,7 @@ def forward(tenIn, tenFlow):
         idx_NHW = idx_b * H * W + idx_y * W + idx_x
 
         # Accumulate values using index_add_
-        tenOut_flat.index_add_(0, idx_NHW.to(dtype=torch.int32), vals).to(dtype=origdtype)
+        tenOut_flat.index_add_(0, idx_NHW, vals).to(dtype=origdtype)
 
     # Reshape tenOut back to [N, C, H, W]
     tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
