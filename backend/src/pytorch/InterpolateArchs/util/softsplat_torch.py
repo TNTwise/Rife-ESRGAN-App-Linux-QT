@@ -10,7 +10,7 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
-@torch.compile
+@torch.jit.script
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
@@ -116,8 +116,10 @@ def forward(tenIn, tenFlow):
 
 @torch.inference_mode()
 def softsplat(
-    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str
+    tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str=None
 ):
+    if strMode is None:
+        strMode = "soft"
     mode_parts = strMode.split("-")
     mode_main = mode_parts[0]
     mode_sub = mode_parts[1] if len(mode_parts) > 1 else None
@@ -330,7 +332,3 @@ class SoftSplat(torch.nn.Module):
         tenOut = self.norm(tenOut)
 
         return tenOut
-
-
-
-
