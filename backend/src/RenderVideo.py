@@ -335,3 +335,5 @@ class Render(FFMpegRender):
             )
 
             self.doEncodingOnFrame = self.interpolateOption.doEncodingOnFrame
+        import time
+        self.startTime = time.time()
