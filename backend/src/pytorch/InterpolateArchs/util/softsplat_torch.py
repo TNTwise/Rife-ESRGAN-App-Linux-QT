@@ -8,7 +8,7 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
-@torch.compile
+@torch.jit.script
 def main_softsplat(
         tenIn: torch.Tensor, tenFlow: torch.Tensor
     ):
