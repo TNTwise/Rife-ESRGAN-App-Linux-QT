@@ -11,7 +11,7 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
-@torch.compile
+@torch.compile(options={"triton.cudagraphs": True}, fullgraph=True)
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
