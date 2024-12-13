@@ -160,7 +160,7 @@ class SoftSplat(torch.nn.Module):
         return torch.cat([tenIn * tenMetric.exp(), tenMetric.exp()], 1)
 
     @torch.inference_mode()
-    def forward(self, tenIn, tenFlow, tenMetric):
+    def forward(self, tenIn, tenFlow, tenMetric, strMode: str = "soft"):
         if self.op is not None:
             tenIn = self.op(tenIn, tenMetric)
         
