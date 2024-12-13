@@ -1,4 +1,5 @@
 import torch
+from functorch.experimental.control_flow import cond
 
 ##########################################################
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -57,8 +58,7 @@ def forward(tenIn, tenFlow):
 
     # Finite mask
     finite_mask = torch.isfinite(fltX_flat) & torch.isfinite(fltY_flat)
-    if not finite_mask.any():
-        return tenOut
+    
 
     fltX_flat = fltX_flat[finite_mask]
     fltY_flat = fltY_flat[finite_mask]
@@ -97,8 +97,6 @@ def forward(tenIn, tenFlow):
     for intX, intY, weight in positions:
         # Valid indices within image bounds
         valid_mask = (intX >= 0) & (intX < W) & (intY >= 0) & (intY < H)
-        if not valid_mask.any():
-            continue
 
         idx_b = batch_indices[valid_mask]
         idx_x = intX[valid_mask]
