@@ -3,6 +3,7 @@ import torch
 ##########################################################
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
 
@@ -10,7 +11,7 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
-@torch.jit.script
+@torch.compile
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
