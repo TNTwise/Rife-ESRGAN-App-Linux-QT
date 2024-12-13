@@ -10,7 +10,6 @@ torch.set_grad_enabled(False)
 
 
 @torch.inference_mode()
-@torch.jit.script
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
