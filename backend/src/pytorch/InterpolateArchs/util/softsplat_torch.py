@@ -65,8 +65,8 @@ def forward(tenIn, tenFlow):
     batch_indices = batch_indices[finite_mask]
 
     # Compute integer positions
-    intNW_X = torch.floor(fltX_flat))
-    intNW_Y = torch.floor(fltY_flat)
+    intNW_X = torch.floor(fltX_flat).to(dtype=torch.int32)
+    intNW_Y = torch.floor(fltY_flat).to(dtype=torch.int32)
     intNE_X = intNW_X + 1
     intNE_Y = intNW_Y
     intSW_X = intNW_X
@@ -99,9 +99,9 @@ def forward(tenIn, tenFlow):
         if not valid_mask.any():
             continue
 
-        idx_b = batch_indices[valid_mask].to(dtype=torch.int32)
-        idx_x = intX[valid_mask].to(dtype=torch.int32)
-        idx_y = intY[valid_mask].to(dtype=torch.int32)
+        idx_b = batch_indices[valid_mask]
+        idx_x = intX[valid_mask]
+        idx_y = intY[valid_mask]
         w = weight[valid_mask]
         vals = tenIn_flat[valid_mask] * w.unsqueeze(1)
 
