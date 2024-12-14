@@ -195,6 +195,7 @@ class IFNet(nn.Module):
         warped_img1 = img1
         flow = None
         mask = None
+        
         for i in range(4):
             if flow is None:
                 flow, mask = self.blocks[i](

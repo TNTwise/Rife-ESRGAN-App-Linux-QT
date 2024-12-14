@@ -263,7 +263,8 @@ class Render(FFMpegRender):
             from .pytorch.InterpolateTorch import InterpolateFactory
 
             self.interpolateOption = InterpolateFactory.build_interpolation_method(
-                self.interpolateModel
+                self.interpolateModel,
+                self.backend,
             )(
                 modelPath=self.interpolateModel,
                 ceilInterpolateFactor=self.ceilInterpolateFactor,

@@ -177,11 +177,13 @@ class IFNet(nn.Module):
             raise ValueError("rife_trt_mode must be 'fast' or 'accurate'")
         self.warp = warp
 
-    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1):
+    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1, scale=None):
         warped_img0 = img0
         warped_img1 = img1
         flow = None
         mask = None
+        if scale is not None:
+            self.scale_list = [8 / scale, 4 / scale, 2 / scale, 1 / scale]
         for i in range(5):
             if flow is None:
                 flow, mask, feat = self.blocks[i](
