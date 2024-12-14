@@ -243,8 +243,8 @@ class InterpolateGIMMTorch(BaseInterpolate):
 
                     while self.flownet is None:
                         sleep(1)
-                    
-                    output = self.flownet(xs, coord, timestep_tens, ds_factor=self.scale)
+                    with torch.autocast(enabled=True,device_type='cuda'):
+                        output = self.flownet(xs, coord, timestep_tens, ds_factor=self.scale)
                     
                     if torch.isnan(output).any():
                         # if there are nans in output, reload with float32 precision and process.... dumb fix but whatever
