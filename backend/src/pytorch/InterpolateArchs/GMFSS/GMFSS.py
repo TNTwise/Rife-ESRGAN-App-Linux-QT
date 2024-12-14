@@ -153,4 +153,4 @@ class GMFSS(nn.Module):
             torch.cat([feat1t3, feat2t3], dim=1),
         )
         out = out[:, :, : self.height, : self.width]
-        return torch.clamp(out, 0, 1).squeeze(0).mul(255.0).permute(1, 2, 0)
+        return torch.clamp(out, 0, 1)

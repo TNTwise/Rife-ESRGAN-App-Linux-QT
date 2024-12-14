@@ -103,33 +103,3 @@ with torch.no_grad():
     images.append(
         (output.detach().cpu().numpy()).astype(np.uint8)
     )
-
-import cv2
-cv2.imwrite("output.png", images[0])
-"""I1_pred_img = [
-    (I1_pred[0].detach().cpu().numpy().transpose(1, 2, 0) * 255.0)[
-        :, :, ::-1
-    ].astype(np.uint8)
-    for I1_pred in out_frames
-]
-
-for i in range(args.N - 1):
-    images.append(I1_pred_img[i])
-    flows.append(flowt_imgs[i])
-
-    images[-1] = cv2.hconcat([ori_image[-1], images[-1]])
-
-images.append(
-    (
-        (padder.unpad(I2)).squeeze().detach().cpu().numpy().transpose(1, 2, 0)
-        * 255.0
-    )[:, :, ::-1].astype(np.uint8)
-)
-ori_image.append(
-    (
-        (padder.unpad(I2)).squeeze().detach().cpu().numpy().transpose(1, 2, 0)
-        * 255.0
-    )[:, :, ::-1].astype(np.uint8)
-)
-images[-1] = cv2.hconcat([ori_image[-1], images[-1]])
-"""
