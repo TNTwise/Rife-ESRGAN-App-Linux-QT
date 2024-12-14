@@ -273,6 +273,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         backend: str = "pytorch",
         UHDMode: bool = False,
         ensemble: bool = False,
+        dynamicScaledOpticalFlow: bool = False,
         *args,
         **kwargs,
     ):
@@ -299,7 +300,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         # set up streams for async processing
         self.scale = 1
         self.ensemble = ensemble
-        self.doEncodingOnFrame = False
+        self.dynamicScaledOpticalFlow = dynamicScaledOpticalFlow
+        self.UHDMode = UHDMode
         if UHDMode:
             self.scale = 0.5
         self._load()
@@ -309,10 +311,23 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
         with torch.cuda.stream(self.prepareStream):
+            if self.dynamicScaledOpticalFlow:
+                from ..utils.SSIM import SSIM
+                self.CompareNet = SSIM()
+                print("Dynamic Scaled Optical Flow Enabled")
+                if self.backend == "tensorrt":
+                    print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
+                    self.CompareNet = None
+                if self.UHDMode:
+                    print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
+                    self.CompareNet = None
             from .InterpolateArchs.GMFSS.GMFSS import GMFSS
 
             _pad = 64
-            tmp = max(_pad, int(_pad / self.scale))
+            if self.dynamicScaledOpticalFlow:
+                tmp = max(_pad, int(_pad / 0.25))
+            else:
+                tmp = max(_pad, int(_pad / self.scale))
             self.pw = math.ceil(self.width / tmp) * tmp
             self.ph = math.ceil(self.height / tmp) * tmp
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
