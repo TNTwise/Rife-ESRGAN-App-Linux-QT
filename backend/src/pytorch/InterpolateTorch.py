@@ -369,13 +369,14 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 return
                 
             frame1 = self.frame_to_tensor(img1)
+            closest_value = self.dynamicScaleCalculation(frame1)
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
                     while self.flownet is None:
                         sleep(1)
                     timestep = self.timestepDict[timestep]
-                    output = self.flownet(self.frame0, frame1, timestep)
+                    output = self.flownet(self.frame0, frame1, timestep, closest_value)
                     if upscaleModel is not None:
                         output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
                     else:
