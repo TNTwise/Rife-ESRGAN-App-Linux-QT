@@ -118,6 +118,7 @@ class Rife:
         self._rife_object.process(
             self.raw_in_image0, self.raw_in_image1, timestep, self.raw_out_image
         )
+
         if timestep == self.max_timestep:
             self.image0_bytes = self.image1_bytes
             self.raw_in_image0 = self.raw_in_image1
@@ -169,17 +170,19 @@ class InterpolateRIFENCNN:
         if self.frame0 is None:
             self.frame0 = img1
             return
+        if transition:
+            self.render.process_bytes(self.frame0, img1, self.max_timestep)
+            if upscaleModel is not None:
+                img1 = upscaleModel(img1)
+            for n in range(self.interpolateFactor-1):
+                writeQueue.put(img1)
+            return
         for n in range(self.interpolateFactor-1):
             while self.paused:
                 sleep(1)
             timestep = (n + 1) * 1.0 / (self.interpolateFactor)
             frame = self.render.process_bytes(self.frame0, img1, timestep)
-            if transition:
-                if upscaleModel is not None:
-                    img1 = upscaleModel(img1)
-                writeQueue.put(img1)
-            else:
-                if upscaleModel is not None:
-                    frame = upscaleModel(frame)
-                writeQueue.put(frame)
+            if upscaleModel is not None:
+                frame = upscaleModel(frame)
+            writeQueue.put(frame)
         self.frame0 = img1
