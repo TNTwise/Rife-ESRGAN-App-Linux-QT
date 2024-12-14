@@ -1,6 +1,8 @@
+from os import write
 from rife_ncnn_vulkan_python import wrapped
 from time import sleep
-
+from .UpscaleNCNN import UpscaleNCNN
+from queue import Queue
 # built-in imports
 import pathlib
 import sys
@@ -131,14 +133,17 @@ class InterpolateRIFENCNN:
         threads: int = 1,
         gpuid: int = 0,
         max_timestep: int = 1,
+        interpolateFactor: int = 2,
     ):
         self.max_timestep = max_timestep
+        self.interpolateFactor = interpolateFactor
         self.interpolateModelPath = interpolateModelPath
         self.width = width
         self.height = height
         self.gpuid = gpuid
         self.threads = threads
         self.paused = False
+        self.frame0 = None
         self._load()
 
     def _load(self):
@@ -160,21 +165,21 @@ class InterpolateRIFENCNN:
     def hotReload(self):
         self.paused = False
 
-    def process(self, img0, img1, timestep) -> bytes:
-        while self.paused:
-            sleep(1)
-        frame = self.render.process_bytes(img0, img1, timestep)
-        return frame
-
-    def frame_to_tensor(self, frame: np.array) -> np.array:
-        return frame
-
-    def normFrame(self, frame: bytes):
-        return frame
-        frame = bytearray(frame)
-        frame = wrapped.Image(frame, self.width, self.height, 3)
-        return frame
-
-    def uncacheFrame(self):
-        return
-        self.render.uncache_frame()
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel: UpscaleNCNN=None):
+        if self.frame0 is None:
+            self.frame0 = img1
+            return
+        for n in range(self.interpolateFactor-1):
+            while self.paused:
+                sleep(1)
+            timestep = (n + 1) * 1.0 / (self.interpolateFactor)
+            frame = self.render.process_bytes(self.frame0, img1, timestep)
+            if transition:
+                if upscaleModel is not None:
+                    img1 = upscaleModel(img1)
+                writeQueue.put(img1)
+            else:
+                if upscaleModel is not None:
+                    frame = upscaleModel(frame)
+                writeQueue.put(frame)
+        self.frame0 = img1
