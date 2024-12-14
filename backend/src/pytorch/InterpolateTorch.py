@@ -544,8 +544,12 @@ class InterpolateRifeTorch(BaseInterpolate):
                 self.CompareNet = SSIM()
                 print("Dynamic Scaled Optical Flow Enabled")
                 if self.backend == "tensorrt":
-                    print("Dynamic Scaled Optical Flow does not work with TensorRT, falling back to PyTorch", file=sys.stderr)
-                    self.backend = 'pytorch'
+                    print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
+                    self.CompareNet = None
+                
+                if self.UHDMode:
+                    print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
+                    self.CompareNet = None
             
             if self.backend == "tensorrt":
                 from .TensorRTHandler import TorchTensorRTHandler
