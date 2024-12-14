@@ -84,7 +84,6 @@ class Render(FFMpegRender):
         self.setupFrame0 = None
         self.interpolateOption = None
         self.upscaleOption = None
-        self.doEncodingOnFrame = False
         self.isPaused = False
         self.sceneDetectMethod = sceneDetectMethod
         self.sceneDetectSensitivty = sceneDetectSensitivity
@@ -157,68 +156,7 @@ class Render(FFMpegRender):
                 self.prevState = self.isPaused
             sleep(1)
 
-    def i0Norm(self, frame):
-        self.setupFrame0 = self.interpolateOption.frame_to_tensor(frame)
-        if self.doEncodingOnFrame:
-            self.encodedFrame0 = self.interpolateOption.encode_Frame(self.setupFrame0)
-
-    def i1Norm(self, frame):
-        self.setupFrame1 = self.interpolateOption.frame_to_tensor(frame)
-        if self.doEncodingOnFrame:
-            self.encodedFrame1 = self.interpolateOption.encode_Frame(self.setupFrame1)
-
-    def onEndOfInterpolateCall(self):
-        if self.ncnn:
-            self.setupFrame1 = self.setupFrame0
-        else:
-            self.interpolateOption.copyTensor(self.setupFrame0, self.setupFrame1)
-            if self.doEncodingOnFrame:
-                self.interpolateOption.copyTensor(
-                    self.encodedFrame0, self.encodedFrame1
-                )
-
-    def renderInterpolate(self, frame, transition=False):
-        if frame is not None:
-            if self.setupFrame0 is None:
-                self.i0Norm(frame)
-                return
-            self.i1Norm(frame)
-
-            for n in range(self.ceilInterpolateFactor - 1):
-                if not transition:
-                    timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
-                    if self.doEncodingOnFrame:
-                        frame = self.interpolateOption.process(
-                            img0=self.setupFrame0,
-                            img1=self.setupFrame1,
-                            timestep=timestep,
-                            f0encode=self.encodedFrame0,
-                            f1encode=self.encodedFrame1,
-                        )
-                    else:
-                        frame = self.interpolateOption.process(
-                            img0=self.setupFrame0,
-                            img1=self.setupFrame1,
-                            timestep=timestep,
-                        )
-                elif (
-                    self.ncnn
-                ):  # ncnn has to have sequential render or bad things happen
-                    self.interpolateOption.process(
-                        img0=self.setupFrame0,
-                        img1=self.setupFrame1,
-                        timestep=self.maxTimestep,
-                    )
-                if self.upscaleModel:
-                    self.writeQueue.put(
-                        self.upscaleOption.process(
-                            self.upscaleOption.frame_to_tensor(frame)
-                        )
-                    )
-                else:
-                    self.writeQueue.put(frame)
-
-            self.onEndOfInterpolateCall()
+       
 
     def render(self):
         while True:
@@ -228,10 +166,14 @@ class Render(FFMpegRender):
                     break
 
                 if self.interpolateModel:
-                    self.renderInterpolate(frame, self.sceneDetect.detect(frame))
-
+                    self.interpolateOption.process(
+                        img1=frame,
+                        writeQueue=self.writeQueue,
+                        transition=self.sceneDetect.detect(frame),
+                        upscaleModel=self.upscaleOption,
+                    )
                 if self.upscaleModel:
-                    frame = self.upscaleOption.process(
+                    frame = self.upscaleOption(
                         self.upscaleOption.frame_to_tensor(frame)
                     )
 
@@ -334,6 +276,5 @@ class Render(FFMpegRender):
                 trt_optimization_level=self.trt_optimization_level,
             )
 
-            self.doEncodingOnFrame = self.interpolateOption.doEncodingOnFrame
         import time
         self.startTime = time.time()

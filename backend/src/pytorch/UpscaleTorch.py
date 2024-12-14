@@ -11,9 +11,6 @@ from ..utils.Util import (
     check_bfloat16_support,
 )
 
-# tiling code permidently borrowed from https://github.com/chaiNNer-org/spandrel/issues/113#issuecomment-1907209731
-
-
 class UpscalePytorch:
     """A class for upscaling images using PyTorch.
 
@@ -230,7 +227,7 @@ class UpscalePytorch:
         return output
 
     @torch.inference_mode()
-    def process(self, image: torch.Tensor) -> torch.Tensor:
+    def __call__(self, image:torch.Tensor) -> torch.Tensor:
         with torch.cuda.stream(self.stream):
             while self.model is None:
                 sleep(1)
