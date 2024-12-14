@@ -171,7 +171,8 @@ class InterpolateRIFENCNN:
             self.frame0 = img1
             return
         if transition:
-            self.render.process_bytes(self.frame0, img1, self.max_timestep)
+            self.render.process_bytes(self.frame0, img1, self.max_timestep) # get the cache to skip to next frame
+            self.frame0 = img1
             if upscaleModel is not None:
                 img1 = upscaleModel(img1)
             for n in range(self.interpolateFactor-1):
