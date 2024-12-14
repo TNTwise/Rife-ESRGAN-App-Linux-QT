@@ -47,6 +47,8 @@ class HandleApplication:
                 upscale_output_resolution=self.args.upscale_output_resolution,
                 UHD_mode=self.args.UHD_mode,
                 slomo_mode=self.args.slomo_mode,
+                dynamic_scaled_optical_flow=self.args.dynamic_scaled_optical_flow,
+                ensemble=self.args.ensemble,
             )
         else:
             half_prec_supp = False
@@ -144,7 +146,7 @@ class HandleApplication:
         )
         parser.add_argument(
             "--interpolate_model",
-            help="Direct path to interpolation model, will automatically upscale if model is valid.\n(Downloadable Options: [rife46, rife47, rife415, rife418, rife420, rife422, rife422lite]))",
+            help="Direct path to interpolation model, will automatically interpolate if model is valid.\n(Downloadable Options: [rife46, rife47, rife415, rife418, rife420, rife422, rife422lite]))",
             type=str,
         )
         parser.add_argument(
@@ -212,6 +214,18 @@ class HandleApplication:
         parser.add_argument(
             "--slomo_mode",
             help="Instead of increasing framerate, it will remain the same while just increasing the length of the video.",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "--dynamic_scaled_optical_flow",
+            help="Scale the optical flow based on the difference between frames, currently only works with the pytorch backend.",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "--ensemble",
+            help="Use ensemble when interpolating if the model supports it.",
             action="store_true",
             default=False,
         )

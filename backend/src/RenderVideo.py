@@ -61,6 +61,8 @@ class Render(FFMpegRender):
         upscale_output_resolution: str = None,
         UHD_mode: bool = False,
         slomo_mode: bool = False,
+        dynamic_scaled_optical_flow: bool = False,
+        ensemble: bool = False,
     ):
         if pausedFile is None:
             pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
@@ -91,6 +93,8 @@ class Render(FFMpegRender):
         self.trt_optimization_level = trt_optimization_level
         self.uncacheNextFrame = False
         self.UHD_mode = UHD_mode
+        self.dynamic_scaled_optical_flow = dynamic_scaled_optical_flow
+        self.ensemble = ensemble
         # get video properties early
         self.getVideoProperties(inputFile)
 
@@ -155,8 +159,6 @@ class Render(FFMpegRender):
                             self.interpolateOption.hotReload()
                 self.prevState = self.isPaused
             sleep(1)
-
-       
 
     def render(self):
         while True:
@@ -275,7 +277,6 @@ class Render(FFMpegRender):
                 backend=self.backend,
                 UHDMode=self.UHD_mode,
                 trt_optimization_level=self.trt_optimization_level,
+                ensemble=self.ensemble,
+                dynamicScaledOpticalFlow=self.dynamic_scaled_optical_flow,
             )
-
-        import time
-        self.startTime = time.time()
