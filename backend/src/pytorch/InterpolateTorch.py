@@ -39,6 +39,7 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.tenFlow_div = None
         self.backwarp_tenGrid = None
         self.doEncodingOnFrame = False # set this by default
+        self.CompareNet = None
 
     def handlePrecision(self, precision) -> torch.dtype:
         if precision == "auto":
@@ -70,6 +71,16 @@ class BaseInterpolate(metaclass=ABCMeta):
     @torch.inference_mode()
     def hotReload(self):
         self._load()
+
+    @torch.inference_mode()
+    def dynamicScaleCalculation(self,frame1):
+        closest_value = None
+        if self.CompareNet is not None: # when there is dynamic optical flow scaling enabled.
+            ssim:torch.Tensor = self.CompareNet(self.frame0, frame1)
+            possible_values = {0.25:1.5, 0.5:1.25, 1.0:1.0} # closest_value:representative_scale
+            closest_value = min(possible_values, key=lambda v: abs(ssim.item() - v))
+            closest_value = possible_values[closest_value]
+        return closest_value
 
     @abstractmethod
     @torch.inference_mode()
@@ -261,6 +272,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
+        ensemble: bool = False,
         *args,
         **kwargs,
     ):
@@ -286,6 +298,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.ceilInterpolateFactor = ceilInterpolateFactor
         # set up streams for async processing
         self.scale = 1
+        self.ensemble = ensemble
         self.doEncodingOnFrame = False
         if UHDMode:
             self.scale = 0.5
@@ -316,6 +329,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 scale=self.scale,
                 width=self.width,
                 height=self.height,
+                ensemble=self.ensemble,
             )
             
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
@@ -414,8 +428,8 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.trt_cache_dir = os.path.dirname(
                 modelPath
             )  # use the model directory as the cache directory
-        
-        if UHDMode:
+        self.UHDMode = UHDMode
+        if self.UHDMode:
             self.scale = 0.5
         self._load()
 
@@ -691,12 +705,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
             
-            closest_value = None
-            if self.CompareNet is not None: # when there is dynamic optical flow scaling enabled.
-                ssim:torch.Tensor = self.CompareNet(self.frame0, frame1)
-                possible_values = [0.25, 0.5, 1.0]
-                closest_value = min(possible_values, key=lambda v: abs(ssim.item() - v))
-
+            closest_value = self.dynamicScaleCalculation(frame1)
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)

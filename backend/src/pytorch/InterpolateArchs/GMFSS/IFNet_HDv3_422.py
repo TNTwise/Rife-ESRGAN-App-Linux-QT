@@ -90,7 +90,7 @@ class IFBlock(nn.Module):
         return flow, mask, feat
         
 class IFNet(nn.Module):
-    def __init__(self):
+    def __init__(self,ensemble=False):
         super(IFNet, self).__init__()
         self.block0 = IFBlock(7+16, c=256)
         self.block1 = IFBlock(8+4+16+8, c=192)
@@ -112,17 +112,18 @@ class IFNet(nn.Module):
             nn.Conv2d(64, 1, 3, 1, 1),
             nn.Sigmoid()
         )
+        if ensemble:
+            import sys
+            print("Ensemble is not supported with this model", file=sys.stderr)
 
     def forward(self, img0,img1, timestep=0.5, scale_list=[8, 4, 2, 1], training=False, fastmode=True, ensemble=False):
         timestep = timestep.repeat(1, 1, img0.shape[2], img0.shape[3])
         f0 = self.encode(img0[:, :3])
         f1 = self.encode(img1[:, :3])
-        merged = []
         warped_img0 = img0
         warped_img1 = img1
         flow = None
         mask = None
-        loss_cons = 0
         block = [self.block0, self.block1, self.block2, self.block3]
         for i in range(4):
             if flow is None:

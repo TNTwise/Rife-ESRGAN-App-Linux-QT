@@ -43,7 +43,7 @@ class GMFSS(nn.Module):
         # get gmfss from here, as its a combination of all the models https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/GMFSS.pkl
         self.width = width
         self.height = height
-        self.ifnet = IFNet()
+        self.ifnet = IFNet(ensemble=ensemble)
         self.flownet = GMFlow()
         self.metricnet = MetricNet()
         self.feat_ext = FeatureNet()
