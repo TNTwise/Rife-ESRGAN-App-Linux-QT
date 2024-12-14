@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>987</width>
-    <height>626</height>
+    <height>707</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -601,7 +601,7 @@ QScrollBar:horizontal{
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>400</width>
+                  <width>500</width>
                   <height>16777215</height>
                  </size>
                 </property>
@@ -654,21 +654,9 @@ QScrollBar:horizontal{
                     <attribute name="title">
                      <string>General</string>
                     </attribute>
-                    <layout class="QVBoxLayout" name="verticalLayout_21">
+                    <layout class="QVBoxLayout" name="verticalLayout_10">
                      <property name="spacing">
-                      <number>0</number>
-                     </property>
-                     <property name="leftMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
+                      <number>15</number>
                      </property>
                      <item>
                       <widget class="QWidget" name="inputFileContainer" native="true">
@@ -1025,6 +1013,22 @@ QScrollBar:horizontal{
                       </widget>
                      </item>
                      <item>
+                      <spacer name="verticalSpacer_4">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Vertical</enum>
+                       </property>
+                       <property name="sizeType">
+                        <enum>QSizePolicy::Policy::Expanding</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>20</width>
+                         <height>23</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
                       <widget class="QWidget" name="widget_2" native="true">
                        <property name="maximumSize">
                         <size>
@@ -1157,7 +1161,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                          <number>6</number>
                         </property>
                         <property name="leftMargin">
-                         <number>0</number>
+                         <number>9</number>
                         </property>
                         <property name="topMargin">
                          <number>10</number>
@@ -2134,7 +2138,7 @@ QTabWidget::pane { /* The tab widget frame */
                    <x>0</x>
                    <y>0</y>
                    <width>522</width>
-                   <height>352</height>
+                   <height>357</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
