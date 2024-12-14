@@ -11,8 +11,7 @@ from src.utils.Util import (
     check_bfloat16_support,
     checkForDirectML,
     checkForDirectMLHalfPrecisionSupport,
-    checkForGMFSS,
-    get_pytorch_vram,
+
 )
 
 
@@ -20,8 +19,62 @@ class HandleApplication:
     def __init__(self):
         self.args = self.handleArguments()
         if not self.args.list_backends:
-            self.checkArguments()
-            Render(
+            self.renderVideo()
+        else:
+            self.listBackends()
+
+    def listBackends(self):
+        half_prec_supp = False
+        availableBackends = []
+        printMSG = ""
+
+        if checkForTensorRT():
+            """
+            checks for tensorrt availability, and the current gpu works with it (if half precision is supported)
+            Trt 10 only supports RTX 20 series and up.
+            Half precision is only availaible on RTX 20 series and up
+            """
+            import torch
+            half_prec_supp = check_bfloat16_support()
+            if half_prec_supp:
+                import tensorrt
+
+                availableBackends.append("tensorrt")
+                printMSG += f"TensorRT Version: {tensorrt.__version__}\n"
+            else:
+                printMSG += "ERROR: Cannot use tensorrt backend, as it is not supported on your current GPU"
+        
+        if checkForPytorchCUDA():
+            import torch
+            availableBackends.append("pytorch (cuda)")
+            printMSG += f"PyTorch Version: {torch.__version__}\n"
+            half_prec_supp = check_bfloat16_support()
+
+        if checkForPytorchROCM():
+            availableBackends.append("pytorch (rocm)")
+            import torch
+            printMSG += f"PyTorch Version: {torch.__version__}\n"
+            half_prec_supp = check_bfloat16_support()
+            
+        if checkForNCNN():
+            availableBackends.append("ncnn")
+            printMSG += f"NCNN Version: 20220729\n"
+            from rife_ncnn_vulkan_python import Rife
+
+        if checkForDirectML():
+            availableBackends.append("directml")
+            import onnxruntime as ort
+
+            printMSG += f"ONNXruntime Version: {ort.__version__}\n"
+            half_prec_supp = checkForDirectMLHalfPrecisionSupport()
+        
+        printMSG += f"Half precision support: {half_prec_supp}\n"
+        print("Available Backends: " + str(availableBackends))
+        print(printMSG)
+
+    def renderVideo(self):
+        self.checkArguments()
+        Render(
                 # model settings
                 inputFile=self.args.input,
                 outputFile=self.args.output,
@@ -50,55 +103,7 @@ class HandleApplication:
                 dynamic_scaled_optical_flow=self.args.dynamic_scaled_optical_flow,
                 ensemble=self.args.ensemble,
             )
-        else:
-            half_prec_supp = False
-            availableBackends = []
-            printMSG = ""
-
-            if checkForTensorRT():
-                """
-                checks for tensorrt availability, and the current gpu works with it (if half precision is supported)
-                Trt 10 only supports RTX 20 series and up.
-                Half precision is only availaible on RTX 20 series and up
-                """
-                import torch
-
-                half_prec_supp = check_bfloat16_support()
-                if half_prec_supp:
-                    import tensorrt
-
-                    availableBackends.append("tensorrt")
-                    printMSG += f"TensorRT Version: {tensorrt.__version__}\n"
-                else:
-                    printMSG += "ERROR: Cannot use tensorrt backend, as it is not supported on your current GPU"
-            if checkForPytorchCUDA():
-                import torch
-
-                availableBackends.append("pytorch (cuda)")
-                printMSG += f"PyTorch Version: {torch.__version__}\n"
-                half_prec_supp = check_bfloat16_support()
-            if checkForPytorchROCM():
-                availableBackends.append("pytorch (rocm)")
-                import torch
-
-                printMSG += f"PyTorch Version: {torch.__version__}\n"
-                half_prec_supp = check_bfloat16_support()
-                
-            if checkForNCNN():
-                availableBackends.append("ncnn")
-                printMSG += f"NCNN Version: 20220729\n"
-                from rife_ncnn_vulkan_python import Rife
-            if checkForDirectML():
-                availableBackends.append("directml")
-                import onnxruntime as ort
-
-                printMSG += f"ONNXruntime Version: {ort.__version__}\n"
-                half_prec_supp = checkForDirectMLHalfPrecisionSupport()
-            printMSG += f"Half precision support: {half_prec_supp}\n"
-           
-            print("Available Backends: " + str(availableBackends))
-            print(printMSG)
-
+        
     def handleArguments(self) -> argparse.ArgumentParser:
         """_summary_
 
