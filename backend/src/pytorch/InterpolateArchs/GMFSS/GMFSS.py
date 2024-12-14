@@ -21,7 +21,7 @@ class GMFSS(nn.Module):
         self,
         model_path,
         model_type: str = "union",
-        scale: int = 1,
+        scale: float = 1.,
         ensemble: bool = False,
         width: int = 1920,
         height: int = 1080,

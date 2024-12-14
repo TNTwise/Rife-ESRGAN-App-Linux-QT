@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-import numpy as np
 from abc import ABCMeta, abstractmethod
 from queue import Queue
 #from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
@@ -32,6 +31,11 @@ class BaseInterpolate(metaclass=ABCMeta):
         """Loads in the model"""
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
+        self.device = torch.device("cuda")
+        self.dtype = torch.float32
+        self.width = 1920
+        self.height = 1080
+        self.padding = [0,0,0,0]
         self.frame0 = None
         self.encode0 = None
         self.flownet = None
@@ -40,6 +44,17 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.backwarp_tenGrid = None
         self.doEncodingOnFrame = False # set this by default
         self.CompareNet = None
+
+    @staticmethod
+    def handleDevice(device:str) -> torch.device:
+        if device == "default":
+            if torch.cuda.is_available():
+                torchdevice = torch.device("cuda", 0)  # 0 is the device index, may have to change later
+            else:
+                torchdevice = torch.device("cpu")
+        else:
+            torchdevice = torch.device(device)
+        return torchdevice
 
     def handlePrecision(self, precision) -> torch.dtype:
         if precision == "auto":
@@ -50,10 +65,11 @@ class BaseInterpolate(metaclass=ABCMeta):
             return torch.float16
         if precision == "bfloat16":
             return torch.bfloat16
+        return torch.float32
 
     @torch.inference_mode()
     def copyTensor(self, tensorToCopy: torch.Tensor, tensorCopiedTo: torch.Tensor):
-        with torch.cuda.stream(self.stream):
+        with torch.cuda.stream(self.stream): #type: ignore
             tensorToCopy.copy_(tensorCopiedTo, non_blocking=True)
         self.stream.synchronize()
 
@@ -84,7 +100,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @abstractmethod
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:torch.nn.Module = None):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
         """Perform processing"""
 
     @torch.inference_mode()
@@ -98,7 +114,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @torch.inference_mode()
     def frame_to_tensor(self, frame) -> torch.Tensor:
-        with torch.cuda.stream(self.prepareStream):
+        with torch.cuda.stream(self.prepareStream): # type: ignore
             frame = self.norm(
                 torch.frombuffer(
                     frame,
@@ -135,22 +151,13 @@ class InterpolateGIMMTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        if device == "default":
-            if torch.cuda.is_available():
-                device = torch.device(
-                    "cuda", 0
-                )  # 0 is the device index, may have to change later
-            else:
-                device = torch.device("cpu")
-        else:
-            device = torch.device(device)
-
+        
         printAndLog("Using device: " + str(device))
 
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
-        self.device = device
+        self.device = self.handleDevice(device)
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -166,7 +173,7 @@ class InterpolateGIMMTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream):
+        with torch.cuda.stream(self.prepareStream): # type: ignore
             from .InterpolateArchs.GIMM.gimmvfi_r import GIMMVFI_R
 
             self.flownet = GIMMVFI_R(
@@ -217,13 +224,14 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.prepareStream.synchronize()
     
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
-        if self.frame0 is None:
-            self.frame0 = self.frame_to_tensor(img1)
-            self.stream.synchronize()
-            return
-        frame1 = self.frame_to_tensor(img1)
-        with torch.cuda.stream(self.stream):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
+        
+        with torch.cuda.stream(self.stream):  # type: ignore
+            if self.frame0 is None:
+                self.frame0 = self.frame_to_tensor(img1)
+                self.stream.synchronize()
+                return
+            frame1 = self.frame_to_tensor(img1)
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
@@ -277,23 +285,13 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        if device == "default":
-            if torch.cuda.is_available():
-                device = torch.device(
-                    "cuda", 0
-                )  # 0 is the device index, may have to change later
-            else:
-                device = torch.device("cpu")
-        else:
-            device = torch.device(device)
-
-        printAndLog("Using device: " + str(device))
+        
 
         self.frame0 = None
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
-        self.device = device
+        self.device = self.handleDevice(device)
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -310,7 +308,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream):
+        with torch.cuda.stream(self.prepareStream): # type: ignore
             if self.dynamicScaledOpticalFlow:
                 from ..utils.SSIM import SSIM
                 self.CompareNet = SSIM()
@@ -360,8 +358,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.prepareStream.synchronize()
 
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
-        with torch.cuda.stream(self.stream):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):  # type: ignore
+        with torch.cuda.stream(self.stream):  # type: ignore
 
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
@@ -411,23 +409,12 @@ class InterpolateRifeTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        if device == "default":
-            if torch.cuda.is_available():
-                device = torch.device(
-                    "cuda", 0
-                )  # 0 is the device index, may have to change later
-            else:
-                device = torch.device("cpu")
-        else:
-            device = torch.device(device)
-
         printAndLog("Using device: " + str(device))
-
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
 
-        self.device = device
+        self.device:torch.device = self.handleDevice(device)
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -453,7 +440,7 @@ class InterpolateRifeTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream):
+        with torch.cuda.stream(self.prepareStream): # type: ignore
             state_dict = torch.load(
                 self.interpolateModel,
                 map_location=self.device,
@@ -465,6 +452,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             ad = ArchDetect(self.interpolateModel)
             interpolateArch = ad.getArchName()
             _pad = 32
+            num_ch_for_encode = 0
             match interpolateArch.lower():
                 case "rife46":
                     from .InterpolateArchs.RIFE.rife46IFNET import IFNet
@@ -507,6 +495,7 @@ class InterpolateRifeTorch(BaseInterpolate):
 
                 case _:
                     errorAndLog("Invalid Interpolation Arch")
+                    exit()
 
             # model unspecific setup
             if self.dynamicScaledOpticalFlow:
@@ -711,8 +700,8 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.backwarp_tenGrid = torch.cat([tenHorizontal, tenVertical], 1)
 
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
-        with torch.cuda.stream(self.stream):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):  # type: ignore
+        with torch.cuda.stream(self.stream):  # type: ignore
 
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
@@ -740,7 +729,7 @@ class InterpolateRifeTorch(BaseInterpolate):
                             self.tenFlow_div,
                             self.backwarp_tenGrid,
                             self.encode0,
-                            encode1,
+                            encode1, # type: ignore
                             closest_value
                         )
                     else:
@@ -759,7 +748,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             
             self.copyTensor(self.frame0, frame1)
             if self.doEncodingOnFrame:
-                self.copyTensor(self.encode0, encode1)
+                self.copyTensor(self.encode0, encode1) # type: ignore
 
         self.stream.synchronize()
 
@@ -767,15 +756,15 @@ class InterpolateRifeTorch(BaseInterpolate):
     def encode_Frame(self, frame: torch.Tensor):
         while self.encode is None:
             sleep(1)
-        with torch.cuda.stream(self.prepareStream):
+        with torch.cuda.stream(self.prepareStream): # type: ignore
             frame = self.encode(frame)
         self.prepareStream.synchronize()
         return frame
 
 class InterpolateRifeTensorRT(InterpolateRifeTorch):
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
-        with torch.cuda.stream(self.stream):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
+        with torch.cuda.stream(self.stream): # type: ignore
 
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
@@ -805,7 +794,7 @@ class InterpolateRifeTensorRT(InterpolateRifeTorch):
                             self.tenFlow_div,
                             self.backwarp_tenGrid,
                             self.encode0,
-                            encode1,
+                            encode1, # type: ignore
                         )
                     else:
                         output = self.flownet(
@@ -826,7 +815,7 @@ class InterpolateRifeTensorRT(InterpolateRifeTorch):
             
             self.copyTensor(self.frame0, frame1)
             if self.doEncodingOnFrame:
-                self.copyTensor(self.encode0, encode1)
+                self.copyTensor(self.encode0, encode1) # type: ignore
 
         self.stream.synchronize()
 

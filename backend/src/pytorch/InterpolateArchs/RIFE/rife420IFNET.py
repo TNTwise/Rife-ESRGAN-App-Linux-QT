@@ -160,7 +160,7 @@ class IFNet(nn.Module):
         scale=1.0,
         ensemble=False,
         dtype=torch.float32,
-        device="cuda",
+        device:torch.device=torch.device("cuda"),
         width=1920,
         height=1080,
         rife_trt_mode="accurate",
