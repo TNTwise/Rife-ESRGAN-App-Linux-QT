@@ -477,7 +477,10 @@ class InterpolateRifeTorch(BaseInterpolate):
                     errorAndLog("Invalid Interpolation Arch")
 
             # model unspecific setup
-            tmp = max(_pad, int(_pad / self.scale))
+            if self.dynamicScaledOpticalFlow:
+                tmp = max(_pad, int(_pad / 0.25)) # set pad to higher for better dynamic optical scale support
+            else:
+                tmp = max(_pad, int(_pad / self.scale))
             self.pw = math.ceil(self.width / tmp) * tmp
             self.ph = math.ceil(self.height / tmp) * tmp
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
@@ -684,6 +687,12 @@ class InterpolateRifeTorch(BaseInterpolate):
             frame1 = self.frame_to_tensor(img1)
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
+            
+            closest_value = None
+            if self.CompareNet is not None: # when there is dynamic optical flow scaling enabled.
+                ssim:torch.Tensor = self.CompareNet(self.frame0, frame1)
+                possible_values = [0.25, 0.5, 1.0]
+                closest_value = min(possible_values, key=lambda v: abs(ssim.item() - v))
 
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
@@ -700,10 +709,11 @@ class InterpolateRifeTorch(BaseInterpolate):
                             self.backwarp_tenGrid,
                             self.encode0,
                             encode1,
+                            closest_value
                         )
                     else:
                         output = self.flownet(
-                            self.frame0, frame1, timestep, self.tenFlow_div, self.backwarp_tenGrid
+                            self.frame0, frame1, timestep, self.tenFlow_div, self.backwarp_tenGrid, closest_value
                         )
                     if upscaleModel is not None:
                         output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
@@ -730,14 +740,74 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.prepareStream.synchronize()
         return frame
 
+class InterpolateRifeTensorRT(InterpolateRifeTorch):
+    @torch.inference_mode()
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
+        with torch.cuda.stream(self.stream):
+
+            if self.frame0 is None:
+                self.frame0 = self.frame_to_tensor(img1)
+                if self.doEncodingOnFrame:
+                    self.encode0 = self.encode_Frame(self.frame0)
+                self.stream.synchronize()
+                return
+                
+            frame1 = self.frame_to_tensor(img1)
+            if self.doEncodingOnFrame:
+                encode1 = self.encode_Frame(frame1)
+            
+            for n in range(self.ceilInterpolateFactor-1):
+
+                while self.flownet is None:
+                    sleep(1)
+
+                if not transition:
+                    timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
+                    timestep = self.timestepDict[timestep]
+
+                    if self.doEncodingOnFrame:
+                        output = self.flownet(
+                            self.frame0,
+                            frame1,
+                            timestep,
+                            self.tenFlow_div,
+                            self.backwarp_tenGrid,
+                            self.encode0,
+                            encode1,
+                        )
+                    else:
+                        output = self.flownet(
+                            self.frame0, frame1, timestep, self.tenFlow_div, self.backwarp_tenGrid
+                        )
+
+                    if upscaleModel is not None:
+                        output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
+                    else:
+                        output = self.tensor_to_frame(output)
+
+                    writeQueue.put(output)
+
+                else:
+                    if upscaleModel is not None:
+                        img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
+                    writeQueue.put(img1)
+            
+            self.copyTensor(self.frame0, frame1)
+            if self.doEncodingOnFrame:
+                self.copyTensor(self.encode0, encode1)
+
+        self.stream.synchronize()
+
 
 class InterpolateFactory:
     @staticmethod
-    def build_interpolation_method(interpolate_model_path):
+    def build_interpolation_method(interpolate_model_path,backend):
         ad = ArchDetect(interpolate_model_path)
         base_arch = ad.getArchBase()
         match base_arch:
             case "rife":
+                if backend == "tensorrt":
+                    return InterpolateRifeTensorRT
                 return InterpolateRifeTorch
             case "gmfss":
                 return InterpolateGMFSSTorch

@@ -68,7 +68,7 @@ class SSIM(torch.nn.Module):
         self.channel = 1
         self.window = create_window(window_size, self.channel)
 
-    def forward(self, img1, img2):
+    def forward(self, img1, img2) -> torch.Tensor:
         (_, channel, _, _) = img1.size()
 
         if channel == self.channel and self.window.data.type() == img1.data.type():

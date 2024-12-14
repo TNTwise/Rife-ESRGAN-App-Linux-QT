@@ -120,7 +120,7 @@ class IFNet(nn.Module):
     def __init__(
         self,
         scale=1.0,
-        ensemble=True,
+        ensemble=False,
         dtype=torch.float32,
         device="cuda",
         width=1920,

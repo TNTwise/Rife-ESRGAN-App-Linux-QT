@@ -144,9 +144,6 @@ class IFNet(nn.Module):
         device="cuda",
         width=1920,
         height=1080,
-        backwarp_tenGrid=None,
-        tenFlow_div=None,
-        rife_trt_mode="accurate",
     ):
         super(IFNet, self).__init__()
         self.block0 = IFBlock(7 + 16, c=256)
@@ -162,22 +159,17 @@ class IFNet(nn.Module):
         self.height = height
 
         self.blocks = [self.block0, self.block1, self.block2, self.block3]
-        if rife_trt_mode == "fast":
-            from .warplayer import warp
-        elif rife_trt_mode == "accurate":
-            try:
-                from .custom_warplayer import warp
-            except:
-                from .warplayer import warp
-        else:
-            raise ValueError("rife_trt_mode must be 'fast' or 'accurate'")
+
+        from .warplayer import warp
         self.warp = warp
 
-    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1):
+    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1, scale=None):
         warped_img0 = img0
         warped_img1 = img1
         flow = None
         mask = None
+        if scale is not None:
+            self.scale_list = [8 / scale, 4 / scale, 2 / scale, 1 / scale]
         block = [self.block0, self.block1, self.block2, self.block3]
         for i in range(4):
             if flow is None:
