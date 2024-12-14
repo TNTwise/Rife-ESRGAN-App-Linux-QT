@@ -11,6 +11,7 @@
 # --------------------------------------------------------
 
 
+from tabnanny import check
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -185,16 +186,31 @@ class GIMMVFI_R(nn.Module):
         )
 
     def predict_flow(self, f, cur_coord, cur_t, flows):
+        def check_for_nans(tensor, name):
+            if type(tensor) == list:
+                for t in tensor:
+                    if torch.isnan(t).any():
+                        print(f"NaNs found in {name}")
+            else:
+                if torch.isnan(tensor).any():
+                    print(f"NaNs found in {name}")
         raft_flow01 = flows[:, :, 0].detach()
         raft_flow10 = flows[:, :, 1].detach()
+        check_for_nans(raft_flow01, "raft_flow01")
+        check_for_nans(raft_flow10, "raft_flow10")
 
         # calculate splatting metrics
         weights1, weights2 = self.cal_splatting_weights(raft_flow01, raft_flow10)
+        check_for_nans(weights1, "weights1")
+        check_for_nans(weights2, "weights2")
         strtype = self.fwarp_type + "-zeroeps"
+        check_for_nans(f, "f")
 
         # b,c,h,w
         pixel_latent_0 = self.cnn_encoder(f[:, :, 0])
         pixel_latent_1 = self.cnn_encoder(f[:, :, 1])
+        check_for_nans(pixel_latent_0, "pixel_latent_0")
+        check_for_nans(pixel_latent_1, "pixel_latent_1")
 
 
         tmp_pixel_latent_0 = softsplat(
@@ -213,12 +229,12 @@ class GIMMVFI_R(nn.Module):
         tmp_pixel_latent = torch.cat(
             [tmp_pixel_latent_0, tmp_pixel_latent_1], dim=1
         )
+        check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
         tmp_pixel_latent = tmp_pixel_latent + self.res_conv(
             torch.cat([pixel_latent_0, pixel_latent_1, tmp_pixel_latent], dim=1)
         )
-
+        check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
         permute_idx_range = [i for i in range(1, f.ndim - 1)]
-        
 
         if cur_coord[1] is None:
             outputs = self.hyponet(
@@ -228,7 +244,7 @@ class GIMMVFI_R(nn.Module):
             outputs = self.hyponet(
                 cur_coord, modulation_params_dict=None, pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1)
             )
-
+        check_for_nans(outputs, "outputs")
         return outputs
 
     def warp_w_mask(self, img0, img1, ft0, ft1, mask, scale=1):
@@ -343,6 +359,15 @@ class GIMMVFI_R(nn.Module):
         return imgt_pred, flowt0_pred, flowt1_pred, other_pred
 
     def forward(self, img_xs, coord=None, timestep=None, iters=None, ds_factor=None):
+        def check_for_nans(tensor, name):
+            if type(tensor) == list:
+                for t in tensor:
+                    if torch.isnan(t).any():
+                        print(f"NaNs found in {name}")
+            else:
+                if torch.isnan(tensor).any():
+                    print(f"NaNs found in {name}")
+
         indtype = img_xs.dtype
         indevice = img_xs.device
 
@@ -355,7 +380,8 @@ class GIMMVFI_R(nn.Module):
                     resize(img_xs[:, :, 1], scale_factor=ds_factor).unsqueeze(2),
                 ],
                 dim=2,
-            ).to(dtype=indtype,device=indevice)
+            ).to(dtype=indtype, device=indevice)
+            check_for_nans(img_xs, "img_xs after resizing")
 
         iters = self.raft_iter if iters is None else iters
         (
@@ -369,13 +395,21 @@ class GIMMVFI_R(nn.Module):
         ) = self.cal_bidirection_flow(
             255 * img_xs[:, :, 0], 255 * img_xs[:, :, 1], iters=iters
         )
+        check_for_nans(normal_flows, "normal_flows")
+        check_for_nans(flows, "flows")
+        check_for_nans(flow_scalers, "flow_scalers")
+        check_for_nans(features0, "features0")
+        check_for_nans(features1, "features1")
 
         # List of flows
         normal_inr_flows = self.predict_flow(normal_flows, coord, timestep, flows)
+        check_for_nans(normal_inr_flows, "normal_inr_flows")
 
         ############ Unnormalize the predicted/reconstructed flow ############
 
         cur_flow_t = unnormalize_flow(normal_inr_flows, flow_scalers).squeeze()
+        check_for_nans(cur_flow_t, "cur_flow_t")
+
         if cur_flow_t.ndim != 4:
             cur_flow_t = cur_flow_t.unsqueeze(0)
             assert cur_flow_t.ndim == 4
@@ -389,12 +423,11 @@ class GIMMVFI_R(nn.Module):
             timestep,
             full_img=full_size_img,
         )
+        check_for_nans(imgt_pred, "imgt_pred")
+        check_for_nans(flowt0_pred, "flowt0_pred")
+        check_for_nans(flowt1_pred, "flowt1_pred")
 
-
-        return imgt_pred[
-                :, :, : self.height, : self.width
-            ]
-        
+        return imgt_pred[:, :, : self.height, : self.width]
 
     def warp_frame(self, frame, flow):
         return warp(frame, flow)
@@ -432,6 +465,15 @@ class GIMMVFI_R(nn.Module):
         return coord_inputs
 
     def cal_splatting_weights(self, raft_flow01, raft_flow10):
+        def check_for_nans(tensor, name):
+            if type(tensor) == list:
+                for t in tensor:
+                    if torch.isnan(t).any():
+                        print(f"NaNs found in {name}")
+            else:
+                if torch.isnan(tensor).any():
+                    print(f"NaNs found in {name}")
+
         batch_size = raft_flow01.shape[0]
         raft_flows = torch.cat([raft_flow01, raft_flow10], dim=0)
 
@@ -448,15 +490,20 @@ class GIMMVFI_R(nn.Module):
             2,
             dim=1,
         )
+        check_for_nans(sqaure_mean, "sqaure_mean")
+        check_for_nans(mean_square, "mean_square")
         var = (
-            (sqaure_mean - mean_square**2).clamp(1e-9, None).sqrt().mean(1).unsqueeze(1)
-        )
+            (sqaure_mean.float() - mean_square.float()**2).clamp(1e-9, None).sqrt().mean(1).unsqueeze(1)
+        ).to(raft_flow01.dtype)
+        check_for_nans(var, "var")
         var01 = var[:batch_size]
         var10 = var[batch_size:]
 
         ## flow warp metirc
         f01_warp = -warp(raft_flow10, raft_flow01)
         f10_warp = -warp(raft_flow01, raft_flow10)
+        check_for_nans(f01_warp, "f01_warp")
+        check_for_nans(f10_warp, "f10_warp")
         err01 = (
             torch.nn.functional.l1_loss(
                 input=f01_warp, target=raft_flow01, reduction="none"
@@ -471,9 +518,13 @@ class GIMMVFI_R(nn.Module):
             .mean(1)
             .unsqueeze(1)
         )
+        check_for_nans(err01, "err01")
+        check_for_nans(err02, "err02")
 
         weights1 = 1 / (1 + err01 * self.alpha_fe) + 1 / (1 + var01 * self.alpha_v)
         weights2 = 1 / (1 + err02 * self.alpha_fe) + 1 / (1 + var10 * self.alpha_v)
+        check_for_nans(weights1, "weights1")
+        check_for_nans(weights2, "weights2")
 
         return weights1, weights2
 
