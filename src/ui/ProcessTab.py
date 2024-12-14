@@ -119,7 +119,7 @@ class ProcessTab:
         # set tile size visible to false by default
         self.parent.tileSizeContainer.setVisible(False)
         #set slo mo container visable to false by default
-        self.parent.sloMoModeContainer.setVisible(False)
+        self.parent.interpolateContainer_2.setVisible(False)
         # connect up tilesize container visiable
         self.parent.tilingCheckBox.stateChanged.connect(self.onTilingSwitch)
 
@@ -199,6 +199,8 @@ class ProcessTab:
         interpolateModel: str,
         benchmarkMode: bool,
         sloMoMode: bool,
+        dyanmicScaleOpticalFlow: bool,
+        ensemble: bool,
     ):
         interpolateModels, upscaleModels = self.getModels(backend)
         if interpolateModel == "None":
@@ -225,6 +227,8 @@ class ProcessTab:
         """
         self.benchmarkMode = benchmarkMode
         self.sloMoMode = sloMoMode
+        self.dyanmicScaleOpticalFlow = dyanmicScaleOpticalFlow
+        self.ensemble = ensemble
         # get model attributes
 
         if interpolateModel:
@@ -361,6 +365,14 @@ class ProcessTab:
             if self.sloMoMode:
                 command += [
                     "--slomo_mode",
+                ]
+            if self.dyanmicScaleOpticalFlow:
+                command += [
+                    "--dynamic_scaled_optical_flow",
+                ]
+            if self.ensemble:
+                command += [
+                    "--ensemble",
                 ]
 
         if self.settings["preview_enabled"] == "True":

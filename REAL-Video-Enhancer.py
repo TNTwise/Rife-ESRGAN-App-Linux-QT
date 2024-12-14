@@ -283,7 +283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.interpolationContainer.setVisible(
             isInterpolate
         )
-        self.sloMoModeContainer.setVisible(
+        self.interpolateContainer_2.setVisible(
             isInterpolate   
         )
           # set interpolation container visible if interpolate model is not none
@@ -337,6 +337,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ),
             benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
             sloMoMode=self.sloMoModeCheckBox.isChecked(),
+            dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
+            ensemble=self.ensembleCheckBox.isChecked(),
         )
 
     def disableProcessPage(self):
