@@ -149,7 +149,6 @@ class IFNet(nn.Module):
         device="cuda",
         width=1920,
         height=1080,
-        rife_trt_mode: str = "accurate",
     ):
         super(IFNet, self).__init__()
         self.block0 = IFBlock(7 + 8, c=192)
@@ -161,20 +160,13 @@ class IFNet(nn.Module):
         self.device = device
         self.dtype = dtype
         self.scaleList = [16 / scale, 8 / scale, 4 / scale, 2 / scale, 1 / scale]
-        self.ensemble = ensemble
         self.width = width
         self.height = height
-
+        if ensemble:
+            import sys
+            print("Ensemble is not supported with this model.",file=sys.stderr)
         self.blocks = [self.block0, self.block1, self.block2, self.block3, self.block4]
-        if rife_trt_mode == "fast":
-            from .warplayer import warp
-        elif rife_trt_mode == "accurate":
-            try:
-                from .custom_warplayer import warp
-            except:
-                from .warplayer import warp
-        else:
-            raise ValueError("rife_trt_mode must be 'fast' or 'accurate'")
+        from .warplayer import warp
         self.warp = warp
 
     def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1, scale=None):

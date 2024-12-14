@@ -374,6 +374,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
+        ensemble: bool = False,
         dynamicScaledOpticalFlow: bool = False,
         # trt options
         trt_optimization_level: int = 5,
@@ -407,6 +408,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         # set up streams for async processing
         self.scale = 1
         self.doEncodingOnFrame = True
+        self.ensemble = ensemble
 
         self.trt_optimization_level = trt_optimization_level
         self.trt_cache_dir = os.path.dirname(
@@ -500,7 +502,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             self.set_rife_args()  # sets backwarp_tenGrid and tenFlow_div
             self.flownet = IFNet(
                 scale=self.scale,
-                ensemble=False,
+                ensemble=self.ensemble,
                 dtype=self.dtype,
                 device=self.device,
                 width=self.width,
@@ -547,6 +549,7 @@ class InterpolateRifeTorch(BaseInterpolate):
                         + f"_scale-{self.scale}"
                         + f"_{torch.cuda.get_device_name(self.device)}"
                         + f"_trt-{trtHandler.tensorrt_version}"
+                        + f"_ensemble-{self.ensemble}"
                         + f"_torch_tensorrt-{trtHandler.torch_tensorrt_version}"
                         + (
                             f"_level-{self.trt_optimization_level}"
