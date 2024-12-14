@@ -258,7 +258,6 @@ class Render(FFMpegRender):
                 max_timestep=self.maxTimestep,
                 interpolateFactor=self.ceilInterpolateFactor,
             )
-            self.doEncodingOnFrame = False
 
         if self.backend == "pytorch" or self.backend == "tensorrt":
             from .pytorch.InterpolateTorch import InterpolateFactory
