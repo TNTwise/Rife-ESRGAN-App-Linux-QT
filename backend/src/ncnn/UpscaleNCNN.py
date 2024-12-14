@@ -158,7 +158,7 @@ class UpscaleNCNN:
     def frame_to_tensor(self, frame: np.array) -> np.array:
         return frame
 
-    def process(self, imageChunk):
+    def __call__(self, imageChunk):
         while self.net is None:
             sleep(1)
         if method == "ncnn_vulkan":

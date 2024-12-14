@@ -73,7 +73,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @abstractmethod
     @torch.inference_mode()
-    def process(self, img1, writeQueue:Queue, transition=False, upscaleModel:torch.nn.Module = None):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:torch.nn.Module = None):
         """Perform processing"""
 
     @torch.inference_mode()
@@ -205,7 +205,7 @@ class InterpolateGIMMTorch(BaseInterpolate):
         self.prepareStream.synchronize()
     
     @torch.inference_mode()
-    def process(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
         if self.frame0 is None:
             self.frame0 = self.frame_to_tensor(img1)
             self.stream.synchronize()
@@ -330,7 +330,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.prepareStream.synchronize()
 
     @torch.inference_mode()
-    def process(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
         with torch.cuda.stream(self.stream):
 
             if self.frame0 is None:
@@ -373,7 +373,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
-        dynamicScaledOpticalFlow: bool = True,
+        dynamicScaledOpticalFlow: bool = False,
         # trt options
         trt_optimization_level: int = 5,
         *args,
@@ -670,7 +670,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.backwarp_tenGrid = torch.cat([tenHorizontal, tenVertical], 1)
 
     @torch.inference_mode()
-    def process(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
+    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):
         with torch.cuda.stream(self.stream):
 
             if self.frame0 is None:

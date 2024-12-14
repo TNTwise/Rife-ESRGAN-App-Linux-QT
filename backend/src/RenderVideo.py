@@ -166,7 +166,7 @@ class Render(FFMpegRender):
                     break
 
                 if self.interpolateModel:
-                    self.interpolateOption.process(
+                    self.interpolateOption(
                         img1=frame,
                         writeQueue=self.writeQueue,
                         transition=self.sceneDetect.detect(frame),
@@ -256,6 +256,7 @@ class Render(FFMpegRender):
                 width=self.width,
                 height=self.height,
                 max_timestep=self.maxTimestep,
+                interpolateFactor=self.ceilInterpolateFactor,
             )
             self.doEncodingOnFrame = False
 
