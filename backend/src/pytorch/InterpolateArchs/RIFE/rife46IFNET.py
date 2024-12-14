@@ -120,18 +120,18 @@ class IFNet(nn.Module):
     def __init__(
         self,
         scale=1.0,
-        ensemble=False,
+        ensemble=True,
         dtype=torch.float32,
         device="cuda",
         width=1920,
         height=1080,
-        rife_trt_mode="fast",
     ):
         super(IFNet, self).__init__()
         self.block0 = IFBlock(7, c=192)
         self.block1 = IFBlock(8 + 4, c=128)
         self.block2 = IFBlock(8 + 4, c=96)
         self.block3 = IFBlock(8 + 4, c=64)
+        scale = scale
         self.scale_list = [8 / scale, 4 / scale, 2 / scale, 1 / scale]
         self.ensemble = ensemble
         self.dtype = dtype
@@ -139,18 +139,12 @@ class IFNet(nn.Module):
         self.width = width
         self.height = height
         self.block = [self.block0, self.block1, self.block2, self.block3]
-        if rife_trt_mode == "fast":
-            from .warplayer import warp
-        elif rife_trt_mode == "accurate":
-            try:
-                from .custom_warplayer import warp
-            except:
-                from .warplayer import warp
-        else:
-            raise ValueError("rife_trt_mode must be 'fast' or 'accurate'")
+        from .warplayer import warp
         self.warp = warp
 
-    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid):
+    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, scale=None):
+        if scale is not None:
+            self.scale_list = [8 / scale, 4 / scale, 2 / scale, 1 / scale]
         warped_img0 = img0
         warped_img1 = img1
         flow = None
@@ -201,5 +195,5 @@ class IFNet(nn.Module):
 
         temp = torch.sigmoid(latest_mask)
         frame = warped_img0 * temp + warped_img1 * (1 - temp)
-        frame = frame[:, :, : self.height, : self.width][0]
-        return frame.permute(1, 2, 0).mul(255)
+        frame = frame[:, :, : self.height, : self.width]
+        return frame
