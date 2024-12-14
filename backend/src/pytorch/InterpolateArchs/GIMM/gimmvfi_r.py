@@ -393,7 +393,7 @@ class GIMMVFI_R(nn.Module):
 
         return imgt_pred[
                 :, :, : self.height, : self.width
-            ][0].mul(255.0).permute(1, 2, 0)
+            ]
         
 
     def warp_frame(self, frame, flow):
