@@ -306,6 +306,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.ensemble = ensemble
         self.dynamicScaledOpticalFlow = dynamicScaledOpticalFlow
         self.UHDMode = UHDMode
+        self.CompareNet = None
         if UHDMode:
             self.scale = 0.5
         self._load()
