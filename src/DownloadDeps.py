@@ -62,7 +62,7 @@ class DownloadDependencies:
 
     def __init__(self):
         if PLATFORM == "win32":
-            self.__torchVersion = "dev20241213"
+            self.__torchVersion = "dev20241214"
         elif PLATFORM == "linux":
             self.__torchVersion = "dev20241214"
 
