@@ -103,6 +103,10 @@ class BaseInterpolate(metaclass=ABCMeta):
     def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
         """Perform processing"""
 
+    def initLog(self):
+        printAndLog("Using device: " + str(self.device))
+        printAndLog("Using dtype: " + str(self.dtype))
+
     @torch.inference_mode()
     def norm(self, frame: torch.Tensor):
         return (
@@ -148,17 +152,21 @@ class InterpolateGIMMTorch(BaseInterpolate):
         dtype: str = "auto",
         backend: str = "pytorch",
         UHDMode: bool = False,
+        ensemble: bool = False,
+        dynamicScaledOpticalFlow: bool = False,
         *args,
         **kwargs,
     ):
-        
-        printAndLog("Using device: " + str(device))
-
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
         self.device = self.handleDevice(device)
         self.dtype = self.handlePrecision(dtype)
+        if ensemble:
+            print("Ensemble is not implemented for GIMM, disabling", file=sys.stderr)
+        if dynamicScaledOpticalFlow:
+            print("Dynamic Scaled Optical Flow is not implemented for GIMM, disabling",file=sys.stderr)        
+        
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         self.frame0 = None
@@ -166,7 +174,7 @@ class InterpolateGIMMTorch(BaseInterpolate):
         if UHDMode:
             self.scale = 0.25 # GIMM uses fat amounts of vram, needs really low flow resolution for UHD
         self.doEncodingOnFrame = False
-        
+        self.initLog()
         self._load()
 
     @torch.inference_mode()
@@ -285,8 +293,6 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        
-
         self.frame0 = None
         self.interpolateModel = modelPath
         self.width = width
@@ -409,13 +415,14 @@ class InterpolateRifeTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        printAndLog("Using device: " + str(device))
+        
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
 
         self.device:torch.device = self.handleDevice(device)
         self.dtype = self.handlePrecision(dtype)
+        self.initLog()
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         self.dynamicScaledOpticalFlow = dynamicScaledOpticalFlow
