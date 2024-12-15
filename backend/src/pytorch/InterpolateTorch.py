@@ -90,13 +90,13 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @torch.inference_mode()
     def dynamicScaleCalculation(self,frame1):
-        closest_value = None
+        scale = None
         if self.CompareNet is not None: # when there is dynamic optical flow scaling enabled.
             ssim:torch.Tensor = self.CompareNet(self.frame0, frame1)
-            possible_values = {0.25:1.5, 0.5:1.25, 1.0:1.0} # closest_value:representative_scale
+            possible_values = {0.25:0.25, 0.37:0.5, 0.5:1.0, 0.69:1.5, 1.0:2.0} # closest_value:representative_scale
             closest_value = min(possible_values, key=lambda v: abs(ssim.item() - v))
-            closest_value = possible_values[closest_value]
-        return closest_value
+            scale = possible_values[closest_value]
+        return scale
 
     @abstractmethod
     @torch.inference_mode()
