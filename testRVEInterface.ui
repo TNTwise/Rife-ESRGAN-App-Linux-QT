@@ -2590,8 +2590,8 @@ QTabWidget::pane { /* The tab widget frame */
                              <widget class="QDoubleSpinBox" name="scene_change_detection_threshold">
                               <property name="minimumSize">
                                <size>
-                                <width>51</width>
-                                <height>0</height>
+                                <width>75</width>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="decimals">
