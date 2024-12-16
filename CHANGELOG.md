@@ -1,4 +1,6 @@
-in 
+# RVE 2.2.0
+### Changed
+ - Adjusted dynamic scale. 
 # RVE 2.1.5
 ### Added
  - Stopping render, instead of having to kill the entire app.
