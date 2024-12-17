@@ -1,6 +1,3 @@
-from .ui.SettingsTab import Settings
-
-
 class BuildFFMpegCommand:
     def __init__(self, encoder, quality):
         self.encoder = encoder
@@ -18,9 +15,6 @@ class BuildFFMpegCommand:
             "High": "18",
             "Very High": "15",
         }
-        settings = Settings()
-        settings.readSettings()
-        self.settings = settings.settings
 
     def buildFFmpeg(self):
         return f"-c:v {self.encoderDict[self.encoder]} -crf {self.qualityToCRF[self.quality]}"
