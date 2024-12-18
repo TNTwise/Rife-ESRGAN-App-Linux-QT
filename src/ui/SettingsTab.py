@@ -215,7 +215,7 @@ class Settings:
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
             "tensorrt_optimization_level": ("0", "1", "2", "3", "4", "5"),
-            "encoder": ("libx264", "libx265", "vp9", "av1"),
+            "encoder": ("libx264", "libx265", "vp9", "av1", "x264_vulkan (experimental)", "x264_nvenc", "x265_nvenc"),
             "preview_enabled": ("True", "False"),
             "scene_change_detection_method": (
                 "mean",

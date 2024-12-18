@@ -1,4 +1,6 @@
 # RVE 2.2.0
+### Added
+ - Hardware Encoding
 ### Changed
  - Adjusted dynamic scale. 
 # RVE 2.1.5

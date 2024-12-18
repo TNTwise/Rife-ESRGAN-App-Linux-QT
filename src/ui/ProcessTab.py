@@ -2,11 +2,11 @@ import subprocess
 import os
 from threading import Thread
 import re
+import time
 
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
 from PySide6.QtCore import Qt, QSize
-from ..BuildFFmpegCommand import BuildFFMpegCommand
 
 from .AnimationHandler import AnimationHandler
 from .QTcustom import (
@@ -218,6 +218,13 @@ class ProcessTab:
         self.tilesize = tilesize
         self.videoFrameCount = videoFrameCount
 
+        self.qualityToCRF = {
+            "Low": "28",
+            "Medium": "23",
+            "High": "18",
+            "Very High": "15",
+        }
+
         # if upscale or interpolate
         """
         Function to start the rendering process
@@ -278,10 +285,7 @@ class ProcessTab:
         self.settings = settings.settings
 
         # get built ffmpeg command
-        buildFFMpegCommand = BuildFFMpegCommand(
-            encoder=self.settings["encoder"], quality=self.settings["video_quality"]
-        )
-        self.buildFFMpegsettings = buildFFMpegCommand.buildFFmpeg()
+        
 
         # discord rpc
         if self.settings["discord_rich_presence"] == "True":
@@ -330,8 +334,10 @@ class ProcessTab:
             f"{backend}",
             "--precision",
             f"{self.settings['precision']}",
-            "--custom_encoder",
-            f"{self.buildFFMpegsettings}",
+            "--encoder_preset",
+            f"{self.settings['encoder'].replace(' (experimental)', '')}", # remove experimental from encoder
+            "--crf",
+            f"{self.qualityToCRF[self.settings['video_quality']]}",
             "--tensorrt_opt_profile",
             f"{self.settings['tensorrt_optimization_level']}",
             "--paused_file",
@@ -431,6 +437,7 @@ class ProcessTab:
                 self.currentFrame = int(
                     re.search(r"Current Frame: (\d+)", line).group(1)
                 )
+            #if any(char.isalpha() for char in line):
             textOutput.append(line)
             # self.setRenderOutputContent(textOutput)
             self.renderTextOutputList = textOutput.copy()
