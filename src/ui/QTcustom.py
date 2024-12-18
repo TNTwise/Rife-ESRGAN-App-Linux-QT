@@ -119,7 +119,7 @@ class UpdateGUIThread(QThread):
             except FileNotFoundError:
                 # print("preview not available")
                 self.latestPreviewPixmap.emit(None)
-            time.sleep(0.1)
+            time.sleep(0.2)
 
     def convert_cv_qt(self, cv_img):
         """Convert from an opencv image to QPixmap"""
