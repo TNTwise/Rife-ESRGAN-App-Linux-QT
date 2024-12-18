@@ -432,13 +432,13 @@ class ProcessTab:
                 textOutput = textOutput[:-1]
             if "FPS" in line:
                 textOutput = textOutput[
-                    :-2
+                    :-1
                 ]  # slice the list to only get the last updated data
                 self.currentFrame = int(
                     re.search(r"Current Frame: (\d+)", line).group(1)
                 )
-            #if any(char.isalpha() for char in line):
-            textOutput.append(line)
+            if any(char.isalpha() for char in line):
+                textOutput.append(line)
             # self.setRenderOutputContent(textOutput)
             self.renderTextOutputList = textOutput.copy()
             if "Time to complete render" in line:
