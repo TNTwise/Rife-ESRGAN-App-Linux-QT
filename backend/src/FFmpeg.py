@@ -81,7 +81,7 @@ class x264_nvenc(Encoder):
 class x265_nvenc(Encoder):
     preset_tag="x265_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
-    postInputSettings = "-c:v hevc_nvenc c-preset slow"
+    postInputSettings = "-c:v hevc_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
 class EncoderSettings:
