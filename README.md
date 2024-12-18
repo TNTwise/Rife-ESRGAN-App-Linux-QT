@@ -19,7 +19,6 @@
 * **[Hardware Requirements](#hardware-requirements)**
 * **[Cloning](#cloning)**
 * **[Building](#building)**
-* **[Canary build](#canary-build)**
 * **[Credits](#credits)**
   * [People](#people) 
   * [Software](#software)
@@ -67,8 +66,6 @@ git clone https://github.com/TNTwise/REAL-Video-Enhancer
 ```
 python3 build.py --build_exe
 ```
-# Canary Build:
-<strong> </strong> <a href="https://github.com/TNTwise/REAL-Video-Enhancer/releases/tag/prerelease">https://github.com/TNTwise/REAL-Video-Enhancer/releases/tag/prerelease</a>
 
 # Credits:
 ### People:
