@@ -342,10 +342,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
     def disableProcessPage(self):
-        self.processSettingsContainer.setDisabled(True)
+        for child in self.generalSettings.children():
+            child.setEnabled(False)
+        for child in self.advancedSettings.children():
+            child.setEnabled(False)
 
     def enableProcessPage(self):
-        self.processSettingsContainer.setEnabled(True)
+        for child in self.generalSettings.children():
+            child.setEnabled(True)
+        for child in self.advancedSettings.children():
+            child.setEnabled(True)
 
     def loadVideo(self, inputFile):
         videoHandler = VideoLoader(inputFile)
