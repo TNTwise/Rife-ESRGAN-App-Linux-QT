@@ -17,9 +17,6 @@
 * **[Introduction](#introduction)**
 * **[Features](#Features)**
 * **[Hardware Requirements](#hardware-requirements)**
-* **[Benchmarks](#benchmarks)**
-  * [NCNN](#rife-ncnn)
-  * [TensorRT](#rife-tensorrt-103)
 * **[Cloning](#cloning)**
 * **[Building](#building)**
 * **[Canary build](#canary-build)**
@@ -61,36 +58,6 @@
 | RAM | 8 GB | 16 GB
 | Storage | 1 GB free (NCNN install only) | 10 GB free (TensorRT install)
 | Operating System | Windows 10/11 64bit | Any modern Linux distro (Ubuntu 20.04+)
-# Benchmarks:
-
-Benchmarks done with 1920x1080 video, default settings.
-
-### RIFE NCNN
-
-
-| RX 6650 XT | |
- |--|--|
-| rife-v4.6 | 31 fps
-| rife-v4.7 - v4.9 | 28 fps
-| rife-v4.10 - v4.15 | 23 fps
-| rife-v4.16-lite | 31 fps
-
-| RTX 3080 | |
-|--|--|
-| rife-v4.6 | 81 fps
-| rife-v4.7 - v4.9 | 65 fps
-| rife-v4.10 - v4.15 | 55 fps
-| rife-v4.22 | 50 fps
-| rife-v4.22-lite | 63 fps
-
-### RIFE TensorRT 10.3
-| RTX 3080 | |
-|--|--|
-| rife-v4.6 | 270 fps
-| rife-v4.7 - v4.9 | 204 fps
-| rife-v4.10 - v4.15 | 166 fps
-| rife-v4.22 | 140 fps
-| rife-v4.22-lite | 192 fps
 
 # Cloning:
 ```
@@ -108,7 +75,7 @@ python3 build.py --build_exe
 | Person | For | Link |
 |--|--|--|
 | NevermindNilas | Some backend and reference code and working with me on many projects | https://github.com/NevermindNilas/ 
-| Styler00dollar | RIFE models (4.1-4.5, 4.7-4.12-lite), Sudo Shuffle Span and benchmarking | https://github.com/styler00dollar 
+| Styler00dollar | RIFE ncnn models (4.1-4.5, 4.7-4.12-lite), Sudo Shuffle Span and benchmarking | https://github.com/styler00dollar 
 | HolyWu | TensorRT engine generation code, inference optimizations, and RIFE jagged lines fixes | https://github.com/HolyWu/ 
 | Rick Astley | Amazing music | https://www.youtube.com/watch?v=dQw4w9WgXcQ 
 
