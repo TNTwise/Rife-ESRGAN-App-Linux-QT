@@ -1,5 +1,6 @@
 import cv2
-import re
+from abc import ABCMeta
+from dataclasses import dataclass
 import os
 import subprocess
 import queue
@@ -30,7 +31,71 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+@dataclass
+class Encoder(metaclass=ABCMeta):
+    preset_tag: str
+    preInputsettings: str
+    postInputSettings: str
 
+@dataclass
+class libx264(Encoder):
+    preset_tag="x264"
+    preInputsettings = None
+    postInputSettings = "-c:v libx264"
+
+@dataclass
+class libx265(Encoder):
+    preset_tag="x264"
+    preInputsettings = None
+    postInputSettings = "-c:v libx264"
+
+@dataclass
+class vp9(Encoder):
+    preset_tag="x264"
+    preInputsettings = None
+    postInputSettings = "-c:v libx264"
+
+@dataclass
+class av1(Encoder):
+    preset_tag="x264"
+    preInputsettings = None
+    postInputSettings = "-c:v libx264"
+
+@dataclass
+class x264_vulkan(Encoder):
+    preset_tag="x264_vulkan"
+    preInputsettings = "-init_hw_device vulkan=vkdev:0 -filter_hw_device vkdev"
+    postInputSettings = '-filter:v format=nv12,hwupload -c:v h264_vulkan'
+
+@dataclass
+class x264_nvenc(Encoder):
+    preset_tag="x264_nvenc"
+    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
+    postInputSettings = "-c:v h264_nvenc"
+
+@dataclass
+class x265_nvenc(Encoder):
+    preset_tag="x265_nvenc"
+    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
+    postInputSettings = "-c:v hevc_nvenc"
+
+class EncoderSettings:
+    def __init__(self, encoder_preset):
+        self.encoder_preset = encoder_preset
+        self.encoder:Encoder = self.getEncoder()
+    
+    def getEncoder(self) -> Encoder:
+        for encoder in Encoder.__subclasses__():
+            if encoder.preset_tag == self.encoder_preset:
+                return encoder
+
+    def getPreInputSettings(self) -> str:
+        return self.encoder.preInputsettings
+
+    def getPostInputSettings(self) -> str:
+        return self.encoder.postInputSettings
+
+   
 class FFMpegRender:
     """Args:
         inputFile (str): The path to the input file.
@@ -85,11 +150,12 @@ class FFMpegRender:
         outputFile: str,
         interpolateFactor: int = 1,
         upscaleTimes: int = 1,
-        encoder: str = "libx264",
+        custom_encoder: str = None,
+        crf: int = 18,
+        encoder_preset: str = "x264",
         pixelFormat: str = "yuv420p",
         benchmark: bool = False,
         overwrite: bool = False,
-        crf: str = "18",
         sharedMemoryID: str = None,
         channels=3,
         upscale_output_resolution: str = None,
@@ -102,7 +168,7 @@ class FFMpegRender:
         outputFile: str, The path to the output file.
         interpolateTimes: int, this sets the multiplier for the framerate when interpolating, when only upscaling this will be set to 1.
         upscaleTimes: int,
-        encoder: str, The exact name of the encoder ffmpeg will use (default=libx264)
+        custom_encoder: str, The exact name of the encoder ffmpeg will use (default=libx264)
         pixelFormat: str, The pixel format ffmpeg will use, (default=yuv420p)
         overwrite: bool, overwrite existing output file if it exists
         """
@@ -113,7 +179,11 @@ class FFMpegRender:
         self.upscaleTimes = upscaleTimes
         self.interpolateFactor = interpolateFactor
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
-        self.encoder = encoder
+
+        if custom_encoder is None: # custom_encoder overrides these presets
+            self.encoder = EncoderSettings(encoder_preset)
+
+        self.custom_encoder = custom_encoder
         self.pixelFormat = pixelFormat
         self.benchmark = benchmark
         self.overwrite = overwrite
@@ -187,7 +257,15 @@ class FFMpegRender:
         if not self.benchmark:
             # maybe i can split this so i can just use ffmpeg normally like with vspipe
             command = [
-                f"{FFMPEG_PATH}",
+                f"{FFMPEG_PATH}",]
+            
+            if self.custom_encoder is None:
+                pre_in_set = self.encoder.getPreInputSettings()
+                if pre_in_set is not None:
+                    command += pre_in_set.split()
+
+
+            command += [
                 "-f",
                 "rawvideo",
                 "-pix_fmt",
@@ -200,7 +278,6 @@ class FFMpegRender:
                 f"{multiplier}",
                 "-i",
                 "-",
-                
             ]
 
             if not self.slowmo_mode:
@@ -227,20 +304,11 @@ class FFMpegRender:
                 "-loglevel",
                 "error",
             ]
-            if self.upscale_output_resolution is not None:
-                try:
-                    w, h = self.upscale_output_resolution.split("x")
-                except Exception:
-                    print(
-                        "Invalid output resolution, please use something like 1920x1080. Exiting."
-                    )
-                    sys.exit()
-                command += [
-                    "-vf",
-                    f"scale={w}:{h}",
-                ]
-            for i in self.encoder.split():
-                command.append(i)
+            if self.custom_encoder is not None:
+                for i in self.custom_encoder.split():
+                    command.append(i)
+            else:
+                command += self.encoder.getPostInputSettings().split()
 
             command.append(
                 f"{self.outputFile}",
@@ -273,6 +341,8 @@ class FFMpegRender:
                 "null",
                 "-",
             ]
+        
+        log("FFMPEG COMMAND: " + str(command))
         return command
 
     def readinVideoFrames(self):

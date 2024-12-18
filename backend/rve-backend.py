@@ -89,8 +89,9 @@ class HandleApplication:
                 # ffmpeg settings
                 overwrite=self.args.overwrite,
                 crf=self.args.crf,
+                encoder_preset=self.args.encoder_preset,
                 benchmark=self.args.benchmark,
-                encoder=self.args.custom_encoder,
+                custom_encoder=self.args.custom_encoder,
                 # misc settingss
                 pausedFile=self.args.paused_file,
                 sceneDetectMethod=self.args.scene_detect_method,
@@ -194,9 +195,17 @@ class HandleApplication:
             default="18",
         )
         parser.add_argument(
+            "--encoder_preset",
+            help="encoder preset that sets default encoder settings useful for hardware encoders.",
+            default="x264",
+            choices=["x264", "x265", "vp9", "av1", "x264_vulkan", "x264_nvenc", "x265_nvenc"],
+            type=str,
+        )
+
+        parser.add_argument(
             "--custom_encoder",
             help="custom encoder",
-            default="-c:v libx264",
+            default=None,
             type=str,
         )
         parser.add_argument(
