@@ -26,7 +26,9 @@
 * **[Credits](#credits)**
   * [People](#people) 
   * [Software](#software)
-* **[Custom Models](#custom-models)**
+* **[Models](#models)**
+  * [Interpolate Models](#interpolate-models)
+  * [Upscale Models](#upscale-models)
 * **[FAQ](#faq)**
   * [General App Usage](#general-application-usage) 
   * [TensorRT](#tensorrt-related-questions)
@@ -132,14 +134,22 @@ python3 build.py --build_exe
 | Python Standalone Builds | Backend inference using portable python, helps when porting to different platforms. | https://github.com/indygreg/python-build-standalone |
 
 
-# Custom Models:
+# Models:
+### Interpolate Models:
+| Model | Author | Link |
+|--|--|--|
+| RIFE 4.6,4.7,4.15,4.18,4.22,4.22-lite,4.25 | Hzwer | [Practical-RIFE](https://github.com/hzwer/Practical-RIFE) 
+| GMFSS | 98mxr | [GMFSS_Fortuna](https://github.com/98mxr/GMFSS_Fortuna) 
+| GIMM | GSeanCDAT | [GIMM](https://github.com/GSeanCDAT/GIMM-VFI) 
+
+### Upscale Models:
 | Model | Author | Link |
 |--|--|--|
 | 4x-SPANkendata | Crustaceous D | [4x-SPANkendata](https://openmodeldb.info/models/4x-SPANkendata) 
 | 4x-ClearRealityV1 | Kim2091 | [4x-ClearRealityV1](https://openmodeldb.info/models/4x-ClearRealityV1) 
 | 4x-Nomos8k-SPAN series | Helaman | [4x-Nomos8k-SPAN series](https://openmodeldb.info/models/4x-Nomos8k-span-otf-strong) 
 | 2x-OpenProteus | SiroSky | [OpenProteus](https://github.com/Sirosky/Upscale-Hub/releases/tag/OpenProteus) 
-| 2x-AnimeJaNai V3 Sharp | The Database | https://github.com/the-database/mpv-upscale-2x_animejanai
+| 2x-AnimeJaNai V3 Sharp | The Database | [AnimeJanai)(https://github.com/the-database/mpv-upscale-2x_animejanai)
 
 # FAQ
 ### General Application Usage
