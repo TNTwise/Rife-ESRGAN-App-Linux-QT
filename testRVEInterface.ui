@@ -644,7 +644,7 @@ QScrollBar:horizontal{
                    <property name="currentIndex">
                     <number>0</number>
                    </property>
-                   <widget class="QWidget" name="processSettingsContainerPage1">
+                   <widget class="QWidget" name="generalSettings">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                       <horstretch>0</horstretch>
@@ -1014,7 +1014,7 @@ QScrollBar:horizontal{
                      </item>
                     </layout>
                    </widget>
-                   <widget class="QWidget" name="tab">
+                   <widget class="QWidget" name="advancedSettings">
                     <attribute name="title">
                      <string>Advanced</string>
                     </attribute>
@@ -2193,8 +2193,8 @@ QTabWidget::pane { /* The tab widget frame */
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>778</width>
-                   <height>734</height>
+                   <width>525</width>
+                   <height>357</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -3218,8 +3218,8 @@ QScrollBar:horizontal{
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>760</width>
-                      <height>380</height>
+                      <width>699</width>
+                      <height>308</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_13">

@@ -19,7 +19,6 @@ from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PA
 from ..Util import (
     currentDirectory,
     log,
-    log,
     errorAndLog,
 )
 from ..DownloadModels import DownloadModel
@@ -455,7 +454,7 @@ class ProcessTab:
         self.parent.previewLabel.clear()
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-        self.parent.processSettingsContainer.setEnabled(True)
+        self.parent.enableProcessPage()
         self.parent.startRenderButton.setVisible(True)
 
     def onRenderCompletion(self):
