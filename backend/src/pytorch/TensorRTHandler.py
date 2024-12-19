@@ -213,7 +213,8 @@ class TorchTensorRTHandler:
             )
         else:
             raise ValueError(f"Unsupported export format: {self.export_format}")
-
+        
+        torch.cuda.empty_cache()
     def load_engine(self, trt_engine_path: str) -> torch.jit.ScriptModule:
         """Loads a TensorRT engine from the specified path."""
         print(f"Loading TensorRT engine from {trt_engine_path}.", file=sys.stderr)

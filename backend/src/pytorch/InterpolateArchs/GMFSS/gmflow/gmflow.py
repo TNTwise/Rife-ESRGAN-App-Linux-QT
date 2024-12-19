@@ -8,12 +8,6 @@ from .matching import global_correlation_softmax, local_correlation_softmax
 from .transformer import FeatureFlowAttention, FeatureTransformer
 from .utils import feature_add_position, normalize_img
 
-torch.fx.wrap("feature_add_position")
-torch.fx.wrap("flow_warp")
-torch.fx.wrap("global_correlation_softmax")
-torch.fx.wrap("local_correlation_softmax")
-torch.fx.wrap("normalize_img")
-
 
 class GMFlow(nn.Module):
     def __init__(
