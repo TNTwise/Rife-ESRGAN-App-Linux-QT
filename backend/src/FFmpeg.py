@@ -449,8 +449,8 @@ class FFMpegRender:
             with subprocess.Popen(
                 self.getFFmpegWriteCommand(),
                 stdin=subprocess.PIPE,
-                stderr=sys.stderr,
-                stdout=sys.stderr,
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
                 text=True,
                 universal_newlines=True,
             ) as self.writeProcess:

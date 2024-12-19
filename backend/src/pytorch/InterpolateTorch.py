@@ -2,6 +2,8 @@ import torch
 import torch.nn.functional as F
 from abc import ABCMeta, abstractmethod
 from queue import Queue
+
+from ..utils.SSIM import SSIM
 #from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
 from .InterpolateArchs.DetectInterpolateArch import ArchDetect
 from .UpscaleTorch import UpscalePytorch
@@ -24,6 +26,18 @@ torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
 logging.basicConfig(level=logging.INFO)
 
+class DynamicScale:
+    def __init__(self, possible_values:dict, CompareNet:SSIM):
+        self.possible_values = possible_values
+        self.CompareNet = CompareNet
+    @torch.inference_mode()
+    def dynamicScaleCalculation(self,frame0, frame1):
+        ssim:torch.Tensor = self.CompareNet(frame0, frame1)
+        closest_value = min(self.possible_values, key=lambda v: abs(ssim.item() - v))
+        scale = self.possible_values[closest_value]
+        return scale
+    
+    # limit gmfss scale to 1.0 max
 
 class BaseInterpolate(metaclass=ABCMeta):
     @abstractmethod
@@ -88,15 +102,6 @@ class BaseInterpolate(metaclass=ABCMeta):
     def hotReload(self):
         self._load()
 
-    @torch.inference_mode()
-    def dynamicScaleCalculation(self,frame1):
-        scale = None
-        if self.CompareNet is not None: # when there is dynamic optical flow scaling enabled.
-            ssim:torch.Tensor = self.CompareNet(self.frame0, frame1)
-            possible_values = {0.25:0.25, 0.37:0.5, 0.5:1.0, 0.69:1.5, 1.0:2.0} # closest_value:representative_scale
-            closest_value = min(possible_values, key=lambda v: abs(ssim.item() - v))
-            scale = possible_values[closest_value]
-        return scale
 
     @abstractmethod
     @torch.inference_mode()
@@ -318,14 +323,15 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         with torch.cuda.stream(self.prepareStream): # type: ignore
             if self.dynamicScaledOpticalFlow:
                 from ..utils.SSIM import SSIM
-                self.CompareNet = SSIM()
+                compareNet = SSIM()
+                self.CompareNet = compareNet.to(device=self.device, dtype=self.dtype)
+                possible_values = {0.25:0.25, 0.5:0.5, 0.75:1.0} # closest_value:representative_scale
+                self.dynamicScale = DynamicScale(possible_values=possible_values, CompareNet=compareNet)
                 print("Dynamic Scaled Optical Flow Enabled")
                 if self.backend == "tensorrt":
                     print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
-                    self.CompareNet = None
                 if self.UHDMode:
                     print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
-                    self.CompareNet = None
             from .InterpolateArchs.GMFSS.GMFSS import GMFSS
 
             _pad = 64
@@ -374,7 +380,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 return
                 
             frame1 = self.frame_to_tensor(img1)
-            closest_value = self.dynamicScaleCalculation(frame1)
+            closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
@@ -553,17 +559,18 @@ class InterpolateRifeTorch(BaseInterpolate):
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
             
             if self.dynamicScaledOpticalFlow:
-                from ..utils.SSIM import SSIM
-                self.CompareNet = SSIM()
-                print("Dynamic Scaled Optical Flow Enabled")
                 if self.backend == "tensorrt":
                     print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
-                    self.CompareNet = None
                 
-                if self.UHDMode:
+                elif self.UHDMode:
                     print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
-                    self.CompareNet = None
-            
+                else:
+                    from ..utils.SSIM import SSIM
+                    CompareNet = SSIM().to(device=self.device, dtype=self.dtype)
+                    possible_values = {0.25:0.25, 0.37:0.5, 0.5:1.0, 0.69:1.5, 1.0:2.0} # closest_value:representative_scale
+                    self.dynamicScale = DynamicScale(possible_values=possible_values, CompareNet=CompareNet)
+                    print("Dynamic Scaled Optical Flow Enabled")
+
             if self.backend == "tensorrt":
                 from .TensorRTHandler import TorchTensorRTHandler
 
@@ -722,7 +729,7 @@ class InterpolateRifeTorch(BaseInterpolate):
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
             
-            closest_value = self.dynamicScaleCalculation(frame1)
+            closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
