@@ -356,6 +356,8 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 width=self.width,
                 height=self.height,
                 ensemble=self.ensemble,
+                dtype=self.dtype,
+                device=self.device,
             )
             
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
@@ -372,15 +374,18 @@ class InterpolateGMFSSTorch(BaseInterpolate):
 
     @torch.inference_mode()
     def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):  # type: ignore
+        if self.frame0 is None:
+            self.frame0 = self.frame_to_tensor(img1)
+            self.stream.synchronize()
+            return
+        frame1 = self.frame_to_tensor(img1)
         with torch.cuda.stream(self.stream):  # type: ignore
 
-            if self.frame0 is None:
-                self.frame0 = self.frame_to_tensor(img1)
-                self.stream.synchronize()
-                return
-                
-            frame1 = self.frame_to_tensor(img1)
-            closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+            if self.dynamicScaledOpticalFlow:
+                closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+            else:
+                closest_value = None
+
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
@@ -729,7 +734,10 @@ class InterpolateRifeTorch(BaseInterpolate):
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
             
-            closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+            if self.dynamicScaledOpticalFlow:
+                closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+            else:
+                closest_value = None
             for n in range(self.ceilInterpolateFactor-1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)

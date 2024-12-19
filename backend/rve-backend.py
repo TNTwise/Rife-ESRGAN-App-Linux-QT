@@ -197,7 +197,7 @@ class HandleApplication:
         parser.add_argument(
             "--encoder_preset",
             help="encoder preset that sets default encoder settings useful for hardware encoders.",
-            default="libxx264",
+            default="libx264",
             choices=["libx264", "libx265", "vp9", "av1", "x264_vulkan", "x264_nvenc", "x265_nvenc"],
             type=str,
         )
