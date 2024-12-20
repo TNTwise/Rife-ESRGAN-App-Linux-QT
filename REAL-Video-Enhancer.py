@@ -1,6 +1,5 @@
 import sys
 import os
-from threading import Thread
 
 # patch for macos
 if sys.platform == "darwin":
@@ -284,7 +283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             isInterpolate
         )
         self.interpolateContainer_2.setVisible(
-            isInterpolate   
+            isInterpolate
         )
           # set interpolation container visible if interpolate model is not none
         self.upscaleContainer.setVisible(
@@ -319,7 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
-        
+
         self.processTab.run(
             inputFile=self.inputFileText.text(),
             outputPath=self.outputFileText.text(),
@@ -514,7 +513,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 def main():
     app = QApplication(sys.argv)
-
+    app.setStyle("Fusion")
     # setting the pallette
 
     app.setPalette(Palette())
