@@ -2,7 +2,10 @@
 ### Added
  - Hardware Encoding
 ### Changed
- - Adjusted dynamic scale. 
+ - Adjusted dynamic scale.
+### Fixed
+ - Win10 tooltips and pop ups.
+   
 # RVE 2.1.5
 ### Added
  - Stopping render, instead of having to kill the entire app.
