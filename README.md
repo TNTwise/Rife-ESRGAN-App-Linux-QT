@@ -58,46 +58,6 @@
 | Storage | 1 GB free (NCNN install only) | 10 GB free (TensorRT install)
 | Operating System | Windows 10/11 64bit | Any modern Linux distro (Ubuntu 20.04+)
 
-# Cloning:
-```
-git clone https://github.com/TNTwise/REAL-Video-Enhancer
-```
-# Building:
-```
-python3 build.py --build_exe
-```
-
-# Credits:
-### People:
-| Person | For | Link |
-|--|--|--|
-| NevermindNilas | Some backend and reference code and working with me on many projects | https://github.com/NevermindNilas/ 
-| Styler00dollar | RIFE ncnn models (4.1-4.5, 4.7-4.12-lite), Sudo Shuffle Span and benchmarking | https://github.com/styler00dollar 
-| HolyWu | TensorRT engine generation code, inference optimizations, and RIFE jagged lines fixes | https://github.com/HolyWu/ 
-| Rick Astley | Amazing music | https://www.youtube.com/watch?v=dQw4w9WgXcQ 
-
-### Software: 
-| Software Used | For | Link|
-|--|--|--|
-| FFmpeg | Multimedia framework for handling video, audio, and other media files | https://ffmpeg.org/ 
-| PyTorch | Neural Network Inference (CUDA/ROCm/TensorRT) | https://pytorch.org/ 
-| NCNN | Neural Network Inference (Vulkan) | https://github.com/tencent/ncnn 
-| RIFE | Real-Time Intermediate Flow Estimation for Video Frame Interpolation | https://github.com/hzwer/Practical-RIFE 
-| rife-ncnn-vulkan | Video frame interpolation implementation using NCNN and Vulkan | https://github.com/nihui/rife-ncnn-vulkan 
-| rife ncnn vulkan python | Python bindings for RIFE NCNN Vulkan implementation | https://github.com/media2x/rife-ncnn-vulkan-python 
-| GMFSS | GMFlow based Anime VFI | https://github.com/98mxr/GMFSS_Fortuna
-| GIMM | Motion Modeling Realistic VFI | https://github.com/GSeanCDAT/GIMM-VFI 
-| ncnn python | Python bindings for NCNN Vulkan framework | https://pypi.org/project/ncnn 
-| Real-ESRGAN | Upscaling | https://github.com/xinntao/Real-ESRGAN 
-| SPAN | Upscaling | https://github.com/hongyuanyu/SPAN 
-| Spandrel | CUDA upscaling model architecture support | https://github.com/chaiNNer-org/spandrel 
-| cx_Freeze | Tool for creating standalone executables from Python scripts (Linux build) | https://github.com/marcelotduarte/cx_Freeze 
-| PyInstaller | Tool for creating standalone executables from Python scripts (Windows/Mac builds) | https://github.com/pyinstaller/pyinstaller
-| Feather Icons | Open source icons library | https://github.com/feathericons/feather 
-| PySceneDetect | Transition detection library for python | https://github.com/Breakthrough/PySceneDetect/
-| Python Standalone Builds | Backend inference using portable python, helps when porting to different platforms. | https://github.com/indygreg/python-build-standalone |
-
-
 # Models:
 ### Interpolate Models:
 | Model | Author | Link |
@@ -144,4 +104,46 @@ python3 build.py --build_exe
 
 # Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=tntwise/real-video-enhancer&type=Date)](https://star-history.com/#tntwise/real-video-enhancer&Date)
+
+
+
+# Cloning:
+```
+git clone https://github.com/TNTwise/REAL-Video-Enhancer
+```
+# Building:
+```
+python3 build.py --build_exe
+```
+
+# Credits:
+### People:
+| Person | For | Link |
+|--|--|--|
+| NevermindNilas | Some backend and reference code and working with me on many projects | https://github.com/NevermindNilas/ 
+| Styler00dollar | RIFE ncnn models (4.1-4.5, 4.7-4.12-lite), Sudo Shuffle Span and benchmarking | https://github.com/styler00dollar 
+| HolyWu | TensorRT engine generation code, inference optimizations, and RIFE jagged lines fixes | https://github.com/HolyWu/ 
+| Rick Astley | Amazing music | https://www.youtube.com/watch?v=dQw4w9WgXcQ 
+
+### Software: 
+| Software Used | For | Link|
+|--|--|--|
+| FFmpeg | Multimedia framework for handling video, audio, and other media files | https://ffmpeg.org/ 
+| PyTorch | Neural Network Inference (CUDA/ROCm/TensorRT) | https://pytorch.org/ 
+| NCNN | Neural Network Inference (Vulkan) | https://github.com/tencent/ncnn 
+| RIFE | Real-Time Intermediate Flow Estimation for Video Frame Interpolation | https://github.com/hzwer/Practical-RIFE 
+| rife-ncnn-vulkan | Video frame interpolation implementation using NCNN and Vulkan | https://github.com/nihui/rife-ncnn-vulkan 
+| rife ncnn vulkan python | Python bindings for RIFE NCNN Vulkan implementation | https://github.com/media2x/rife-ncnn-vulkan-python 
+| GMFSS | GMFlow based Anime VFI | https://github.com/98mxr/GMFSS_Fortuna
+| GIMM | Motion Modeling Realistic VFI | https://github.com/GSeanCDAT/GIMM-VFI 
+| ncnn python | Python bindings for NCNN Vulkan framework | https://pypi.org/project/ncnn 
+| Real-ESRGAN | Upscaling | https://github.com/xinntao/Real-ESRGAN 
+| SPAN | Upscaling | https://github.com/hongyuanyu/SPAN 
+| Spandrel | CUDA upscaling model architecture support | https://github.com/chaiNNer-org/spandrel 
+| cx_Freeze | Tool for creating standalone executables from Python scripts (Linux build) | https://github.com/marcelotduarte/cx_Freeze 
+| PyInstaller | Tool for creating standalone executables from Python scripts (Windows/Mac builds) | https://github.com/pyinstaller/pyinstaller
+| Feather Icons | Open source icons library | https://github.com/feathericons/feather 
+| PySceneDetect | Transition detection library for python | https://github.com/Breakthrough/PySceneDetect/
+| Python Standalone Builds | Backend inference using portable python, helps when porting to different platforms. | https://github.com/indygreg/python-build-standalone |
+
 
