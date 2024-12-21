@@ -333,7 +333,7 @@ class ProcessTab:
             f"{backend}",
             "--precision",
             f"{self.settings['precision']}",
-            "--encoder_preset",
+            "--video_encoder_preset",
             f"{self.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}", # remove experimental from encoder
             "--crf",
             f"{self.qualityToCRF[self.settings['video_quality']]}",
