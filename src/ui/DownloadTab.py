@@ -8,6 +8,7 @@ from ..ModelHandler import (
     ncnnUpscaleModels,
     pytorchUpscaleModels,
 )
+from ..constants import MODELS_PATH
 
 
 def downloadModelsBasedOnInstalledBackend(installed_backends: list):
@@ -16,30 +17,28 @@ def downloadModelsBasedOnInstalledBackend(installed_backends: list):
             match backend:
                 case "ncnn":
                     for model in ncnnInterpolateModels:
-                        DownloadModel(model, ncnnInterpolateModels[model][1], "ncnn")
+                        DownloadModel(model, ncnnInterpolateModels[model][1], MODELS_PATH)
                     for model in ncnnUpscaleModels:
-                        DownloadModel(model, ncnnUpscaleModels[model][1], "ncnn")
+                        DownloadModel(model, ncnnUpscaleModels[model][1], MODELS_PATH)
                 case "pytorch":  # no need for tensorrt as it uses pytorch models
                     for model in pytorchInterpolateModels:
                         DownloadModel(
-                            model, pytorchInterpolateModels[model][1], "pytorch"
+                            model, pytorchInterpolateModels[model][1], MODELS_PATH
                         )
                     for model in pytorchUpscaleModels:
-                        DownloadModel(model, pytorchUpscaleModels[model][1], "pytorch")
-        """case "directml":
-            for model in onnxInterpolateModels:
-                DownloadModel(model, onnxInterpolateModels[model][1], "onnx")
-            for model in onnxUpscaleModels:
-                DownloadModel(model, onnxUpscaleModels[model][1], "onnx")"""
+                        DownloadModel(model, pytorchUpscaleModels[model][1], MODELS_PATH)
+
 
 
 class DownloadTab:
     def __init__(
         self,
         parent: QMainWindow,
+        backends: list,
     ):
         self.parent = parent
         self.downloadDeps = DownloadDependencies()
+        self.backends = backends
         self.QButtonConnect()
 
     def QButtonConnect(self):
@@ -60,6 +59,9 @@ class DownloadTab:
             lambda: downloadModelsBasedOnInstalledBackend(
                 ["ncnn", "pytorch", "tensorrt", "directml"]
             )
+        )
+        self.parent.downloadSomeModelsBasedOnInstalledBackendbtn.clicked.connect(
+            lambda: downloadModelsBasedOnInstalledBackend(self.backends)
         )
         self.parent.uninstallNCNNBtn.clicked.connect(
             lambda: self.download("ncnn", False)
