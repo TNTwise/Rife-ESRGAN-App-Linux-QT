@@ -32,69 +32,64 @@ def convertTime(remaining_time):
     return hours, minutes, seconds
 
 
+   
 @dataclass
 class Encoder(ABC):
-    preset_tag: str
-
-class AudioEncoder(Encoder):
-    bitrate: str
-
-class VideoEncoder(metaclass=ABCMeta):
     preset_tag: str
     preInputsettings: str
     postInputSettings: str
     qualityControlMode: str = "-crf"
 
-class aac(AudioEncoder):
+class aac(Encoder):
     preset_tag = "aac"
     preInputsettings = None
     postInputSettings = "aac"
 
-class libmp3lame(AudioEncoder):
+class libmp3lame(Encoder):
     preset_tag = "libmp3lame"
     preInputsettings = None
     postInputSettings = "libmp3lame"
 
-class libx264(VideoEncoder):
+class libx264(Encoder):
     preset_tag="libx264"
-    preInputsettings = None
-    postInputSettings = "libx264"
-
-class libx265(VideoEncoder):
-    preset_tag="libx265"
     preInputsettings = None
     postInputSettings = "-c:v libx264"
 
-class vp9(VideoEncoder):
+class libx265(Encoder):
+    preset_tag="libx265"
+    preInputsettings = None
+    postInputSettings = "-c:v libx265"
+
+class vp9(Encoder):
     preset_tag="vp9"
     preInputsettings = None
     postInputSettings = "-c:v libvpx-vp9"
     qualityControlMode: str = "-cq:v"
 
-class av1(VideoEncoder):
+class av1(Encoder):
     preset_tag="av1"
     preInputsettings = None
     postInputSettings = "-c:v libsvtav1"
 
-class x264_vulkan(VideoEncoder):
+class x264_vulkan(Encoder):
     preset_tag="x264_vulkan"
     preInputsettings = "-init_hw_device vulkan=vkdev:0 -filter_hw_device vkdev"
     postInputSettings = '-filter:v format=nv12,hwupload -c:v h264_vulkan'
     # qualityControlMode: str = "-quality" # this is not implemented very well, quality ranges from 0-4 with little difference, so quality changing is disabled.
 
-class x264_nvenc(VideoEncoder):
+class x264_nvenc(Encoder):
     preset_tag="x264_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v h264_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
-class x265_nvenc(VideoEncoder):
+class x265_nvenc(Encoder):
     preset_tag="x265_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v hevc_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
-class av1_nvenc(VideoEncoder):
+class av1_nvenc(Encoder):
     preset_tag="av1_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v av1_nvenc -preset slow"
@@ -119,6 +114,8 @@ class EncoderSettings:
     def getQualityControlMode(self) -> str:
         return self.encoder.qualityControlMode
 
+    def getPresetTag(self) -> str:
+        return self.encoder.preset_tag
 
 
    
@@ -469,31 +466,31 @@ class FFMpegRender:
         self.framesRendered: int = 1
         self.last_length: int = 0
         try:
-            
-            with subprocess.Popen(
-                self.getFFmpegWriteCommand(),
-                stdin=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                text=True,
-                universal_newlines=True,
-            ) as self.writeProcess:
-                while True:
-                    frame = self.writeQueue.get()
-                    if frame is None:
-                        break
-                    self.previewFrame = frame
+            with open (FFMPEG_LOG_FILE, "w") as f:  
+                with subprocess.Popen(
+                    self.getFFmpegWriteCommand(),
+                    stdin=subprocess.PIPE,
+                    stderr=f,
+                    stdout=f,
+                    text=True,
+                    universal_newlines=True,
+                ) as self.writeProcess:
+                    while True:
+                        frame = self.writeQueue.get()
+                        if frame is None:
+                            break
+                        self.previewFrame = frame
 
-                    self.writeProcess.stdin.buffer.write(frame)
-                    self.framesRendered += 1
+                        self.writeProcess.stdin.buffer.write(frame)
+                        self.framesRendered += 1
 
-                self.writeProcess.stdin.close()
-                self.writeProcess.wait()
+                    self.writeProcess.stdin.close()
+                    self.writeProcess.wait()
 
-                renderTime = time.time() - self.startTime
-                self.writingDone = True
+                    renderTime = time.time() - self.startTime
+                    self.writingDone = True
 
-                printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
+                    printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
             print(
                 f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos."
