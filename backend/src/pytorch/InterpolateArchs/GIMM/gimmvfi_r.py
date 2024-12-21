@@ -359,15 +359,6 @@ class GIMMVFI_R(nn.Module):
         return imgt_pred, flowt0_pred, flowt1_pred, other_pred
 
     def forward(self, img_xs, coord=None, timestep=None, iters=None, ds_factor=None):
-        def check_for_nans(tensor, name):
-            if type(tensor) == list:
-                for t in tensor:
-                    if torch.isnan(t).any():
-                        print(f"NaNs found in {name}")
-            else:
-                if torch.isnan(tensor).any():
-                    print(f"NaNs found in {name}")
-
         indtype = img_xs.dtype
         indevice = img_xs.device
 
@@ -381,8 +372,6 @@ class GIMMVFI_R(nn.Module):
                 ],
                 dim=2,
             ).to(dtype=indtype, device=indevice)
-            #check_for_nan(img_xs, "img_xs after resizing")
-
         iters = self.raft_iter if iters is None else iters
         (
             normal_flows,
@@ -395,20 +384,10 @@ class GIMMVFI_R(nn.Module):
         ) = self.cal_bidirection_flow(
             255 * img_xs[:, :, 0], 255 * img_xs[:, :, 1], iters=iters
         )
-        #check_for_nan(normal_flows, "normal_flows")
-        #check_for_nan(flows, "flows")
-        #check_for_nan(flow_scalers, "flow_scalers")
-        #check_for_nan(features0, "features0")
-        #check_for_nan(features1, "features1")
 
         # List of flows
         normal_inr_flows = self.predict_flow(normal_flows, coord, timestep, flows)
-        #check_for_nan(normal_inr_flows, "normal_inr_flows")
-
-        ############ Unnormalize the predicted/reconstructed flow ############
-
         cur_flow_t = unnormalize_flow(normal_inr_flows, flow_scalers).squeeze()
-        #check_for_nan(cur_flow_t, "cur_flow_t")
 
         if cur_flow_t.ndim != 4:
             cur_flow_t = cur_flow_t.unsqueeze(0)
@@ -423,9 +402,7 @@ class GIMMVFI_R(nn.Module):
             timestep,
             full_img=full_size_img,
         )
-        #check_for_nan(imgt_pred, "imgt_pred")
-        #check_for_nan(flowt0_pred, "flowt0_pred")
-        #check_for_nan(flowt1_pred, "flowt1_pred")
+
 
         return imgt_pred[:, :, : self.height, : self.width]
 
