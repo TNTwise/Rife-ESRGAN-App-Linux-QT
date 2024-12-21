@@ -3,6 +3,7 @@
  - Hardware Encoding
 ### Changed
  - Adjusted dynamic scale.
+ - Transcodes audio by default, to fix potential audio copying issues.
 ### Fixed
  - Win10 tooltips and pop ups.
    
