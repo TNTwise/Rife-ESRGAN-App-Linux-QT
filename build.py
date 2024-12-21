@@ -138,7 +138,7 @@ def build_executable():
 def copy_backend():
     print("Copying backend")
     if getPlatform() == "win32":
-        os.system("cp -r backend dist/REAL-Video-Enhancer/")
+        os.system('xcopy "./backend" "./dist/REAL-Video-Enhancer/" /E /I')
     if getPlatform() == "linux":
         os.system("cp -r backend bin/")
 
