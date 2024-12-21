@@ -1,5 +1,5 @@
 import cv2
-from abc import ABCMeta
+from abc import ABCMeta, ABC
 from dataclasses import dataclass
 import os
 import subprocess
@@ -31,60 +31,71 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+
 @dataclass
+class Encoder(ABC):
+    preset_tag: str
+
+class AudioEncoder(Encoder):
+    bitrate: str
+
 class VideoEncoder(metaclass=ABCMeta):
     preset_tag: str
     preInputsettings: str
     postInputSettings: str
     qualityControlMode: str = "-crf"
 
-@dataclass
+class aac(AudioEncoder):
+    preset_tag = "aac"
+    preInputsettings = None
+    postInputSettings = "aac"
+    bitrate = "192k"
+
+class libmp3lame(AudioEncoder):
+    preset_tag = "libmp3lame"
+    preInputsettings = None
+    postInputSettings = "libmp3lame"
+    bitrate = "192k"
+
 class libx264(VideoEncoder):
     preset_tag="libx264"
     preInputsettings = None
-    postInputSettings = "-c:v libx264"
+    postInputSettings = "libx264"
 
-@dataclass
 class libx265(VideoEncoder):
     preset_tag="libx265"
     preInputsettings = None
     postInputSettings = "-c:v libx264"
 
-@dataclass
 class vp9(VideoEncoder):
     preset_tag="vp9"
     preInputsettings = None
     postInputSettings = "-c:v libvpx-vp9"
     qualityControlMode: str = "-cq:v"
 
-@dataclass
 class av1(VideoEncoder):
     preset_tag="av1"
     preInputsettings = None
     postInputSettings = "-c:v libsvtav1"
 
-@dataclass
 class x264_vulkan(VideoEncoder):
     preset_tag="x264_vulkan"
     preInputsettings = "-init_hw_device vulkan=vkdev:0 -filter_hw_device vkdev"
     postInputSettings = '-filter:v format=nv12,hwupload -c:v h264_vulkan'
     # qualityControlMode: str = "-quality" # this is not implemented very well, quality ranges from 0-4 with little difference, so quality changing is disabled.
 
-@dataclass
 class x264_nvenc(VideoEncoder):
     preset_tag="x264_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v h264_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
-@dataclass
 class x265_nvenc(VideoEncoder):
     preset_tag="x265_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v hevc_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
-@dataclass
 class av1_nvenc(VideoEncoder):
     preset_tag="av1_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
@@ -94,21 +105,24 @@ class av1_nvenc(VideoEncoder):
 class EncoderSettings:
     def __init__(self, encoder_preset):
         self.encoder_preset = encoder_preset
-        self.video_encoder:VideoEncoder = self.getEncoder()
+        self.encoder:Encoder = self.getEncoder()
     
-    def getEncoder(self) -> VideoEncoder:
-        for encoder in VideoEncoder.__subclasses__():
+    def getEncoder(self) -> Encoder:
+        for encoder in Encoder.__subclasses__():
             if encoder.preset_tag == self.encoder_preset:
                 return encoder
 
     def getPreInputSettings(self) -> str:
-        return self.video_encoder.preInputsettings
+        return self.encoder.preInputsettings
 
     def getPostInputSettings(self) -> str:
-        return self.video_encoder.postInputSettings
+        return self.encoder.postInputSettings
     
     def getQualityControlMode(self) -> str:
-        return self.video_encoder.qualityControlMode
+        return self.encoder.qualityControlMode
+
+    def getBitrate(self) -> str:
+        return self.encoder.bitrate
 
    
 class FFMpegRender:
@@ -167,7 +181,8 @@ class FFMpegRender:
         upscaleTimes: int = 1,
         custom_encoder: str = None,
         crf: int = 18,
-        encoder_preset: str = "x264",
+        video_encoder_preset: str = "x264",
+        audio_encoder_preset: str = "aac",
         pixelFormat: str = "yuv420p",
         benchmark: bool = False,
         overwrite: bool = False,
@@ -196,7 +211,8 @@ class FFMpegRender:
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
 
         if custom_encoder is None: # custom_encoder overrides these presets
-            self.encoder = EncoderSettings(encoder_preset)
+            self.video_encoder = EncoderSettings(video_encoder_preset)
+            self.audio_encoder = EncoderSettings(audio_encoder_preset)
 
         self.custom_encoder = custom_encoder
         self.pixelFormat = pixelFormat
@@ -275,7 +291,7 @@ class FFMpegRender:
                 f"{FFMPEG_PATH}",]
             
             if self.custom_encoder is None:
-                pre_in_set = self.encoder.getPreInputSettings()
+                pre_in_set = self.video_encoder.getPreInputSettings()
                 if pre_in_set is not None:
                     command += pre_in_set.split()
 
@@ -312,7 +328,9 @@ class FFMpegRender:
                 "-pix_fmt",
                 self.pixelFormat,
                 "-c:a",
-                "copy",
+                self.audio_encoder.getPostInputSettings(),
+                "-b:a",
+                self.audio_encoder.getBitrate(),
                 "-c:s",
                 "copy",
                 "-loglevel",
@@ -322,8 +340,8 @@ class FFMpegRender:
                 for i in self.custom_encoder.split():
                     command.append(i)
             else:
-                command += self.encoder.getPostInputSettings().split()
-                command += [self.encoder.getQualityControlMode(), str(self.crf)]
+                command += self.video_encoder.getPostInputSettings().split()
+                command += [self.video_encoder.getQualityControlMode(), str(self.crf)]
 
             command.append(
                 f"{self.outputFile}",

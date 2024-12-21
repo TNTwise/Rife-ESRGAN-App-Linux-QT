@@ -89,7 +89,8 @@ class HandleApplication:
                 # ffmpeg settings
                 overwrite=self.args.overwrite,
                 crf=self.args.crf,
-                encoder_preset=self.args.encoder_preset,
+                video_encoder_preset=self.args.video_encoder_preset,
+                audio_encoder_preset=self.args.audio_encoder_preset,
                 benchmark=self.args.benchmark,
                 custom_encoder=self.args.custom_encoder,
                 # misc settingss
@@ -195,11 +196,25 @@ class HandleApplication:
             default="18",
         )
         parser.add_argument(
-            "--encoder_preset",
+            "--video_encoder_preset",
             help="encoder preset that sets default encoder settings useful for hardware encoders.",
             default="libx264",
             choices=["libx264", "libx265", "vp9", "av1", "x264_vulkan", "x264_nvenc", "x265_nvenc"],
             type=str,
+        )
+
+        parser.add_argument(
+            "--audio_encoder_preset",
+            help="encoder preset that sets default encoder settings",
+            default="aac",
+            choices=["aac", "libmp3lame"],
+            type=str,
+        )
+        parser.add_argument(
+            "--audio_bitrate",
+            help="bitrate for audio",
+            default=192,
+            type=int,
         )
 
         parser.add_argument(
