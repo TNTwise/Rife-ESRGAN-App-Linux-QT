@@ -54,6 +54,7 @@ class Render(FFMpegRender):
         crf: str = "18",
         video_encoder_preset: str = "x264",
         audio_encoder_preset: str = "aac",
+        audio_bitrate: str = "192k",
         # misc
         pausedFile=None,
         sceneDetectMethod: str = "pyscenedetect",
@@ -123,6 +124,7 @@ class Render(FFMpegRender):
             crf=crf,
             video_encoder_preset=video_encoder_preset,
             audio_encoder_preset=audio_encoder_preset,
+            audio_bitrate=audio_bitrate,
             sharedMemoryID=sharedMemoryID,
             channels=3,
             upscale_output_resolution=upscale_output_resolution,
