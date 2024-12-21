@@ -334,7 +334,7 @@ class ProcessTab:
             "--precision",
             f"{self.settings['precision']}",
             "--encoder_preset",
-            f"{self.settings['encoder'].replace(' (experimental)', '')}", # remove experimental from encoder
+            f"{self.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}", # remove experimental from encoder
             "--crf",
             f"{self.qualityToCRF[self.settings['video_quality']]}",
             "--tensorrt_opt_profile",
