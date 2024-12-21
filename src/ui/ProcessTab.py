@@ -337,6 +337,8 @@ class ProcessTab:
             f"{self.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}", # remove experimental from encoder
             "--audio_encoder_preset",
             f"{self.settings['audio_encoder']}"
+            "--audio_bitrate",
+            f"{self.settings['audio_bitrate']}"
             "--crf",
             f"{self.qualityToCRF[self.settings['video_quality']]}",
             "--tensorrt_opt_profile",

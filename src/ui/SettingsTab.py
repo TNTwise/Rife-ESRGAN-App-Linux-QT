@@ -70,6 +70,11 @@ class SettingsTab:
                 "audio_encoder", self.parent.audio_encoder.currentText()
             )
         )
+        self.parent.audio_bitrate.currentIndexChanged.connect(
+            lambda: self.settings.writeSetting(
+                "audio_bitrate", self.parent.audio_bitrate.currentText()
+            )
+        )
         self.parent.preview_enabled.stateChanged.connect(
             lambda: self.settings.writeSetting(
                 "preview_enabled",
@@ -149,6 +154,7 @@ class SettingsTab:
         )
         self.parent.encoder.setCurrentText(self.settings.settings["encoder"])
         self.parent.audio_encoder.setCurrentText(self.settings.settings["audio_encoder"])
+        self.parent.audio_bitrate.setCurrentText(self.settings.settings["audio_bitrate"])
         self.parent.preview_enabled.setChecked(
             self.settings.settings["preview_enabled"] == "True"
         )
@@ -208,6 +214,7 @@ class Settings:
             "tensorrt_optimization_level": "3",
             "encoder": "libx264",
             "audio_encoder": "aac",
+            "audio_bitrate": "192k",
             "preview_enabled": "True",
             "scene_change_detection_method": "pyscenedetect",
             "scene_change_detection_enabled": "True",
@@ -224,6 +231,7 @@ class Settings:
             "tensorrt_optimization_level": ("0", "1", "2", "3", "4", "5"),
             "encoder": ("libx264", "libx265", "vp9", "av1", "x264_vulkan (experimental)", "x264_nvenc", "x265_nvenc", "av1_nvenc (40 series and up)"),
             "audio_encoder": ("aac", "libmp3lame"),
+            "audio_bitrate": ("320k","192k","128k","96k"),
             "preview_enabled": ("True", "False"),
             "scene_change_detection_method": (
                 "mean",
