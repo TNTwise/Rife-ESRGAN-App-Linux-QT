@@ -32,76 +32,83 @@ def convertTime(remaining_time):
     return hours, minutes, seconds
 
 @dataclass
-class Encoder(metaclass=ABCMeta):
+class VideoEncoder(metaclass=ABCMeta):
     preset_tag: str
     preInputsettings: str
     postInputSettings: str
     qualityControlMode: str = "-crf"
 
 @dataclass
-class libx264(Encoder):
+class libx264(VideoEncoder):
     preset_tag="libx264"
     preInputsettings = None
     postInputSettings = "-c:v libx264"
 
 @dataclass
-class libx265(Encoder):
+class libx265(VideoEncoder):
     preset_tag="libx265"
     preInputsettings = None
     postInputSettings = "-c:v libx264"
 
 @dataclass
-class vp9(Encoder):
+class vp9(VideoEncoder):
     preset_tag="vp9"
     preInputsettings = None
     postInputSettings = "-c:v libvpx-vp9"
     qualityControlMode: str = "-cq:v"
 
 @dataclass
-class av1(Encoder):
+class av1(VideoEncoder):
     preset_tag="av1"
     preInputsettings = None
     postInputSettings = "-c:v libsvtav1"
 
 @dataclass
-class x264_vulkan(Encoder):
+class x264_vulkan(VideoEncoder):
     preset_tag="x264_vulkan"
     preInputsettings = "-init_hw_device vulkan=vkdev:0 -filter_hw_device vkdev"
     postInputSettings = '-filter:v format=nv12,hwupload -c:v h264_vulkan'
     # qualityControlMode: str = "-quality" # this is not implemented very well, quality ranges from 0-4 with little difference, so quality changing is disabled.
 
 @dataclass
-class x264_nvenc(Encoder):
+class x264_nvenc(VideoEncoder):
     preset_tag="x264_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v h264_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
 @dataclass
-class x265_nvenc(Encoder):
+class x265_nvenc(VideoEncoder):
     preset_tag="x265_nvenc"
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v hevc_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
+@dataclass
+class av1_nvenc(VideoEncoder):
+    preset_tag="av1_nvenc"
+    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
+    postInputSettings = "-c:v av1_nvenc -preset slow"
+    qualityControlMode: str = "-cq:v"
+
 class EncoderSettings:
     def __init__(self, encoder_preset):
         self.encoder_preset = encoder_preset
-        self.encoder:Encoder = self.getEncoder()
+        self.video_encoder:VideoEncoder = self.getEncoder()
     
-    def getEncoder(self) -> Encoder:
-        for encoder in Encoder.__subclasses__():
+    def getEncoder(self) -> VideoEncoder:
+        for encoder in VideoEncoder.__subclasses__():
             if encoder.preset_tag == self.encoder_preset:
                 return encoder
 
     def getPreInputSettings(self) -> str:
-        return self.encoder.preInputsettings
+        return self.video_encoder.preInputsettings
 
     def getPostInputSettings(self) -> str:
-        return self.encoder.postInputSettings
+        return self.video_encoder.postInputSettings
     
     def getQualityControlMode(self) -> str:
-        return self.encoder.qualityControlMode
+        return self.video_encoder.qualityControlMode
 
    
 class FFMpegRender:
