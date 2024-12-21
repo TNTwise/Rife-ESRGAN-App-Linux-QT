@@ -49,13 +49,11 @@ class aac(AudioEncoder):
     preset_tag = "aac"
     preInputsettings = None
     postInputSettings = "aac"
-    bitrate = "192k"
 
 class libmp3lame(AudioEncoder):
     preset_tag = "libmp3lame"
     preInputsettings = None
     postInputSettings = "libmp3lame"
-    bitrate = "192k"
 
 class libx264(VideoEncoder):
     preset_tag="libx264"
@@ -121,8 +119,7 @@ class EncoderSettings:
     def getQualityControlMode(self) -> str:
         return self.encoder.qualityControlMode
 
-    def getBitrate(self) -> str:
-        return self.encoder.bitrate
+
 
    
 class FFMpegRender:
@@ -183,6 +180,7 @@ class FFMpegRender:
         crf: int = 18,
         video_encoder_preset: str = "x264",
         audio_encoder_preset: str = "aac",
+        audio_bitrate: str = "192k",
         pixelFormat: str = "yuv420p",
         benchmark: bool = False,
         overwrite: bool = False,
@@ -224,6 +222,7 @@ class FFMpegRender:
         self.previewFrame = None
         self.slowmo_mode = slowmo_mode
         self.crf = crf
+        self.audio_bitrate = audio_bitrate
         self.sharedMemoryID = sharedMemoryID
         self.upscale_output_resolution = upscale_output_resolution
 
@@ -330,7 +329,7 @@ class FFMpegRender:
                 "-c:a",
                 self.audio_encoder.getPostInputSettings(),
                 "-b:a",
-                self.audio_encoder.getBitrate(),
+                self.audio_bitrate,
                 "-c:s",
                 "copy",
                 "-loglevel",

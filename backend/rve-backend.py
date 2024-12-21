@@ -91,6 +91,7 @@ class HandleApplication:
                 crf=self.args.crf,
                 video_encoder_preset=self.args.video_encoder_preset,
                 audio_encoder_preset=self.args.audio_encoder_preset,
+                audio_bitrate=self.args.audio_bitrate,
                 benchmark=self.args.benchmark,
                 custom_encoder=self.args.custom_encoder,
                 # misc settingss
@@ -212,9 +213,9 @@ class HandleApplication:
         )
         parser.add_argument(
             "--audio_bitrate",
-            help="bitrate for audio",
-            default=192,
-            type=int,
+            help="bitrate for audio if preset is used",
+            default="192k",
+            type=str,
         )
 
         parser.add_argument(
