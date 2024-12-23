@@ -17,6 +17,8 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
                 "feats.1.conv_2.eval_conv.weight",
                 "feats.1.conv_cat.weight",
                 "upsampler.end_conv.weight",
+                "dynamic.kernels_weights",
+                "dynamic.attention.to_scores.0.weight",
             ),
         )
 
