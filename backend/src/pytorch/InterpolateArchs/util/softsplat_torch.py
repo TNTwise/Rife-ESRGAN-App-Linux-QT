@@ -5,12 +5,12 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
-
+grid_cache = {}
+batch_cache = {}
 ##########################################################
 
 
 @torch.inference_mode()
-@torch.jit.script
 def forward(tenIn, tenFlow):
     """
     Forward pass of the Softsplat function.
@@ -29,19 +29,23 @@ def forward(tenIn, tenFlow):
     # Initialize output tensor
     tenOut = torch.zeros_like(tenIn)
     
-    # Create meshgrid of pixel coordinates
-    gridY, gridX = torch.meshgrid(
-        torch.arange(H, device=device, dtype=origdtype),
-        torch.arange(W, device=device, dtype=origdtype),
-        indexing='ij'
-    )  # [H, W]
-    # Cache the grids
-    gridY,gridX = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
+    key = (H, W, device, origdtype)
+    if key not in grid_cache:
+        # Create meshgrid of pixel coordinates
+        gridY, gridX = torch.meshgrid(
+            torch.arange(H, device=device, dtype=origdtype),
+            torch.arange(W, device=device, dtype=origdtype),
+            indexing='ij'
+        )  # [H, W]
+        # Cache the grids
+        grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
     
 
-    batch_indices = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
-    
-        
+    if key not in batch_cache:
+        batch_cache[key] = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+
+    gridY, gridX = grid_cache[key]
+    batch_indices = batch_cache[key]
 
     # Compute fltX and fltY
     fltX = gridX + tenFlow[:, 0:1, :, :]
@@ -65,8 +69,8 @@ def forward(tenIn, tenFlow):
     batch_indices = batch_indices[finite_mask]
 
     # Compute integer positions
-    intNW_X = torch.floor(fltX_flat).to(dtype=torch.int32)
-    intNW_Y = torch.floor(fltY_flat).to(dtype=torch.int32)
+    intNW_X = torch.floor(fltX_flat).to(dtype=origdtype)
+    intNW_Y = torch.floor(fltY_flat).to(dtype=origdtype)
     intNE_X = intNW_X + 1
     intNE_Y = intNW_Y
     intSW_X = intNW_X
@@ -83,33 +87,23 @@ def forward(tenIn, tenFlow):
     # Prepare output tensor flat
     tenOut_flat = tenOut.permute(0, 2, 3, 1).reshape(-1, C)
 
-    # Define positions and weights
-    positions = [
-        (intNW_X, intNW_Y, fltNW),
-        (intNE_X, intNE_Y, fltNE),
-        (intSW_X, intSW_Y, fltSW),
-        (intSE_X, intSE_Y, fltSE),
-    ]
+    positions_all_x = torch.cat([intNW_X, intNE_X, intSW_X, intSE_X], dim=0)
+    positions_all_y = torch.cat([intNW_Y, intNE_Y, intSW_Y, intSE_Y], dim=0)
+    weights_all = torch.cat([fltNW, fltNE, fltSW, fltSE], dim=0)
+    batch_all = torch.cat([batch_indices, batch_indices, batch_indices, batch_indices], dim=0)
 
-    H, W = int(H), int(W)
+    tenIn_flat_corners = torch.cat([tenIn_flat, tenIn_flat, tenIn_flat, tenIn_flat], dim=0)
 
-    for intX, intY, weight in positions:
-        # Valid indices within image bounds
-        valid_mask = (intX >= 0) & (intX < W) & (intY >= 0) & (intY < H)
-        if not valid_mask.any():
-            continue
+    valid_mask_all = (positions_all_x >= 0) & (positions_all_x < W) & (positions_all_y >= 0) & (positions_all_y < H)
+    positions_all_x = positions_all_x[valid_mask_all]
+    positions_all_y = positions_all_y[valid_mask_all]
+    weights_all = weights_all[valid_mask_all]
+    batch_all = batch_all[valid_mask_all]
+    vals = tenIn_flat_corners[valid_mask_all] * weights_all.unsqueeze(1)
 
-        idx_b = batch_indices[valid_mask]
-        idx_x = intX[valid_mask]
-        idx_y = intY[valid_mask]
-        w = weight[valid_mask]
-        vals = tenIn_flat[valid_mask] * w.unsqueeze(1)
+    idx_nhw = batch_all.to(dtype=torch.int32) * H * W + positions_all_y.to(dtype=torch.int32) * W + positions_all_x.to(dtype=torch.int32)
 
-        # Compute linear indices
-        idx_NHW = idx_b * H * W + idx_y * W + idx_x
-
-        # Accumulate values using index_add_
-        tenOut_flat.index_add_(0, idx_NHW, vals).to(dtype=origdtype)
+    tenOut_flat.index_add_(0, idx_nhw, vals)
 
     # Reshape tenOut back to [N, C, H, W]
     tenOut = tenOut_flat.view(N, H, W, C).permute(0, 3, 1, 2)
