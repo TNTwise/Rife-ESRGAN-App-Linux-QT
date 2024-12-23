@@ -89,6 +89,6 @@ class DySample(nn.Module):
         )
 
         if self.end_convolution:
-            output = self.end_conv(output)
+            output = self.end_conv(output.to(x.dtype)).to(x.dtype)
 
-        return output
+        return output.to(x.dtype)
