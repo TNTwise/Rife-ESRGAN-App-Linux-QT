@@ -102,15 +102,15 @@ class Render(FFMpegRender):
         self.getVideoProperties(inputFile)
 
         printAndLog("Using backend: " + self.backend)
-        # upscale has to be called first to get the scale of the upscale model
-        if upscaleModel:
-            self.setupUpscale()
-
-            printAndLog("Using Upscaling Model: " + self.upscaleModel)
+        
         if interpolateModel:
             self.setupInterpolate()
-
             printAndLog("Using Interpolation Model: " + self.interpolateModel)
+
+        if upscaleModel:
+            self.setupUpscale()
+            printAndLog("Using Upscaling Model: " + self.upscaleModel)
+        
 
         super().__init__(
             inputFile=inputFile,
