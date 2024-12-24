@@ -190,11 +190,17 @@ pytorchUpscaleModels = {
         2,
         "SPAN",
     ),
-    "SPAN Spanimation (Animation) (2X) (Fast)": (
+    "SPAN Spanimation V2 (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",
         2,
         "SPAN",
+    ),
+    "SPANPlus Spanimation V3 (Animation) (2X) (Fast)": (
+        "2x_ModernSpanimationV3.pth",
+        "2x_ModernSpanimationV3.pth",
+        2,
+        "SPANPlus",
     ),
     "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak.pth",
@@ -237,12 +243,20 @@ pytorchDenoiseModels = {
 }
 
 tensorrtUpscaleModels = {
-    "SPAN Spanimation (Animation) (2X) (Fast)": (
+    "SPAN Spanimation V2 (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",
         2,
         "SPAN",
     ),
+
+    "SPANPlus Spanimation V3 (Animation) (2X) (Fast)": (
+        "2x_ModernSpanimationV3.pth",
+        "2x_ModernSpanimationV3.pth",
+        2,
+        "SPANPlus",
+    ),
+    
     "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak.pth",
         "4xNomos8k_span_otf_weak.pth",
