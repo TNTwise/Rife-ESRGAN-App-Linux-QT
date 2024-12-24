@@ -580,7 +580,7 @@ class InterpolateRifeTorch(BaseInterpolate):
                 from .TensorRTHandler import TorchTensorRTHandler
 
                 trtHandler = TorchTensorRTHandler(
-                    trt_optimization_level=self.trt_optimization_level,
+                    trt_optimization_level=self.trt_optimization_level, multi_precision_engine=True
                 )
 
                 base_trt_engine_path = os.path.join(

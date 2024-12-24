@@ -122,7 +122,7 @@ class TorchTensorRTHandler:
         )
     
     def dynamo_export(self, exported_program, example_inputs, device, dtype):
-        torch_tensorrt.dynamo.compile(
+        return torch_tensorrt.dynamo.compile(
                 exported_program,
                 tuple(self.prepare_inputs(example_inputs)),
                 device=device,
@@ -159,7 +159,7 @@ class TorchTensorRTHandler:
 
         torch.cuda.empty_cache()
 
-        #exported_program = self.grid_sample_decomp(exported_program)
+        exported_program = self.grid_sample_decomp(exported_program)
 
         if self.multi_precision_engine:
             model_trt = self.dynamo_multi_precision_export(exported_program, example_inputs, device)

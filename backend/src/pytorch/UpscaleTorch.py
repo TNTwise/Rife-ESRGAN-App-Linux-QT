@@ -132,7 +132,7 @@ class UpscalePytorch:
             if self.backend == "tensorrt":
                 from .TensorRTHandler import TorchTensorRTHandler
 
-                trtHandler = TorchTensorRTHandler(export_format="dynamo",multi_precision_engine=True)
+                trtHandler = TorchTensorRTHandler(export_format="dynamo",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
 
                 trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
@@ -149,7 +149,7 @@ class UpscalePytorch:
                             if self.trt_workspace_size > 0
                             else ""
                         )
-                        + ".ts"
+                        + ".dyn"
                     ),
                 )
 

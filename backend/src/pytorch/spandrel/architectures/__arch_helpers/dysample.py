@@ -82,7 +82,7 @@ class DySample(nn.Module):
         )
         output = (
             torch.ops.aten.grid_sampler_2d(
-                x.reshape(B * self.groups, -1, H, W).float(), coords, 0, 1, True
+                x.reshape(B * self.groups, -1, H, W).float(), coords.float(), 0, 1, True
             )
             .to(x.dtype)
             .view(B, -1, self.scale * H, self.scale * W)
