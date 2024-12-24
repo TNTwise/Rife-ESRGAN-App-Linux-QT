@@ -64,8 +64,7 @@ class Conv3XC(nn.Module):
             self.eval_conv.weight.requires_grad = False
             self.eval_conv.bias.requires_grad = False
             self.update_params()
-
-    def update_params(self):
+        
         w1 = self.conv[0].weight.data.clone().detach()
         b1 = self.conv[0].bias.data.clone().detach()
         w2 = self.conv[1].weight.data.clone().detach()
@@ -79,6 +78,7 @@ class Conv3XC(nn.Module):
             .permute(1, 0, 2, 3)
         )
         b = (w2 * b1.reshape(1, -1, 1, 1)).sum((1, 2, 3)) + b2
+        
 
         self.weight_concat = (
             F.conv2d(w.flip(2, 3).permute(1, 0, 2, 3), w3, padding=0, stride=1)
@@ -102,6 +102,8 @@ class Conv3XC(nn.Module):
 
         self.eval_conv.weight.data = self.weight_concat
         self.eval_conv.bias.data = self.bias_concat
+
+        
 
     def forward(self, x):
         if self.training:
