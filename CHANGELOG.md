@@ -1,4 +1,6 @@
-# RVE 2.2.0
+# RVE 2.2.0 pre-release
+ - NOTE: Pre-releases are unstable, please use the stable build if you experience issues. 
+         New features will be added to this release over time, the current changelog is not final. 
 ### Added
  - Hardware Encoding
 ### Changed
