@@ -25,7 +25,7 @@ class GMFSS(nn.Module):
         ensemble: bool = False,
         width: int = 1920,
         height: int = 1080,
-        trt=True,
+        trt=False,
         dtype: torch.dtype = torch.float16,
         device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     ):
