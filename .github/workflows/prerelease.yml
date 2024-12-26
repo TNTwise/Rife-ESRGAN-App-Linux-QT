@@ -56,7 +56,7 @@ jobs:
           cd pyinstaller
           python3 -m pip install wheel setuptools build
           python3 -m build .
-          python3 -m pip install dist\*.whl
+          python3 -m pip install dist\pyinstaller-6.11.1-py3-none-any.whl
           
       - name: Build
         run: python3 build.py --build_exe
