@@ -54,6 +54,7 @@ jobs:
         run: |
           git clone https://github.com/pyinstaller/pyinstaller
           cd pyinstaller
+          python3 -m pip install wheel setuptools build
           python3 -m build .
           python3 -m pip install dist\*.whl
           
