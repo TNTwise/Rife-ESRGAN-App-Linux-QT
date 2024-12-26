@@ -55,7 +55,7 @@ jobs:
           git clone https://github.com/pyinstaller/pyinstaller
           cd pyinstaller
           python3 -m build .
-          python3 -m pip install dist/*.whl
+          python3 -m pip install dist\*.whl
           
       - name: Build
         run: python3 build.py --build_exe
