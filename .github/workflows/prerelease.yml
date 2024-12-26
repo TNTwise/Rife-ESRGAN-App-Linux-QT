@@ -50,14 +50,7 @@ jobs:
         run: |
           python3 -m pip install -r requirements.txt
       
-      - name: Install PyInstaller from git
-        run: |
-          git clone https://github.com/pyinstaller/pyinstaller
-          cd pyinstaller
-          python3 -m pip install wheel setuptools build
-          python3 -m build .
-          python3 -m pip install dist\pyinstaller-6.11.1-py3-none-any.whl --force-reinstall
-          
+
       - name: Build
         run: python3 build.py --build_exe
       
