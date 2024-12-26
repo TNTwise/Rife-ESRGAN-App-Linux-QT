@@ -270,5 +270,43 @@ def checkForNCNN() -> bool:
         log(str(e))
 
 
+def get_gpus_torch():
+    """
+    Function that returns a list of available GPU names using PyTorch.
+    """
+    devices = []
+    try:
+        import torch
+        if torch.cuda.is_available():
+            for dev_index in range(torch.cuda.device_count()):
+                props = torch.cuda.get_device_properties(dev_index)
+                devices.append(props.name)
+        if not devices:
+            devices.append("CPU")
+    except ImportError as e:
+        log(str(e))
+        devices.append("CPU")
+    except Exception as e:
+        log(str(e))
+        devices.append("CPU")
+    return devices
+
+def get_gpus_ncnn():
+    devices = []
+    try:
+        import ncnn
+        gpu_count = ncnn.get_gpu_count()
+        if gpu_count < 1:
+            return "CPU"
+        for i in range(gpu_count):
+            device = ncnn.get_gpu_device(0)
+            gpu_info = device.info()  
+            devices.append(gpu_info.device_name())
+        return devices
+    except Exception as e:
+        log(str(e))
+        return "Unable to get NCNN GPU"
+
 if __name__ == "__main__":
-    print(get_pytorch_vram())
+    print(get_gpus_ncnn())
+    print(get_gpus_torch())
