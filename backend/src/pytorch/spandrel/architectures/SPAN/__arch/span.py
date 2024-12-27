@@ -3,7 +3,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Literal
 import sys
-
+global i
+i=0
 import torch
 import torch.nn.functional as F
 from torch import nn as nn
@@ -150,6 +151,45 @@ class Conv3XC(nn.Module):
         if not self.training:
             self.eval_conv.weight.requires_grad = False
             self.eval_conv.bias.requires_grad = False  # type: ignore
+            self.update_params()
+
+    def update_params(self):
+        w1 = self.conv[0].weight.data.clone().detach()
+        b1 = self.conv[0].bias.data.clone().detach()
+        w2 = self.conv[1].weight.data.clone().detach()
+        b2 = self.conv[1].bias.data.clone().detach()
+        w3 = self.conv[2].weight.data.clone().detach()
+        b3 = self.conv[2].bias.data.clone().detach()
+
+        w = (
+            F.conv2d(w1.flip(2, 3).permute(1, 0, 2, 3), w2, padding=2, stride=1)
+            .flip(2, 3)
+            .permute(1, 0, 2, 3)
+        )
+        b = (w2 * b1.reshape(1, -1, 1, 1)).sum((1, 2, 3)) + b2
+
+        self.weight_concat = (
+            F.conv2d(w.flip(2, 3).permute(1, 0, 2, 3), w3, padding=0, stride=1)
+            .flip(2, 3)
+            .permute(1, 0, 2, 3)
+        )
+        self.bias_concat = (w3 * b.reshape(1, -1, 1, 1)).sum((1, 2, 3)) + b3
+
+        sk_w = self.sk.weight.data.clone().detach()
+        sk_b = self.sk.bias.data.clone().detach()  # type: ignore
+        target_kernel_size = 3
+
+        H_pixels_to_pad = (target_kernel_size - 1) // 2
+        W_pixels_to_pad = (target_kernel_size - 1) // 2
+        sk_w = F.pad(
+            sk_w, [H_pixels_to_pad, H_pixels_to_pad, W_pixels_to_pad, W_pixels_to_pad]
+        )
+
+        self.weight_concat = self.weight_concat + sk_w
+        self.bias_concat = self.bias_concat + sk_b
+
+        self.eval_conv.weight.data = self.weight_concat.contiguous()
+        self.eval_conv.bias.data = self.bias_concat.contiguous()  # type: ignore
 
     def forward(self, x):
         out = self.eval_conv(x)
