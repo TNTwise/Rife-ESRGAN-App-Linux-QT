@@ -68,7 +68,7 @@ class TorchTensorRTHandler:
         debug (bool): Whether to enable debugging when compiling models using TensorRT. Defaults to False.
         static_shape (bool): Whether to use static shape when compiling models using TensorRT. Defaults
 
-        dynamo_export_format (str): nn2exportedprogram or torchscript2exportedprogram, torchscript2exportedprogram uses torchscript as an intermediatory as some issues occur when using dynamo with torch.export.export
+        dynamo_export_format (str): nn2exportedprogram, torchscript2exportedprogram or fallback, which tries nn2exportedprogram first, and then torchscrip2exportedprogram if nn2exportedprogram fails, torchscript2exportedprogram uses torchscript as an intermediatory as some issues occur when using dynamo with torch.export.export
 
         multi precision engines seem to not like torchscript2exportedprogram,
         or maybe its just the model not playing nice with explicit_typing,
@@ -154,6 +154,15 @@ class TorchTensorRTHandler:
             exported_program = nnmodule_to_dynamo(model, example_inputs)
         elif self.dynamo_export_format == "torchscript2exportedprogram":
             exported_program = torchscript_to_dynamo(model, example_inputs)
+        elif self.dynamo_export_format == "fallback":
+            try:
+                exported_program = nnmodule_to_dynamo(model, example_inputs)
+            except Exception as e:
+                print(
+                    f"Failed to export using nn2exportedprogram: {e}. Falling back to torchscript2exportedprogram...",
+                    file=sys.stderr,
+                )
+                exported_program = torchscript_to_dynamo(model, example_inputs)
         else:
             raise ValueError(f"Unsupported export format: {self.dynamo_export_format}")
 

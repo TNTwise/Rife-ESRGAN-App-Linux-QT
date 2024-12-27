@@ -3,8 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Literal
 import sys
-global i
-i=0
+
 import torch
 import torch.nn.functional as F
 from torch import nn as nn
@@ -192,6 +191,7 @@ class Conv3XC(nn.Module):
         self.eval_conv.bias.data = self.bias_concat.contiguous()  # type: ignore
 
     def forward(self, x):
+        self.update_params()
         out = self.eval_conv(x)
 
         if self.has_relu:
