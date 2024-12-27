@@ -159,7 +159,7 @@ class TorchTensorRTHandler:
                 exported_program = nnmodule_to_dynamo(model, example_inputs)
             except Exception as e:
                 print(
-                    f"Failed to export using nn2exportedprogram: {e}. Falling back to torchscript2exportedprogram...",
+                    "Failed to export using nn2exportedprogram. Falling back to torchscript2exportedprogram...",
                     file=sys.stderr,
                 )
                 exported_program = torchscript_to_dynamo(model, example_inputs)
