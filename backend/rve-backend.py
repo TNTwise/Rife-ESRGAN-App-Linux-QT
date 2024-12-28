@@ -1,6 +1,5 @@
 import argparse
 import os
-import logging
 from src.RenderVideo import Render
 
 from src.utils.Util import (
@@ -11,9 +10,9 @@ from src.utils.Util import (
     check_bfloat16_support,
     checkForDirectML,
     checkForDirectMLHalfPrecisionSupport,
-
+    get_gpus_ncnn,
+    get_gpus_torch,
 )
-
 
 class HandleApplication:
     def __init__(self):
@@ -49,18 +48,29 @@ class HandleApplication:
             availableBackends.append("pytorch (cuda)")
             printMSG += f"PyTorch Version: {torch.__version__}\n"
             half_prec_supp = check_bfloat16_support()
+            pyTorchGpus = get_gpus_torch()
+            printMSG += "PyTorch GPUS:\n"
+            for i, gpu in enumerate(pyTorchGpus):
+                printMSG += f"{i}: {gpu}\n" 
 
         if checkForPytorchROCM():
             availableBackends.append("pytorch (rocm)")
             import torch
             printMSG += f"PyTorch Version: {torch.__version__}\n"
             half_prec_supp = check_bfloat16_support()
-            
+            pyTorchGpus = get_gpus_torch()
+            printMSG += "PyTorch GPUS:\n"
+            for i, gpu in enumerate(pyTorchGpus):
+                printMSG += f"{i}: {gpu}\n" 
+    
         if checkForNCNN():
             availableBackends.append("ncnn")
+            ncnnGpus = get_gpus_ncnn()
             printMSG += f"NCNN Version: 20220729\n"
             from rife_ncnn_vulkan_python import Rife
-
+            printMSG += "NCNN GPUS:\n"
+            for i, gpu in enumerate(ncnnGpus):
+                printMSG += f"{i}: {gpu}\n"
         if checkForDirectML():
             availableBackends.append("directml")
             import onnxruntime as ort

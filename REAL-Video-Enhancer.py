@@ -127,9 +127,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             + "CPU: "
             + getCPUInfo()
             + "\n"
-            + "GPU: "
-            + get_gpu_info()
-            + "\n"
             + "RAM: "
             + getRAMAmount()
             + "\n"
