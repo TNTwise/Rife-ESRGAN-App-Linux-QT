@@ -109,7 +109,9 @@ class UpdateGUIThread(QThread):
                 image_bytes = self.shm.buf[
                     : self.outputVideoHeight * self.outputVideoWidth * 3
                 ].tobytes()
-
+                expected_size = self.outputVideoHeight * self.outputVideoWidth * 3
+                if len(image_bytes) < expected_size:
+                    image_bytes += b'\x00' * (expected_size - len(image_bytes))
                 # Convert image bytes back to numpy array
                 image_array = np.frombuffer(image_bytes, dtype=np.uint8).reshape(
                     (self.outputVideoHeight, self.outputVideoWidth, 3)

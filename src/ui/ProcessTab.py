@@ -383,6 +383,10 @@ class ProcessTab:
                 command += [
                     "--ensemble",
                 ]
+        if self.settings["auto_border_cropping"] == "True":
+            command += [
+                "--border_detect",
+            ]
 
         if self.settings["preview_enabled"] == "True":
             command += [

@@ -140,6 +140,12 @@ class SettingsTab:
                 "pytorch_gpu_id", self.parent.pytorch_gpu_id.text()
             )
         )
+        self.parent.auto_border_cropping.stateChanged.connect(
+            lambda: self.settings.writeSetting(
+                "auto_border_cropping",
+                "True" if self.parent.auto_border_cropping.isChecked() else "False",
+            )
+        )
 
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
@@ -199,6 +205,9 @@ class SettingsTab:
         )
         self.parent.ncnn_gpu_id.setValue(int(self.settings.settings["ncnn_gpu_id"]))
         self.parent.pytorch_gpu_id.setValue(int(self.settings.settings["pytorch_gpu_id"]))
+        self.parent.auto_border_cropping.setChecked(
+            self.settings.settings["auto_border_cropping"] == "True"
+        )
 
     def selectOutputFolder(self):
         outputFile = QFileDialog.getExistingDirectory(
@@ -244,6 +253,7 @@ class Settings:
             "uhd_mode": "True",
             "ncnn_gpu_id": "0",
             "pytorch_gpu_id": "0",
+            "auto_border_cropping": "False",
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
@@ -267,6 +277,7 @@ class Settings:
             "uhd_mode": ("True", "False"),
             "ncnn_gpu_id": "ANY",
             "pytorch_gpu_id": "ANY",
+            "auto_border_cropping": ("True", "False"),
         }
         self.settings = self.defaultSettings.copy()
         if not os.path.isfile(self.settingsFile):
