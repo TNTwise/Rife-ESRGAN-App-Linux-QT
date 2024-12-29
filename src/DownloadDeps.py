@@ -167,6 +167,8 @@ class DownloadDependencies:
             "pip",
             "install" if install else "uninstall",
         ]
+        origTemp = os.environ.get("TMPDIR")
+        os.environ["TMPDIR"] = TEMP_DOWNLOAD_PATH
         if install:
             command += [
                 "--no-warn-script-location",
@@ -174,8 +176,6 @@ class DownloadDependencies:
                 "https://download.pytorch.org/whl/nightly/cu126",
                 "--extra-index-url",
                 "https://pypi.nvidia.com",
-                '--cache-dir',
-                f'{TEMP_DOWNLOAD_PATH}',
             ]
         else:
             command += ["-y"]
@@ -202,6 +202,8 @@ class DownloadDependencies:
             title="Purging Cache",
             progressBarLength=1,
         )
+        if origTemp:
+            os.environ["TMPDIR"] = str(origTemp)
         removeFolder(TEMP_DOWNLOAD_PATH)
 
     def getPlatformIndependentDeps(self):
