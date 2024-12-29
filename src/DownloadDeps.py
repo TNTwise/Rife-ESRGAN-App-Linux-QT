@@ -160,6 +160,7 @@ class DownloadDependencies:
         deps: list,
         install: bool = True,
     ):  # going to have to make this into a qt module pop up
+        createDirectory(TEMP_DOWNLOAD_PATH)
         command = [
             PYTHON_PATH,
             "-m",
@@ -173,6 +174,7 @@ class DownloadDependencies:
                 "https://download.pytorch.org/whl/nightly/cu126",
                 "--extra-index-url",
                 "https://pypi.nvidia.com",
+                f'--cache-dir={TEMP_DOWNLOAD_PATH}'
             ]
         else:
             command += ["-y"]
@@ -199,6 +201,7 @@ class DownloadDependencies:
             title="Purging Cache",
             progressBarLength=1,
         )
+        removeFolder(TEMP_DOWNLOAD_PATH)
 
     def getPlatformIndependentDeps(self):
         platformIndependentdeps = [
