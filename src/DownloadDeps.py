@@ -174,7 +174,8 @@ class DownloadDependencies:
                 "https://download.pytorch.org/whl/nightly/cu126",
                 "--extra-index-url",
                 "https://pypi.nvidia.com",
-                f'--cache-dir={TEMP_DOWNLOAD_PATH}'
+                '--cache-dir',
+                f'{TEMP_DOWNLOAD_PATH}',
             ]
         else:
             command += ["-y"]
