@@ -2,6 +2,7 @@ from threading import Thread
 import os
 import math
 from time import sleep
+import sys
 
 from .FFmpeg import FFMpegRender, BorderDetect
 from .utils.SceneDetect import SceneDetect
@@ -104,7 +105,7 @@ class Render(FFMpegRender):
         # get video properties early
         self.getVideoProperties(inputFile)
         if border_detect:
-            printAndLog("Detecting borders")
+            print("Detecting borders", file=sys.stderr)
             borderDetect = BorderDetect(inputFile=self.inputFile)
             self.width, self.height, self.borderX, self.borderY = borderDetect.getBorders()
             log(f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}")
