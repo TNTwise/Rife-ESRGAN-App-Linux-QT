@@ -3,6 +3,8 @@
          New features will be added to this release over time, the current changelog is not final. 
 ### Added
  - Hardware Encoding
+ - Auto border cropping
+ - GPU ID selection
 ### Changed
  - Adjusted dynamic scale.
  - Transcodes audio by default, to fix potential audio copying issues.

@@ -315,8 +315,6 @@ class FFMpegRender:
 
         self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.readWidth = self.width 
-        self.readHeight = self.height  
         self.borderX = 0
         self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
         self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
