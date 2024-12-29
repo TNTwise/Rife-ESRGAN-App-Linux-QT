@@ -101,6 +101,7 @@ class HandleApplication:
                 audio_bitrate=self.args.audio_bitrate,
                 benchmark=self.args.benchmark,
                 custom_encoder=self.args.custom_encoder,
+                border_detect=self.args.border_detect,
                 # misc settingss
                 pausedFile=self.args.paused_file,
                 sceneDetectMethod=self.args.scene_detect_method,
@@ -196,6 +197,11 @@ class HandleApplication:
         parser.add_argument(
             "--overwrite",
             help="Overwrite output video if it already exists.",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--border_detect",
+            help="Detects current borders and removes them, useful for removing black bars.",
             action="store_true",
         )
         parser.add_argument(

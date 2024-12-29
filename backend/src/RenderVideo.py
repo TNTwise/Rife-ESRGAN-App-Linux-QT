@@ -3,7 +3,7 @@ import os
 import math
 from time import sleep
 
-from .FFmpeg import FFMpegRender
+from .FFmpeg import FFMpegRender, BorderDetect
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log, removeFile
 
@@ -55,6 +55,7 @@ class Render(FFMpegRender):
         video_encoder_preset: str = "x264",
         audio_encoder_preset: str = "aac",
         audio_bitrate: str = "192k",
+        border_detect: bool = False,
         # misc
         pausedFile=None,
         sceneDetectMethod: str = "pyscenedetect",
@@ -67,6 +68,8 @@ class Render(FFMpegRender):
         dynamic_scaled_optical_flow: bool = False,
         ensemble: bool = False,
     ):
+        
+        
         if pausedFile is None:
             pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
         self.inputFile = inputFile
@@ -100,6 +103,11 @@ class Render(FFMpegRender):
         self.ensemble = ensemble
         # get video properties early
         self.getVideoProperties(inputFile)
+        if border_detect:
+            printAndLog("Detecting borders")
+            borderDetect = BorderDetect(inputFile=self.inputFile)
+            self.width, self.height, self.borderX, self.borderY = borderDetect.getBorders()
+            log(f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}")
 
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
@@ -130,12 +138,12 @@ class Render(FFMpegRender):
             upscale_output_resolution=upscale_output_resolution,
             slowmo_mode=slomo_mode,
         )
-
-        self.sharedMemoryThread.start()
+        
         self.renderThread = Thread(target=self.render)
         self.readPausedFileThread1 = Thread(target=self.readPausedFileThread)
         self.ffmpegReadThread = Thread(target=self.readinVideoFrames)
         self.ffmpegWriteThread = Thread(target=self.writeOutVideoFrames)
+        self.sharedMemoryThread.start()
 
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()

@@ -31,7 +31,69 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+class BorderDetect:
+    def __init__(self, inputFile):
+        self.inputFile = inputFile
+    
+    def processBorders(self):
+        command = [
+            f"{FFMPEG_PATH}",
+            "-i",
+            f"{self.inputFile}",
+            "-vf",
+            "cropdetect",
+            "-f",
+            "null",
+            "-",
+        ]
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            universal_newlines=True,
+        )
+        output = process.communicate()
+        return output
+    
+    def processOutput(self, output):
+        borders = []
+        for line in output[1].split('\n'):
+            if "crop=" in line:
+                crop_value = line.split("crop=")[1].split(' ')[0]
+                borders.append(crop_value)
+        
+        if borders:
+            def parse_crop(crop_str):
+                # Expected format: "width:height:x:y"
+                try:
+                    width, height, x, y = map(int, crop_str.split(':'))
+                    return width, height, x, y
+                except ValueError:
+                    log(f"Invalid crop format: {crop_str}")
+                    return None
 
+            # Parse all crop values and filter out any invalid entries
+            parsed_crops = [parse_crop(crop) for crop in borders]
+            parsed_crops = [crop for crop in parsed_crops if crop is not None]
+
+            if not parsed_crops:
+                log("No valid crop values found.")
+                return None
+
+            # Determine the least cropped crop (i.e., largest area)
+            least_cropped = max(parsed_crops, key=lambda dims: dims[0] * dims[1])
+            least_cropped_str = f"{least_cropped[0]}:{least_cropped[1]}:{least_cropped[2]}:{least_cropped[3]}"
+
+            return least_cropped_str
+
+        return None
+    
+    def getBorders(self):
+        output = self.processBorders()
+        output = self.processOutput(output)
+        width, height, borderX, borderY = map(int, output.split(':'))
+        return width, height, borderX, borderY
    
 @dataclass
 class Encoder(ABC):
@@ -253,6 +315,10 @@ class FFMpegRender:
 
         self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.readWidth = self.width 
+        self.readHeight = self.height  
+        self.borderX = 0
+        self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
         self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -264,6 +330,8 @@ class FFMpegRender:
             f"{FFMPEG_PATH}",
             "-i",
             f"{self.inputFile}",
+            '-vf',
+            f'crop={self.width}:{self.height}:{self.borderX}:{self.borderY}',
             "-f",
             "image2pipe",
             "-pix_fmt",
@@ -381,11 +449,19 @@ class FFMpegRender:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
+        #import numpy as np
+        #import cv2
+        #frame_count = 0
         while True:
             chunk = self.readProcess.stdout.read(self.inputFrameChunkSize)
             if len(chunk) < self.inputFrameChunkSize:
                 break
             self.readQueue.put(chunk)
+            
+            #np_array = np.frombuffer(chunk, np.uint8)
+            #image = np_array.reshape((self.height, self.width, 3))
+            #cv2.imwrite(f'frames/frame_{frame_count}.png', image)
+            #frame_count += 1
         log("Ending Video Read")
         self.readQueue.put(None)
         self.readingDone = True
