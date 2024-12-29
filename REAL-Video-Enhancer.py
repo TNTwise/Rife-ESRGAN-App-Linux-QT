@@ -143,9 +143,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log(printOut)
 
         # process the output
+        total_ncnn_gpus = -1
+        total_pytorch_gpus = -1
         for line in self.fullOutput.lower().split("\n"):
             if "half precision support:" in line:
                 halfPrecisionSupport = "true" in line
+            if "ncnn gpu " in line: # this is to grab every line with "GPU "
+                total_ncnn_gpus += 1
+            if "pytorch gpu " in line:
+                total_pytorch_gpus += 1
+        
+        total_pytorch_gpus = max(0,total_pytorch_gpus) # minimum gpu id is 0
+        total_ncnn_gpus = max(0,total_ncnn_gpus) 
+
         settings = Settings()
         settings.readSettings()
         self.settings = settings
@@ -155,8 +165,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.homeTab = HomeTab(parent=self)
         self.downloadTab = DownloadTab(parent=self, backends=self.backends)
         self.settingsTab = SettingsTab(
-            parent=self, halfPrecisionSupport=halfPrecisionSupport
+            parent=self, halfPrecisionSupport=halfPrecisionSupport,
+            total_ncnn_gpus=total_ncnn_gpus,
+            total_pytorch_gpus=total_pytorch_gpus,
         )
+        
 
         # Startup Animation
         self.animationHandler = AnimationHandler()

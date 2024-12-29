@@ -11,6 +11,8 @@ class SettingsTab:
         self,
         parent: QMainWindow,
         halfPrecisionSupport,
+        total_pytorch_gpus,
+        total_ncnn_gpus,
     ):
         self.parent = parent
         self.settings = Settings()
@@ -21,7 +23,10 @@ class SettingsTab:
         # disable half option if its not supported
         if not halfPrecisionSupport:
             self.parent.precision.removeItem(1)
-
+        
+        # set max gpu id for combo boxs
+        self.parent.pytorch_gpu_id.setMaximum(total_pytorch_gpus)
+        self.parent.ncnn_gpu_id.setMaximum(total_ncnn_gpus)
     """def connectWriteSettings(self):
         settings_and_combo_boxes = {
             "precision": self.parent.precision,
@@ -125,6 +130,16 @@ class SettingsTab:
                 "True" if self.parent.uhd_mode.isChecked() else "False",
             )
         )
+        self.parent.ncnn_gpu_id.textChanged.connect(
+            lambda: self.settings.writeSetting(
+                "ncnn_gpu_id", self.parent.ncnn_gpu_id.text()
+            )
+        )
+        self.parent.pytorch_gpu_id.textChanged.connect(
+            lambda: self.settings.writeSetting(
+                "pytorch_gpu_id", self.parent.pytorch_gpu_id.text()
+            )
+        )
 
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
@@ -182,6 +197,8 @@ class SettingsTab:
         self.parent.uhd_mode.setChecked(
             self.settings.settings["uhd_mode"] == "True"
         )
+        self.parent.ncnn_gpu_id.setValue(int(self.settings.settings["ncnn_gpu_id"]))
+        self.parent.pytorch_gpu_id.setValue(int(self.settings.settings["pytorch_gpu_id"]))
 
     def selectOutputFolder(self):
         outputFile = QFileDialog.getExistingDirectory(
@@ -224,7 +241,9 @@ class Settings:
             "output_folder_location": os.path.join(f"{HOME_PATH}", "Videos")
             if PLATFORM != "darwin"
             else os.path.join(f"{HOME_PATH}", "Desktop"),
-            "uhd_mode": "True"
+            "uhd_mode": "True",
+            "ncnn_gpu_id": "0",
+            "pytorch_gpu_id": "0",
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
@@ -245,7 +264,9 @@ class Settings:
             "discord_rich_presence": ("True", "False"),
             "video_quality": ("Low", "Medium", "High", "Very High"),
             "output_folder_location": "ANY",
-            "uhd_mode": ("True", "False")
+            "uhd_mode": ("True", "False"),
+            "ncnn_gpu_id": "ANY",
+            "pytorch_gpu_id": "ANY",
         }
         self.settings = self.defaultSettings.copy()
         if not os.path.isfile(self.settingsFile):

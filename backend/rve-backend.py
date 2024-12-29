@@ -49,9 +49,8 @@ class HandleApplication:
             printMSG += f"PyTorch Version: {torch.__version__}\n"
             half_prec_supp = check_bfloat16_support()
             pyTorchGpus = get_gpus_torch()
-            printMSG += "PyTorch GPUS:\n"
             for i, gpu in enumerate(pyTorchGpus):
-                printMSG += f"{i}: {gpu}\n" 
+                printMSG += f"PyTorch GPU {i}: {gpu}\n" 
 
         if checkForPytorchROCM():
             availableBackends.append("pytorch (rocm)")
@@ -59,18 +58,16 @@ class HandleApplication:
             printMSG += f"PyTorch Version: {torch.__version__}\n"
             half_prec_supp = check_bfloat16_support()
             pyTorchGpus = get_gpus_torch()
-            printMSG += "PyTorch GPUS:\n"
             for i, gpu in enumerate(pyTorchGpus):
-                printMSG += f"{i}: {gpu}\n" 
+                printMSG += f"PyTorch GPU {i}: {gpu}\n" 
     
         if checkForNCNN():
             availableBackends.append("ncnn")
             ncnnGpus = get_gpus_ncnn()
             printMSG += f"NCNN Version: 20220729\n"
             from rife_ncnn_vulkan_python import Rife
-            printMSG += "NCNN GPUS:\n"
             for i, gpu in enumerate(ncnnGpus):
-                printMSG += f"{i}: {gpu}\n"
+                printMSG += f"NCNN GPU {i}: {gpu}\n"
         if checkForDirectML():
             availableBackends.append("directml")
             import onnxruntime as ort
