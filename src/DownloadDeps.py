@@ -298,9 +298,9 @@ class DownloadDependencies:
             self.pip(self.getPlatformIndependentDeps())
 
         rocmLinuxDeps = [
-            "https://download.pytorch.org/whl/nightly/pytorch_triton_rocm-3.2.0%2Bgit0d4682f0-cp311-cp311-linux_x86_64.whl","einops", "safetensors", 
-            "https://download.pytorch.org/whl/nightly/rocm6.2.4/torch-2.6.0.dev20241228%2Brocm6.2.4-cp311-cp311-manylinux_2_28_x86_64.whl",
-            "https://download.pytorch.org/whl/nightly/rocm6.2.4/torchvision-0.22.0.dev20241228%2Brocm6.2.4-cp311-cp311-linux_x86_64.whl",
+            "https://download.pytorch.org/whl/pytorch_triton_rocm-3.1.0-cp311-cp311-linux_x86_64.whl","einops", "safetensors", 
+            "https://download.pytorch.org/whl/rocm6.2/torch-2.5.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl",
+            "https://download.pytorch.org/whl/rocm6.2/torchvision-0.20.1%2Brocm6.2-cp311-cp311-linux_x86_64.whl",
         ]
         if PLATFORM == "linux":
             self.pip(rocmLinuxDeps, install)
