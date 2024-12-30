@@ -68,6 +68,9 @@ class BorderDetect:
                 # Expected format: "width:height:x:y"
                 try:
                     width, height, x, y = map(int, crop_str.split(':'))
+                    if width <= 0 or height <= 0:
+                        log(f"Invalid crop dimensions: {crop_str}")
+                        return None
                     return width, height, x, y
                 except ValueError:
                     log(f"Invalid crop format: {crop_str}")
@@ -340,6 +343,7 @@ class FFMpegRender:
             f"{self.width}x{self.height}",
             "-",
         ]
+        log("FFMPEG READ COMMAND: " + str(command))
         return command
 
     def getFFmpegWriteCommand(self):

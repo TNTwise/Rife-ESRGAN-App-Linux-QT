@@ -42,6 +42,8 @@ class Render(FFMpegRender):
         backend="pytorch",
         device="default",
         precision="float16",
+        pytorch_gpu_id:int = 0,
+        ncnn_gpu_id:int = 0,
         # model settings
         upscaleModel=None,
         interpolateModel=None,
@@ -102,6 +104,8 @@ class Render(FFMpegRender):
         self.UHD_mode = UHD_mode
         self.dynamic_scaled_optical_flow = dynamic_scaled_optical_flow
         self.ensemble = ensemble
+        self.pytorch_gpu_id = pytorch_gpu_id
+        self.ncnn_gpu_id = ncnn_gpu_id
         # get video properties early
         self.getVideoProperties(inputFile)
         if border_detect:
@@ -235,7 +239,7 @@ class Render(FFMpegRender):
                 modelPath=self.upscaleModel,
                 num_threads=1,
                 scale=self.upscaleTimes,
-                gpuid=0,  # might have this be a setting
+                gpuid=self.ncnn_gpu_id,  # might have this be a setting
                 width=self.width,
                 height=self.height,
                 tilesize=self.tilesize,
@@ -272,6 +276,7 @@ class Render(FFMpegRender):
                 interpolateModelPath=self.interpolateModel,
                 width=self.width,
                 height=self.height,
+                gpuid=self.ncnn_gpu_id,
                 max_timestep=self.maxTimestep,
                 interpolateFactor=self.ceilInterpolateFactor,
             )

@@ -93,6 +93,8 @@ class HandleApplication:
                 device="default",
                 backend=self.args.backend,
                 precision=self.args.precision,
+                pytorch_gpu_id=self.args.pytorch_gpu_id,
+                ncnn_gpu_id=self.args.ncnn_gpu_id,
                 # ffmpeg settings
                 overwrite=self.args.overwrite,
                 crf=self.args.crf,
@@ -240,6 +242,18 @@ class HandleApplication:
         parser.add_argument(
             "--tilesize",
             help="upscale images in smaller chunks, default is the size of the input video",
+            default=0,
+            type=int,
+        )
+        parser.add_argument(
+            "--pytorch_gpu_id",
+            help="GPU ID for pytorch backend, default is 0",
+            default=0,
+            type=int,
+        )
+        parser.add_argument(
+            "--ncnn_gpu_id",
+            help="GPU ID for ncnn backend, default is 0",
             default=0,
             type=int,
         )

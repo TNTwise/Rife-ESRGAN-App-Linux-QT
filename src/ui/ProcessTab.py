@@ -345,6 +345,10 @@ class ProcessTab:
             f"{self.settings['tensorrt_optimization_level']}",
             "--paused_file",
             f"{self.pausedFile}",
+            "--ncnn_gpu_id",
+            f"{self.settings['ncnn_gpu_id']}",
+            "--pytorch_gpu_id",
+            f"{self.settings['pytorch_gpu_id']}",
         ]
 
         if upscaleModelFile:

@@ -1,4 +1,3 @@
-from os import write
 from rife_ncnn_vulkan_python import wrapped
 from time import sleep
 from .UpscaleNCNN import UpscaleNCNN
@@ -6,11 +5,10 @@ from queue import Queue
 # built-in imports
 import pathlib
 import sys
-
+from ..utils.Util import suppress_stdout_stderr
 # third-party imports
-from PIL import Image
 import numpy as np
-
+import ncnn
 
 class Rife:
     def __init__(
@@ -148,16 +146,19 @@ class InterpolateRIFENCNN:
         self._load()
 
     def _load(self):
-        self.render = Rife(
-            gpuid=self.gpuid,
-            num_threads=self.threads,
-            model=self.interpolateModelPath,
-            uhd_mode=False,
-            channels=3,
-            height=self.height,
-            width=self.width,
-            max_timestep=self.max_timestep,
-        )
+        with suppress_stdout_stderr():
+            self.render = Rife(
+                gpuid=self.gpuid,
+                num_threads=self.threads,
+                model=self.interpolateModelPath,
+                uhd_mode=False,
+                channels=3,
+                height=self.height,
+                width=self.width,
+                max_timestep=self.max_timestep,
+            )
+            device = ncnn.get_gpu_device(self.gpuid).info().device_name()
+        print("Using GPU:", device)
 
     def hotUnload(self):
         self.paused = True

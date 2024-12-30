@@ -4,11 +4,13 @@ import math
 import gc
 import torch as torch
 import torch.nn.functional as F
+import sys
 from time import sleep
 
 from ..utils.Util import (
     printAndLog,
     check_bfloat16_support,
+    get_gpus_torch,
 )
 
 class UpscalePytorch:
@@ -57,6 +59,7 @@ class UpscalePytorch:
         height: int = 1080,
         tilesize: int = 0,
         backend: str = "pytorch",
+        gpu_id: int = 0,
         # trt options
         trt_workspace_size: int = 0,
         trt_cache_dir: str = None,
@@ -64,16 +67,18 @@ class UpscalePytorch:
         trt_max_aux_streams: int | None = None,
         trt_debug: bool = False,
     ):
+        
         if device == "default":
             if torch.cuda.is_available():
                 device = torch.device(
-                    "cuda", 0
+                    "cuda", gpu_id
                 )  # 0 is the device index, may have to change later
             else:
                 device = torch.device("cpu")
         else:
             device = torch.device(device)
-        printAndLog("Using device: " + str(device))
+        device = get_gpus_torch()[gpu_id]
+        print("Using GPU: " + str(device), file=sys.stderr)
         self.tile_pad = tile_pad
         self.dtype = self.handlePrecision(precision)
         self.device = device

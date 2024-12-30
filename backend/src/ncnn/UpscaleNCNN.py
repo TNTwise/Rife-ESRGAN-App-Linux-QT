@@ -2,14 +2,14 @@ import numpy as np
 import os
 from time import sleep
 import math
-
+from ..utils.Util import suppress_stdout_stderr
+import ncnn
+import sys
 try:
     from upscale_ncnn_py import UPSCALE
 
     method = "upscale_ncnn_py"
 except Exception:
-    import ncnn
-
     method = "ncnn_vulkan"
 
 
@@ -99,22 +99,25 @@ class UpscaleNCNN:
         self._load()
 
     def _load(self):
-        if method == "ncnn_vulkan":
-            self.net = ncnn.Net()
-            # Use vulkan compute
-            self.net.opt.use_vulkan_compute = True
+        with suppress_stdout_stderr():
+            if method == "ncnn_vulkan":
+                self.net = ncnn.Net()
+                # Use vulkan compute
+                self.net.opt.use_vulkan_compute = True
 
-            # Load model param and bin
-            self.net.load_param(self.modelPath + ".param")
-            self.net.load_model(self.modelPath + ".bin")
-        elif method == "upscale_ncnn_py":
-            self.net = UPSCALE(
-                gpuid=self.gpuid,
-                model_str=self.modelPath,
-                num_threads=self.threads,
-                scale=self.scale,
-                tilesize=self.tilesize,
-            )
+                # Load model param and bin
+                self.net.load_param(self.modelPath + ".param")
+                self.net.load_model(self.modelPath + ".bin")
+            elif method == "upscale_ncnn_py":
+                self.net = UPSCALE(
+                    gpuid=self.gpuid,
+                    model_str=self.modelPath,
+                    num_threads=self.threads,
+                    scale=self.scale,
+                    tilesize=self.tilesize,
+                )
+                device = ncnn.get_gpu_device(self.gpuid).info().device_name()
+        print("Using GPU:", device)
 
     def hotUnload(self):
         self.model = None

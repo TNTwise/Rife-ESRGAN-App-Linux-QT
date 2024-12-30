@@ -17,7 +17,8 @@ from ..utils.Util import (
     errorAndLog,
     check_bfloat16_support,
     warnAndLog,
-    log
+    log,
+    get_gpus_torch
 )
 from ..constants import HAS_SYSTEM_CUDA
 from time import sleep
@@ -60,14 +61,16 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.CompareNet = None
 
     @staticmethod
-    def handleDevice(device:str) -> torch.device:
+    def handleDevice(device:str, gpu_id:int = 0) -> torch.device:
         if device == "default":
             if torch.cuda.is_available():
-                torchdevice = torch.device("cuda", 0)  # 0 is the device index, may have to change later
+                torchdevice = torch.device("cuda", gpu_id)  # 0 is the device index, may have to change later
             else:
                 torchdevice = torch.device("cpu")
         else:
             torchdevice = torch.device(device)
+        device = get_gpus_torch()[gpu_id]
+        print("Using GPU: " + str(device), file=sys.stderr)
         return torchdevice
 
     def handlePrecision(self, precision) -> torch.dtype:
@@ -109,7 +112,6 @@ class BaseInterpolate(metaclass=ABCMeta):
         """Perform processing"""
 
     def initLog(self):
-        printAndLog("Using device: " + str(self.device))
         printAndLog("Using dtype: " + str(self.dtype))
 
     @torch.inference_mode()
@@ -159,13 +161,14 @@ class InterpolateGIMMTorch(BaseInterpolate):
         UHDMode: bool = False,
         ensemble: bool = False,
         dynamicScaledOpticalFlow: bool = False,
+        gpu_id: int = 0,
         *args,
         **kwargs,
     ):
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
-        self.device = self.handleDevice(device)
+        self.device = self.handleDevice(device, gpu_id=gpu_id)
         self.dtype = self.handlePrecision(dtype)
         if ensemble:
             print("Ensemble is not implemented for GIMM, disabling", file=sys.stderr)
@@ -295,6 +298,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         UHDMode: bool = False,
         ensemble: bool = False,
         dynamicScaledOpticalFlow: bool = False,
+        gpu_id: int = 0,
         *args,
         **kwargs,
     ):
@@ -302,7 +306,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
-        self.device = self.handleDevice(device)
+        self.device = self.handleDevice(device, gpu_id=gpu_id)
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -422,6 +426,7 @@ class InterpolateRifeTorch(BaseInterpolate):
         UHDMode: bool = False,
         ensemble: bool = False,
         dynamicScaledOpticalFlow: bool = False,
+        gpu_id: int = 0,
         # trt options
         trt_optimization_level: int = 5,
         *args,
@@ -432,9 +437,8 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.width = width
         self.height = height
 
-        self.device:torch.device = self.handleDevice(device)
+        self.device:torch.device = self.handleDevice(device, gpu_id=gpu_id)
         self.dtype = self.handlePrecision(dtype)
-        self.initLog()
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         self.dynamicScaledOpticalFlow = dynamicScaledOpticalFlow
