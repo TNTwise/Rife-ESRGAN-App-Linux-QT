@@ -14,6 +14,7 @@ from .utils.Util import (
     printAndLog,
 )
 from threading import Thread
+import numpy as np
 
 
 def convertTime(remaining_time):
@@ -289,15 +290,17 @@ class FFMpegRender:
         self.upscale_output_resolution = upscale_output_resolution
 
         self.subtitleFiles = []
-        self.sharedMemoryThread = Thread(
-            target=lambda: self.writeOutInformation(self.outputFrameChunkSize)
-        )
+        
         self.inputFrameChunkSize = self.width * self.height * channels
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
         )
+        sharedMemoryChunkSize = self.originalHeight * self.originalWidth * channels * self.upscaleTimes * self.upscaleTimes * self.upscaleTimes
+        self.sharedMemoryThread = Thread(
+            target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
+        )
         self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=self.outputFrameChunkSize
+            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
         )
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
@@ -318,6 +321,8 @@ class FFMpegRender:
 
         self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.originalWidth = self.width
+        self.originalHeight = self.height
         self.borderX = 0
         self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
         self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -528,7 +533,11 @@ class FFMpegRender:
                 self.realTimePrint(message)
                 if self.sharedMemoryID is not None and self.previewFrame is not None:
                     # Update the shared array
-                    buffer[:fcs] = bytes(self.previewFrame)
+                    if self.originalHeight != self.height:
+                        padded_frame = self.padFrame(self.previewFrame, self.originalWidth, self.originalHeight)
+                        buffer[:fcs] = padded_frame
+                    else:
+                        buffer[:fcs] = self.previewFrame
 
             time.sleep(0.1)
 
@@ -576,3 +585,32 @@ class FFMpegRender:
             self.shm.close()
             self.shm.unlink()
             os._exit(1)
+
+    def padFrame(self, frame_bytes: bytes, target_width: int, target_height: int) -> bytes:
+        """
+        Pads the frame to the target resolution.
+        
+        Args:
+            frame_bytes (bytes): The input frame in bytes.
+            target_width (int): The target width for padding.
+            target_height (int): The target height for padding.
+        
+        Returns:
+            bytes: The padded frame in bytes.
+        """
+        # Convert bytes to numpy array
+        frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
+        frame_array = frame_array.reshape((self.height, self.width, 3))
+
+        # Create a new array with the target resolution and fill it with black pixels
+        padded_frame = np.zeros((target_height, target_width, 3), dtype=np.uint8)
+
+        # Calculate padding offsets
+        y_offset = (target_height - self.height) // 2
+        x_offset = (target_width - self.width) // 2
+
+        # Place the original frame in the center of the padded frame
+        padded_frame[y_offset:y_offset + self.height, x_offset:x_offset + self.width] = frame_array
+
+        # Convert the padded frame back to bytes
+        return padded_frame.tobytes()
