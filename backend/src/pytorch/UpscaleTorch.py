@@ -77,8 +77,8 @@ class UpscalePytorch:
                 device = torch.device("cpu")
         else:
             device = torch.device(device)
-        device = get_gpus_torch()[gpu_id]
-        print("Using GPU: " + str(device), file=sys.stderr)
+        device_str = get_gpus_torch()[gpu_id]
+        print("Using GPU: " + str(device_str), file=sys.stderr)
         self.tile_pad = tile_pad
         self.dtype = self.handlePrecision(precision)
         self.device = device

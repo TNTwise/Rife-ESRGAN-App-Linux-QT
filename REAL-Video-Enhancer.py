@@ -119,8 +119,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # set up tabs
         self.backendComboBox.addItems(self.backends)
         printOut = (
-            "------------System Information------------\n"
-            + "System Information: \n"
+            "System Information:\n\n"
             + "OS: "
             + getOSInfo()
             + "\n"
@@ -134,7 +133,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             + str(round(getAvailableDiskSpace(), 2))
             + "GB"
             + "\n"
-            + "-----------Software Information-----------\n"
+            + "\nSoftware Information:\n\n"
             + f"REAL Video Enhancer Version: {version}\n"
             + self.fullOutput
         )
