@@ -617,8 +617,7 @@ class FFMpegRender:
         frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
         frame_array = frame_array.reshape((self.height, self.width, 3))
 
-        # Create a new array with the target resolution and fill it with black pixels
-        padded_frame = np.zeros((target_height, target_width, 3), dtype=np.uint8)
+        padded_frame = np.full((target_height, target_width, 3), (52, 59, 71), dtype=np.uint8)
 
         # Calculate padding offsets
         y_offset = (target_height - self.height) // 2
