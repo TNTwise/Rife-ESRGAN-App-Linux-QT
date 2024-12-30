@@ -541,6 +541,15 @@ class FFMpegRender:
 
             time.sleep(0.1)
 
+    def onErroredExit(self):
+        self.writingDone = True
+        print("FFmpeg failed to render the video.",file=sys.stderr)
+        with open(FFMPEG_LOG_FILE, "r") as f:
+            for line in f.readlines():
+                print(line,file=sys.stderr)
+        time.sleep(1)
+        os._exit(1)
+
     def writeOutVideoFrames(self):
         """
         Writes out frames either to ffmpeg or to pipe
@@ -552,6 +561,7 @@ class FFMpegRender:
         self.startTime = time.time()
         self.framesRendered: int = 1
         self.last_length: int = 0
+        exit_code:int = 0
         try:
             with open (FFMPEG_LOG_FILE, "w") as f:  
                 with subprocess.Popen(
@@ -573,18 +583,19 @@ class FFMpegRender:
 
                     self.writeProcess.stdin.close()
                     self.writeProcess.wait()
+                    exit_code = self.writeProcess.returncode
 
                     renderTime = time.time() - self.startTime
                     self.writingDone = True
 
                     printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
-            print(
-                f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos."
-            )
-            self.shm.close()
-            self.shm.unlink()
-            os._exit(1)
+            print(str(e),file=sys.stderr)
+            self.onErroredExit()
+        if exit_code != 0:
+            self.onErroredExit()
+
+
 
     def padFrame(self, frame_bytes: bytes, target_width: int, target_height: int) -> bytes:
         """
