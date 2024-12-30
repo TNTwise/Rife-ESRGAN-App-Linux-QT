@@ -2930,7 +2930,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    </size>
                                   </property>
                                   <property name="toolTip">
-                                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Audo Border Cropping:&lt;/p&gt;&lt;p&gt;- Will automatically remove black bars if they are present throughout a video, can increase performance.&lt;/p&gt;&lt;p&gt;NOTE - This adds a border at the bottom of the preview, that border will not be added into the output video.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Audo Border Cropping:&lt;/p&gt;&lt;p&gt;- Will automatically remove black bars if they are present throughout a video, can increase performance.&lt;/p&gt;&lt;p&gt;NOTE - This adds a small border around the preview, that border will not be added into the output video.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
                                    <string/>
