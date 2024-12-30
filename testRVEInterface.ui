@@ -114,7 +114,7 @@ background-color:#fff;
              <string notr="true"/>
             </property>
             <property name="currentIndex">
-             <number>3</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="homePage">
              <property name="styleSheet">
@@ -361,6 +361,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 </item>
                 <item>
                  <widget class="QTextEdit" name="systemInfoText">
+                  <property name="font">
+                   <font>
+                    <pointsize>15</pointsize>
+                   </font>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -3598,8 +3603,8 @@ QScrollBar:horizontal{
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>757</width>
-                      <height>320</height>
+                      <width>766</width>
+                      <height>333</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_13">
