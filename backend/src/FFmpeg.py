@@ -270,10 +270,11 @@ class FFMpegRender:
         self.upscaleTimes = upscaleTimes
         self.interpolateFactor = interpolateFactor
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
-
+        self.video_encoder_preset = video_encoder_preset
         if custom_encoder is None: # custom_encoder overrides these presets
             self.video_encoder = EncoderSettings(video_encoder_preset)
             self.audio_encoder = EncoderSettings(audio_encoder_preset)
+            
 
         self.custom_encoder = custom_encoder
         self.pixelFormat = pixelFormat
@@ -547,6 +548,9 @@ class FFMpegRender:
         with open(FFMPEG_LOG_FILE, "r") as f:
             for line in f.readlines():
                 print(line,file=sys.stderr)
+        if self.video_encoder_preset == 'x264_vulkan':
+            print("Vulkan encode failed, try restarting the render.",file=sys.stderr)
+            print("Make sure you have the latest drivers installed and your GPU supports vulkan encoding.",file=sys.stderr)
         time.sleep(1)
         os._exit(1)
 
