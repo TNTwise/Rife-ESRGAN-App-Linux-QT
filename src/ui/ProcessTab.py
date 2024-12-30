@@ -7,6 +7,7 @@ import time
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QMessageBox
 
 from .AnimationHandler import AnimationHandler
 from .QTcustom import (
@@ -43,6 +44,7 @@ class ProcessTab:
         self.parent = parent
         self.imagePreviewSharedMemoryID = "/image_preview" + str(os.getpid())
         self.renderTextOutputList = None
+        self.isOverwrite = False
         self.currentFrame = 0
         self.animationHandler = AnimationHandler()
         self.tileUpAnimationHandler = AnimationHandler()
@@ -182,6 +184,17 @@ class ProcessTab:
         return "\n".join(string_list)
         # Set the text to the QTextEdit
 
+    def questionToOverride(self):
+        reply = QMessageBox.question(
+            self.parent,
+            "",
+            "File exists, do you want to overwrite?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,  # type: ignore
+        )
+        return reply == QMessageBox.Yes # type: ignore
+            
+
     def run(
         self,
         inputFile: str,
@@ -223,6 +236,9 @@ class ProcessTab:
             "High": "18",
             "Very High": "15",
         }
+
+        
+        
 
         # if upscale or interpolate
         """
@@ -295,7 +311,12 @@ class ProcessTab:
                 )
             except Exception:
                 pass
-
+        if os.path.isfile(outputPath):
+            self.isOverwrite = self.questionToOverride()
+            if not self.isOverwrite:
+                self.onRenderCompletion()
+                self.guiChangesOnRenderCompletion()
+                return # has to be put at end of function,  so allow for the exit processes to occur
         writeThread = Thread(
             target=lambda: self.renderToPipeThread(
                 backend=backend,
@@ -415,7 +436,9 @@ class ProcessTab:
             if self.videoWidth > 1920 or self.videoHeight > 1080:
                 command += ["--UHD_mode"]
                 log("UHD mode enabled")
-
+        
+        if self.isOverwrite:
+            command += ["--overwrite"]
 
         self.renderProcess = subprocess.Popen(
             command,
@@ -470,7 +493,10 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(True)
 
     def onRenderCompletion(self):
-        self.renderProcess.wait()
+        try:
+            self.renderProcess.wait()
+        except Exception:
+            pass
         # Have to swap the visibility of these here otherwise crash for some reason
         if self.settings["discord_rich_presence"] == "True":  # only close if it exists
             self.discordRPC.closeRPC()
