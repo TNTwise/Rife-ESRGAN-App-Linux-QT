@@ -41,6 +41,7 @@ from ..architectures import (
     Swin2SR,
     SwinIR,
     Uformer,
+    Sebica,
 )
 from .registry import ArchRegistry, ArchSupport
 
@@ -92,4 +93,5 @@ MAIN_REGISTRY.add(
     ArchSupport.from_architecture(MoSR.MoSRArch()),
     ArchSupport.from_architecture(sudo_SPANPlus.sudo_SPANPlusArch()),
     ArchSupport.from_architecture(SPANPlus.SPANPlusArch()),
+    ArchSupport.from_architecture(Sebica.SebicaArch()),
 )
