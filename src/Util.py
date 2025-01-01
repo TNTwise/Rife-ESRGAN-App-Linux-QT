@@ -13,6 +13,76 @@ import webbrowser
 from .constants import CWD, IS_FLATPAK, PLATFORM, HOME_PATH
 
 
+class FileHandler:
+    @staticmethod
+    def removeFolder(folder):
+        """
+        Removes the folder of the current working directory
+        """
+        shutil.rmtree(folder)
+
+    @staticmethod
+    def copy(prev: str, new: str):
+        """
+        moves a folder from prev to new
+        """
+        if not os.path.exists(new):
+            if not os.path.isfile(new):
+                shutil.copytree(prev, new)
+            else:
+                print("WARN tried to rename a file to a file that already exists")
+        else:
+            print("WARN tried to rename a folder to a folder that already exists")
+
+    @staticmethod
+    def copyFile(prev: str, new: str):
+        """
+        moves a file from prev to a new directory (new)
+        """
+        if not os.path.isfile(new):
+            shutil.copy(prev, new)
+        else:
+            print("WARN tried to rename a file to a file that already exists")
+
+    @staticmethod
+    def moveFile(prev: str, new: str):
+        """
+        moves a file from prev to new
+        """
+        if not os.path.exists(new):
+            if not os.path.isfile(new):
+                os.rename(prev, new)
+            else:
+                print("WARN tried to rename a file to a file that already exists")
+        else:
+            print("WARN tried to rename a folder to a folder that already exists")
+
+    @staticmethod
+    def makeExecutable(file_path):
+        st = os.stat(file_path)
+        os.chmod(file_path, st.st_mode | stat.S_IEXEC)
+
+    @staticmethod
+    def createDirectory(dir: str):
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+
+    @staticmethod
+    def getUnusedFileName(base_file_name: str, outputDirectory: str, extension: str):
+        """
+        Returns an unused file name by adding an iteration number to the file name.
+        """
+        iteration = 0
+        output_file = base_file_name
+        while os.path.isfile(base_file_name):
+            output_file = os.path.join(
+                outputDirectory,
+                f"{base_file_name}_({iteration}).{extension}",
+            )
+            iteration += 1
+        return output_file
+
+
 def log(message: str):
     with open(os.path.join(CWD, "frontend_log.txt"), "a") as f:
         f.write(message + "\n")

@@ -31,6 +31,7 @@ from src.Util import (
     getAvailableDiskSpace,
     copyFile,
     createDirectory,
+    FileHandler,
 )
 from src.constants import CUSTOM_MODELS_PATH
 from src.ui.ProcessTab import ProcessTab
@@ -159,6 +160,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings = settings
         self.processTab = ProcessTab(
             parent=self,
+            settings=settings,
         )
         self.homeTab = HomeTab(parent=self)
         self.downloadTab = DownloadTab(parent=self, backends=self.backends)
@@ -266,20 +268,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateModelName = self.interpolateModelComboBox.currentText()
             interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
             scale = self.getUpscaleModelScale(upscaleModelName)
+            container = self.settings.settings["video_container"]
 
             file_name = os.path.splitext(os.path.basename(inputFile))[0]
-            base_file_name = f"{file_name}_{round(interpolateTimes*self.videoFps,0)}fps_{scale*self.videoWidth}x{scale*self.videoHeight}"
+            base_file_name = (
+                f"{file_name}"
+                + f"_{round(interpolateTimes*self.videoFps,0)}fps"
+                + f"_{scale*self.videoWidth}x{scale*self.videoHeight}"
+            )
             output_file = os.path.join(
                 outputDirectory,
-                f"{base_file_name}.mkv",
+                f"{base_file_name}.{container}",
             )
-            iteration = 0
-            while os.path.isfile(output_file):
-                output_file = os.path.join(
-                    outputDirectory,
-                    f"{base_file_name}_({iteration}).mkv",
-                )
-                iteration += 1
+            output_file = FileHandler.getUnusedFileName(
+                base_file_name=output_file,
+                extension=container,
+                outputDirectory=outputDirectory,
+            )
             self.outputFileText.setText(output_file)
             return output_file
 

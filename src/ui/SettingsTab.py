@@ -5,7 +5,6 @@ from ..constants import PLATFORM, HOME_PATH
 from ..Util import currentDirectory, checkForWritePermissions
 from .QTcustom import RegularQTPopup
 
-
 class SettingsTab:
     def __init__(
         self,
@@ -27,31 +26,6 @@ class SettingsTab:
         # set max gpu id for combo boxs
         self.parent.pytorch_gpu_id.setMaximum(total_pytorch_gpus)
         self.parent.ncnn_gpu_id.setMaximum(total_ncnn_gpus)
-    """def connectWriteSettings(self):
-        settings_and_combo_boxes = {
-            "precision": self.parent.precision,
-            "tensorrt_optimization_level": self.parent.tensorrt_optimization_level,
-            "encoder": self.parent.encoder,
-            
-        }
-        settings_and_check_boxes = {
-            "preview_enabled": self.parent.preview_enabled,
-            "scene_change_detection_enabled": self.parent.scene_change_detection_enabled,
-            "discord_rich_presence": self.parent.discord_rich_presence,
-        }
-        for setting, combo_box in settings_and_combo_boxes.items():
-            combo_box.currentIndexChanged.connect(
-                lambda: self.settings.writeSetting(
-                    setting, combo_box.currentText()
-                )
-            )
-        for setting, check_box in settings_and_check_boxes.items():
-            check_box.stateChanged.connect(
-                lambda: self.settings.writeSetting(
-                    setting, "True" if check_box.isChecked() else "False"
-                )
-            )
-            print(setting)"""
 
     def connectWriteSettings(self):
         self.parent.precision.currentIndexChanged.connect(
@@ -146,6 +120,11 @@ class SettingsTab:
                 "True" if self.parent.auto_border_cropping.isChecked() else "False",
             )
         )
+        self.parent.video_container.currentIndexChanged.connect(
+            lambda: self.settings.writeSetting(
+                "video_container", self.parent.video_container.currentText()
+            )
+        )
 
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
@@ -208,6 +187,9 @@ class SettingsTab:
         self.parent.auto_border_cropping.setChecked(
             self.settings.settings["auto_border_cropping"] == "True"
         )
+        self.parent.video_container.setCurrentText(
+            self.settings.settings["video_container"]
+        )
 
     def selectOutputFolder(self):
         outputFile = QFileDialog.getExistingDirectory(
@@ -254,13 +236,23 @@ class Settings:
             "ncnn_gpu_id": "0",
             "pytorch_gpu_id": "0",
             "auto_border_cropping": "False",
+            "video_container": "mkv",
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
             "tensorrt_optimization_level": ("0", "1", "2", "3", "4", "5"),
-            "encoder": ("libx264", "libx265", "vp9", "av1", "x264_vulkan (experimental)", "x264_nvenc", "x265_nvenc", "av1_nvenc (40 series and up)"),
+            "encoder": (
+                "libx264",
+                "libx265",
+                "vp9",
+                "av1",
+                "x264_vulkan (experimental)",
+                "x264_nvenc",
+                "x265_nvenc",
+                "av1_nvenc (40 series and up)",
+            ),
             "audio_encoder": ("aac", "libmp3lame"),
-            "audio_bitrate": ("320k","192k","128k","96k"),
+            "audio_bitrate": ("320k", "192k", "128k", "96k"),
             "preview_enabled": ("True", "False"),
             "scene_change_detection_method": (
                 "mean",
@@ -278,6 +270,7 @@ class Settings:
             "ncnn_gpu_id": "ANY",
             "pytorch_gpu_id": "ANY",
             "auto_border_cropping": ("True", "False"),
+            "video_container": ("mkv", "mp4", "mov"),
         }
         self.settings = self.defaultSettings.copy()
         if not os.path.isfile(self.settingsFile):

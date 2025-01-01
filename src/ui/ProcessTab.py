@@ -40,7 +40,7 @@ from ..ModelHandler import (
 
 
 class ProcessTab:
-    def __init__(self, parent):
+    def __init__(self, parent, settings: Settings):
         self.parent = parent
         self.imagePreviewSharedMemoryID = "/image_preview" + str(os.getpid())
         self.renderTextOutputList = None
@@ -49,6 +49,7 @@ class ProcessTab:
         self.animationHandler = AnimationHandler()
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
+        self.settings = Settings
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
@@ -294,16 +295,8 @@ class ProcessTab:
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
 
-        # get most recent settings
-        settings = Settings()
-        settings.readSettings()
-        self.settings = settings.settings
-
-        # get built ffmpeg command
-        
-
         # discord rpc
-        if self.settings["discord_rich_presence"] == "True":
+        if self.settings.settings["discord_rich_presence"] == "True":
             try:
                 self.discordRPC = DiscordRPC()
                 self.discordRPC.start_discordRPC(
@@ -353,23 +346,23 @@ class ProcessTab:
             "-b",
             f"{backend}",
             "--precision",
-            f"{self.settings['precision']}",
+            f"{self.settings.settings['precision']}",
             "--video_encoder_preset",
-            f"{self.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}", # remove experimental from encoder
+            f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
             "--audio_encoder_preset",
-            f"{self.settings['audio_encoder']}",
+            f"{self.settings.settings['audio_encoder']}",
             "--audio_bitrate",
-            f"{self.settings['audio_bitrate']}",
+            f"{self.settings.settings['audio_bitrate']}",
             "--crf",
-            f"{self.qualityToCRF[self.settings['video_quality']]}",
+            f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
             "--tensorrt_opt_profile",
-            f"{self.settings['tensorrt_optimization_level']}",
+            f"{self.settings.settings['tensorrt_optimization_level']}",
             "--paused_file",
             f"{self.pausedFile}",
             "--ncnn_gpu_id",
-            f"{self.settings['ncnn_gpu_id']}",
+            f"{self.settings.settings['ncnn_gpu_id']}",
             "--pytorch_gpu_id",
-            f"{self.settings['pytorch_gpu_id']}",
+            f"{self.settings.settings['pytorch_gpu_id']}",
         ]
 
         if upscaleModelFile:
@@ -408,31 +401,31 @@ class ProcessTab:
                 command += [
                     "--ensemble",
                 ]
-        if self.settings["auto_border_cropping"] == "True":
+        if self.settings.settings["auto_border_cropping"] == "True":
             command += [
                 "--border_detect",
             ]
 
-        if self.settings["preview_enabled"] == "True":
+        if self.settings.settings["preview_enabled"] == "True":
             command += [
                 "--shared_memory_id",
                 f"{self.imagePreviewSharedMemoryID}",
             ]
 
-        if self.settings["scene_change_detection_enabled"] == "False":
+        if self.settings.settings["scene_change_detection_enabled"] == "False":
             command += ["--scene_detect_method", "none"]
         else:
             command += [
                 "--scene_detect_method",
-                self.settings["scene_change_detection_method"],
+                self.settings.settings["scene_change_detection_method"],
                 "--scene_detect_threshold",
-                self.settings["scene_change_detection_threshold"],
+                self.settings.settings["scene_change_detection_threshold"],
             ]
 
         if self.benchmarkMode:
             command += ["--benchmark"]
-        
-        if self.settings["uhd_mode"] == "True":
+
+        if self.settings.settings["uhd_mode"] == "True":
             if self.videoWidth > 1920 or self.videoHeight > 1080:
                 command += ["--UHD_mode"]
                 log("UHD mode enabled")
@@ -498,7 +491,9 @@ class ProcessTab:
         except Exception:
             pass
         # Have to swap the visibility of these here otherwise crash for some reason
-        if self.settings["discord_rich_presence"] == "True":  # only close if it exists
+        if (
+            self.settings.settings["discord_rich_presence"] == "True"
+        ):  # only close if it exists
             self.discordRPC.closeRPC()
         try:
             self.workerThread.stop()
