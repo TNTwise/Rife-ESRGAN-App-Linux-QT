@@ -227,7 +227,7 @@ class Settings:
             "scene_change_detection_method": "pyscenedetect",
             "scene_change_detection_enabled": "True",
             "scene_change_detection_threshold": "4.0",
-            "discord_rich_presence": "True",
+            "discord_rich_presence": "False",
             "video_quality": "High",
             "output_folder_location": os.path.join(f"{HOME_PATH}", "Videos")
             if PLATFORM != "darwin"
