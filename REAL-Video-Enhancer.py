@@ -280,11 +280,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 outputDirectory,
                 f"{base_file_name}.{container}",
             )
-            output_file = FileHandler.getUnusedFileName(
-                base_file_name=output_file,
-                extension=container,
-                outputDirectory=outputDirectory,
-            )
+            iteration = 0
+            while os.path.isfile(output_file):
+                output_file = os.path.join(
+                    outputDirectory,
+                    f"{base_file_name}_({iteration}).{container}",
+                )
+                iteration += 1
             self.outputFileText.setText(output_file)
             return output_file
 

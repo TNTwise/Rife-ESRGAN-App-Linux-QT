@@ -49,7 +49,7 @@ class ProcessTab:
         self.animationHandler = AnimationHandler()
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
-        self.settings = Settings
+        self.settings = settings
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
