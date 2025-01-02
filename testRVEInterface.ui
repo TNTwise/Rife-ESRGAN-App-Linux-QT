@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>984</width>
-    <height>761</height>
+    <height>808</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2224,14 +2224,14 @@ QTabWidget::pane { /* The tab widget frame */
                    <x>0</x>
                    <y>0</y>
                    <width>784</width>
-                   <height>677</height>
+                   <height>724</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
                     <property name="currentIndex">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <widget class="QWidget" name="tab_2">
                      <attribute name="title">
@@ -2267,7 +2267,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <x>0</x>
                               <y>0</y>
                               <width>726</width>
-                              <height>554</height>
+                              <height>601</height>
                              </rect>
                             </property>
                             <layout class="QVBoxLayout" name="verticalLayout_25">
@@ -3735,8 +3735,8 @@ QScrollBar:horizontal{
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>766</width>
-                      <height>333</height>
+                      <width>757</width>
+                      <height>332</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_13">
