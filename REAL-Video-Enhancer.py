@@ -1,6 +1,8 @@
 import sys
 import os
 
+from backend.src.RenderVideo import Render
+
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -34,7 +36,7 @@ from src.Util import (
     FileHandler,
 )
 from src.constants import CUSTOM_MODELS_PATH
-from src.ui.ProcessTab import ProcessTab
+from src.ui.ProcessTab import ProcessTab, RenderOptions
 from src.ui.DownloadTab import DownloadTab
 from src.ui.SettingsTab import SettingsTab, Settings
 from src.ui.HomeTab import HomeTab
@@ -43,6 +45,7 @@ from src.ModelHandler import totalModels
 from src.ui.AnimationHandler import AnimationHandler
 from src.ui.QTstyle import Palette
 from src.ui.QTcustom import RegularQTPopup
+
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -94,6 +97,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         backendHandler = BackendHandler(self)
         backendHandler.enableCorrectBackends()
+
+        self.renderQueue: list[RenderOptions] = []
 
         backendHandler.setupBackendDeps()
         self.backends, self.fullOutput = (
@@ -182,6 +187,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settingsBtn.clicked.connect(self.switchToSettingsPage)
         self.downloadBtn.clicked.connect(self.switchToDownloadPage)
         # connect getting default output file
+
+    def addToRenderQueue(self, renderOptions: RenderOptions):
+        self.renderQueue.append(renderOptions)
 
     def setButtonsUnchecked(self, buttonToIgnore):
         buttons = [
@@ -333,8 +341,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
-
-        self.processTab.run(
+        renderOptions = RenderOptions(
             inputFile=self.inputFileText.text(),
             outputPath=self.outputFileText.text(),
             videoWidth=self.videoWidth,
@@ -354,6 +361,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
             ensemble=self.ensembleCheckBox.isChecked(),
         )
+        self.addToRenderQueue(renderOptions)
+
+        self.processTab.run(renderQueue=self.renderQueue)
 
     def disableProcessPage(self):
         for child in self.generalSettings.children():

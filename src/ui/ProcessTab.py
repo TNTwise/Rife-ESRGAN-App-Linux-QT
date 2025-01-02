@@ -37,6 +37,27 @@ from ..ModelHandler import (
     onnxInterpolateModels,
     totalModels,
 )
+from dataclasses import dataclass
+
+
+@dataclass
+class RenderOptions:
+    inputFile: str
+    outputPath: str
+    videoWidth: int
+    videoHeight: int
+    videoFps: int
+    tilingEnabled: bool
+    tilesize: str
+    videoFrameCount: int
+    backend: str
+    interpolateModel: str
+    upscaleModel: str
+    interpolateTimes: int
+    benchmarkMode: bool
+    sloMoMode: bool
+    dyanmicScaleOpticalFlow: bool
+    ensemble: bool
 
 
 class ProcessTab:
@@ -198,39 +219,12 @@ class ProcessTab:
 
     def run(
         self,
-        inputFile: str,
-        outputPath: str,
-        videoWidth: int,
-        videoHeight: int,
-        videoFps: float,
-        videoFrameCount: int,
-        tilesize: int,
-        tilingEnabled: bool,
-        backend: str,
-        interpolateTimes: int,
-        upscaleModel: str,
-        interpolateModel: str,
-        benchmarkMode: bool,
-        sloMoMode: bool,
-        dyanmicScaleOpticalFlow: bool,
-        ensemble: bool,
+        renderQueue: list[RenderOptions],
     ):
-        interpolateModels, upscaleModels = self.getModels(backend)
-        if interpolateModel == "None":
-            interpolateModel = None
-            interpolateModelFile = None
-        if upscaleModel == "None":
-            upscaleModel = None
-            upscaleModelFile = None
-        self.inputFile = inputFile
-        self.outputPath = outputPath
-        self.videoWidth = videoWidth
-        self.videoHeight = videoHeight
-        self.videoFps = videoFps
-        self.tilingEnabled = tilingEnabled
-        self.tilesize = tilesize
-        self.videoFrameCount = videoFrameCount
-
+        show_layout_widgets(self.parent.onRenderButtonsContiainer)
+        self.parent.startRenderButton.setVisible(False)
+        self.parent.startRenderButton.clicked.disconnect()
+        self.parent.startRenderButton.clicked.connect(self.resumeRender)
         self.qualityToCRF = {
             "Low": "28",
             "Medium": "23",
@@ -238,241 +232,234 @@ class ProcessTab:
             "Very High": "15",
         }
 
-        
-        
-
-        # if upscale or interpolate
-        """
-        Function to start the rendering process
-        It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
-        Then, based on the settings selected, it will build a command that is then passed into rve-backend
-        Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
-        """
-        self.benchmarkMode = benchmarkMode
-        self.sloMoMode = sloMoMode
-        self.dyanmicScaleOpticalFlow = dyanmicScaleOpticalFlow
-        self.ensemble = ensemble
-        # get model attributes
-
-        if interpolateModel:
-            interpolateModelFile, interpolateDownloadFile = (
-                interpolateModels[interpolateModel][0],
-                interpolateModels[interpolateModel][1],
-            )
-        else:
-            interpolateTimes = 1
-        if upscaleModel:
-            upscaleModelFile, upscaleDownloadFile = (
-                upscaleModels[upscaleModel][0],
-                upscaleModels[upscaleModel][1],
-            )
-            upscaleTimes = upscaleModels[upscaleModel][2]
-            upscaleModelArch = upscaleModels[upscaleModel][3]
-        else:
-            upscaleTimes = 1
-            upscaleModelArch = "custom"
-
-        if interpolateModel:
-            DownloadModel(
-                modelFile=interpolateModelFile,
-                downloadModelFile=interpolateDownloadFile,
-            )
-        if upscaleModelArch != "custom":  # custom models are not downloaded
-            if upscaleModelFile:
-                DownloadModel(
-                    modelFile=upscaleModelFile, downloadModelFile=upscaleDownloadFile
-                )
-        # get video attributes
-        self.outputVideoWidth = videoWidth * upscaleTimes
-        self.outputVideoHeight = videoHeight * upscaleTimes
-
-        # set up pausing
-        self.pausedFile = os.path.join(
-            currentDirectory(), os.path.basename(inputFile) + "_pausedState.txt"
-        )
-        show_layout_widgets(self.parent.onRenderButtonsContiainer)
-        self.parent.startRenderButton.setVisible(False)
-        self.parent.startRenderButton.clicked.disconnect()
-        self.parent.startRenderButton.clicked.connect(self.resumeRender)
-
-        # discord rpc
-        if self.settings.settings["discord_rich_presence"] == "True":
-            try:
-                self.discordRPC = DiscordRPC()
-                self.discordRPC.start_discordRPC(
-                    "Enhancing", os.path.basename(self.inputFile), backend
-                )
-            except Exception:
-                pass
-        if os.path.isfile(outputPath):
+        """if os.path.isfile(outputPath): 
             self.isOverwrite = self.questionToOverride()
             if not self.isOverwrite:
                 self.onRenderCompletion()
                 self.guiChangesOnRenderCompletion()
-                return # has to be put at end of function,  so allow for the exit processes to occur
-        writeThread = Thread(
-            target=lambda: self.renderToPipeThread(
-                backend=backend,
-                interpolateTimes=interpolateTimes,
-                interpolateModelFile=interpolateModelFile,
-                upscaleModelFile=upscaleModelFile,
-                upscaleModelArch=upscaleModelArch,
-            )
-        )
+                return  # has to be put at end of function,  so allow for the exit processes to occur"""
+        writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
         self.startGUIUpdate()
 
     def renderToPipeThread(
         self,
-        backend: str,
-        interpolateTimes: int,
-        interpolateModelFile: str,
-        upscaleModelFile: str,
-        upscaleModelArch: str,
+        renderQueue: list[RenderOptions],
     ):
-        # builds command
-        if backend == "pytorch (cuda)" or backend == "pytorch (rocm)":
-            backend = "pytorch"  # pytorch is the same for both cuda and rocm
+        for renderOptions in renderQueue:
+            interpolateModels, upscaleModels = self.getModels(renderOptions.backend)
+            if renderOptions.interpolateModel == "None":
+                renderOptions.interpolateModel = None
+                interpolateModelFile = None
+            if renderOptions.upscaleModel == "None":
+                renderOptions.upscaleModel = None
+                upscaleModelFile = None
 
-        command = [
-            f"{PYTHON_PATH}",
-            "-W",
-            "ignore",
-            os.path.join(BACKEND_PATH, "rve-backend.py"),
-            "-i",
-            self.inputFile,
-            "-o",
-            f"{self.outputPath}",
-            "-b",
-            f"{backend}",
-            "--precision",
-            f"{self.settings.settings['precision']}",
-            "--video_encoder_preset",
-            f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
-            "--audio_encoder_preset",
-            f"{self.settings.settings['audio_encoder']}",
-            "--audio_bitrate",
-            f"{self.settings.settings['audio_bitrate']}",
-            "--crf",
-            f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
-            "--tensorrt_opt_profile",
-            f"{self.settings.settings['tensorrt_optimization_level']}",
-            "--paused_file",
-            f"{self.pausedFile}",
-            "--ncnn_gpu_id",
-            f"{self.settings.settings['ncnn_gpu_id']}",
-            "--pytorch_gpu_id",
-            f"{self.settings.settings['pytorch_gpu_id']}",
-        ]
+            # if upscale or interpolate
+            """
+            Function to start the rendering process
+            It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
+            Then, based on the settings selected, it will build a command that is then passed into rve-backend
+            Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
+            """
+            # get model attributes
 
-        if upscaleModelFile:
-            modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
-            if upscaleModelArch == "custom":
-                modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
-            command += [
-                "--upscale_model",
-                modelPath,
-            ]
-            if self.tilingEnabled:
-                command += [
-                    "--tilesize",
-                    f"{self.tilesize}",
-                ]
-
-        if interpolateModelFile:
-            command += [
-                "--interpolate_model",
-                os.path.join(
-                    MODELS_PATH,
-                    interpolateModelFile,
-                ),
-                "--interpolate_factor",
-                f"{interpolateTimes}",
-            ]
-            if self.sloMoMode:
-                command += [
-                    "--slomo_mode",
-                ]
-            if self.dyanmicScaleOpticalFlow:
-                command += [
-                    "--dynamic_scaled_optical_flow",
-                ]
-            if self.ensemble:
-                command += [
-                    "--ensemble",
-                ]
-        if self.settings.settings["auto_border_cropping"] == "True":
-            command += [
-                "--border_detect",
-            ]
-
-        if self.settings.settings["preview_enabled"] == "True":
-            command += [
-                "--shared_memory_id",
-                f"{self.imagePreviewSharedMemoryID}",
-            ]
-
-        if self.settings.settings["scene_change_detection_enabled"] == "False":
-            command += ["--scene_detect_method", "none"]
-        else:
-            command += [
-                "--scene_detect_method",
-                self.settings.settings["scene_change_detection_method"],
-                "--scene_detect_threshold",
-                self.settings.settings["scene_change_detection_threshold"],
-            ]
-
-        if self.benchmarkMode:
-            command += ["--benchmark"]
-
-        if self.settings.settings["uhd_mode"] == "True":
-            if self.videoWidth > 1920 or self.videoHeight > 1080:
-                command += ["--UHD_mode"]
-                log("UHD mode enabled")
-        
-        if self.isOverwrite:
-            command += ["--overwrite"]
-
-        self.renderProcess = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        )
-        textOutput = []
-        for line in iter(self.renderProcess.stdout.readline, b""):
-            if self.renderProcess.poll() is not None:
-                break  # Exit the loop if the process has terminated
-
-            # filter out lines from logs here
-            if "torch_tensorrt.dynamo" in line:
-                continue
-            if "INFO:torch_tensorrt" in line:
-                continue
-            if "WARNING: [Torch-TensorRT]" in line:
-                continue
-            if "Unable to import quantization" in line:
-                continue
-
-            line = str(line.strip())
-            if "it/s" in line:
-                textOutput = textOutput[:-1]
-            if "FPS" in line:
-                textOutput = textOutput[
-                    :-1
-                ]  # slice the list to only get the last updated data
-                self.currentFrame = int(
-                    re.search(r"Current Frame: (\d+)", line).group(1)
+            if renderOptions.interpolateModel:
+                interpolateModelFile, interpolateDownloadFile = (
+                    interpolateModels[renderOptions.interpolateModel][0],
+                    interpolateModels[renderOptions.interpolateModel][1],
                 )
-            if any(char.isalpha() for char in line):
-                textOutput.append(line)
-            # self.setRenderOutputContent(textOutput)
-            self.renderTextOutputList = textOutput.copy()
-            if "Time to complete render" in line:
-                break
-        for line in textOutput:
-            if len(line) > 2:
-                log(line)
+                DownloadModel(
+                    modelFile=interpolateModelFile,
+                    downloadModelFile=interpolateDownloadFile,
+                )
+            else:
+                renderOptions.interpolateTimes = 1
+            if renderOptions.upscaleModel:
+                upscaleModelFile, upscaleDownloadFile = (
+                    upscaleModels[renderOptions.upscaleModel][0],
+                    upscaleModels[renderOptions.upscaleModel][1],
+                )
+                upscaleTimes = upscaleModels[renderOptions.upscaleModel][2]
+                upscaleModelArch = upscaleModels[renderOptions.upscaleModel][3]
+                if upscaleModelArch != "custom":  # custom models are not downloaded
+                    DownloadModel(
+                        modelFile=upscaleModelFile,
+                        downloadModelFile=upscaleDownloadFile,
+                    )
+            else:
+                upscaleTimes = 1
+                upscaleModelArch = "custom"
+
+            # get video attributes
+            self.outputVideoWidth = renderOptions.videoWidth * upscaleTimes
+            self.outputVideoHeight = renderOptions.videoHeight * upscaleTimes
+
+            # set up pausing
+            self.pausedFile = os.path.join(
+                currentDirectory(),
+                os.path.basename(renderOptions.inputFile) + "_pausedState.txt",
+            )
+
+            # discord rpc
+            if self.settings.settings["discord_rich_presence"] == "True":
+                try:
+                    self.discordRPC = DiscordRPC()
+                    self.discordRPC.start_discordRPC(
+                        "Enhancing",
+                        os.path.basename(renderOptions.inputFile),
+                        renderOptions.backend,
+                    )
+                except Exception:
+                    pass
+            # builds command
+            if (
+                renderOptions.backend == "pytorch (cuda)"
+                or renderOptions.backend == "pytorch (rocm)"
+            ):
+                renderOptions.backend = (
+                    "pytorch"  # pytorch is the same for both cuda and rocm
+                )
+
+            command = [
+                f"{PYTHON_PATH}",
+                "-W",
+                "ignore",
+                os.path.join(BACKEND_PATH, "rve-backend.py"),
+                "-i",
+                renderOptions.inputFile,
+                "-o",
+                f"{renderOptions.outputPath}",
+                "-b",
+                f"{renderOptions.backend}",
+                "--precision",
+                f"{self.settings.settings['precision']}",
+                "--video_encoder_preset",
+                f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
+                "--audio_encoder_preset",
+                f"{self.settings.settings['audio_encoder']}",
+                "--audio_bitrate",
+                f"{self.settings.settings['audio_bitrate']}",
+                "--crf",
+                f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
+                "--tensorrt_opt_profile",
+                f"{self.settings.settings['tensorrt_optimization_level']}",
+                "--paused_file",
+                f"{self.pausedFile}",
+                "--ncnn_gpu_id",
+                f"{self.settings.settings['ncnn_gpu_id']}",
+                "--pytorch_gpu_id",
+                f"{self.settings.settings['pytorch_gpu_id']}",
+            ]
+
+            if upscaleModelFile:
+                modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
+                if upscaleModelArch == "custom":
+                    modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
+                command += [
+                    "--upscale_model",
+                    modelPath,
+                ]
+                if renderOptions.tilingEnabled:
+                    command += [
+                        "--tilesize",
+                        f"{renderOptions.tilesize}",
+                    ]
+
+            if interpolateModelFile:
+                command += [
+                    "--interpolate_model",
+                    os.path.join(
+                        MODELS_PATH,
+                        interpolateModelFile,
+                    ),
+                    "--interpolate_factor",
+                    f"{renderOptions.interpolateTimes}",
+                ]
+                if renderOptions.sloMoMode:
+                    command += [
+                        "--slomo_mode",
+                    ]
+                if renderOptions.dyanmicScaleOpticalFlow:
+                    command += [
+                        "--dynamic_scaled_optical_flow",
+                    ]
+                if renderOptions.ensemble:
+                    command += [
+                        "--ensemble",
+                    ]
+            if self.settings.settings["auto_border_cropping"] == "True":
+                command += [
+                    "--border_detect",
+                ]
+
+            if self.settings.settings["preview_enabled"] == "True":
+                command += [
+                    "--shared_memory_id",
+                    f"{self.imagePreviewSharedMemoryID}",
+                ]
+
+            if self.settings.settings["scene_change_detection_enabled"] == "False":
+                command += ["--scene_detect_method", "none"]
+            else:
+                command += [
+                    "--scene_detect_method",
+                    self.settings.settings["scene_change_detection_method"],
+                    "--scene_detect_threshold",
+                    self.settings.settings["scene_change_detection_threshold"],
+                ]
+
+            if renderOptions.benchmarkMode:
+                command += ["--benchmark"]
+
+            if self.settings.settings["uhd_mode"] == "True":
+                if renderOptions.videoWidth > 1920 or renderOptions.videoHeight > 1080:
+                    command += ["--UHD_mode"]
+                    log("UHD mode enabled")
+
+            if self.isOverwrite:
+                command += ["--overwrite"]
+
+            self.renderProcess = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
+            textOutput = []
+            for line in iter(self.renderProcess.stdout.readline, b""):
+                if self.renderProcess.poll() is not None:
+                    break  # Exit the loop if the process has terminated
+
+                # filter out lines from logs here
+                if "torch_tensorrt.dynamo" in line:
+                    continue
+                if "INFO:torch_tensorrt" in line:
+                    continue
+                if "WARNING: [Torch-TensorRT]" in line:
+                    continue
+                if "Unable to import quantization" in line:
+                    continue
+
+                line = str(line.strip())
+                if "it/s" in line:
+                    textOutput = textOutput[:-1]
+                if "FPS" in line:
+                    textOutput = textOutput[
+                        :-1
+                    ]  # slice the list to only get the last updated data
+                    self.currentFrame = int(
+                        re.search(r"Current Frame: (\d+)", line).group(1)
+                    )
+                if any(char.isalpha() for char in line):
+                    textOutput.append(line)
+                # self.setRenderOutputContent(textOutput)
+                self.renderTextOutputList = textOutput.copy()
+                if "Time to complete render" in line:
+                    break
+            for line in textOutput:
+                if len(line) > 2:
+                    log(line)
         self.onRenderCompletion()
 
     def guiChangesOnRenderCompletion(self):
