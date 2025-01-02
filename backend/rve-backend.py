@@ -215,7 +215,19 @@ class HandleApplication:
             "--video_encoder_preset",
             help="encoder preset that sets default encoder settings useful for hardware encoders.",
             default="libx264",
-            choices=["libx264", "libx265", "vp9", "av1", "x264_vulkan", "x264_nvenc", "x265_nvenc", "av1_nvenc"],
+            choices=[
+                "libx264",
+                "libx265",
+                "vp9",
+                "av1",
+                "x264_vulkan",
+                "x264_nvenc",
+                "x265_nvenc",
+                "av1_nvenc",
+                "h264_vaapi",
+                "h265_vaapi",
+                "av1_vaapi",
+            ],
             type=str,
         )
 

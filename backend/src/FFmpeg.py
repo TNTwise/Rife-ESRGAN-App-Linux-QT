@@ -161,6 +161,27 @@ class av1_nvenc(Encoder):
     postInputSettings = "-c:v av1_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
 
+class h264_vaapi(Encoder):
+    preset_tag = "h264_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v h264_vaapi"
+    qualityControlMode: str = "-qp"
+
+
+class h265_vaapi(Encoder):
+    preset_tag = "h265_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v h265_vaapi"
+    qualityControlMode: str = "-qp"
+
+
+class av1_vaapi(Encoder):
+    preset_tag = "av1_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v av1_vaapi"
+    qualityControlMode: str = "-qp"
+
+
 class EncoderSettings:
     def __init__(self, encoder_preset):
         self.encoder_preset = encoder_preset

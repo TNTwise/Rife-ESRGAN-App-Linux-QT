@@ -2231,7 +2231,7 @@ QTabWidget::pane { /* The tab widget frame */
                   <item>
                    <widget class="QTabWidget" name="tabWidget">
                     <property name="currentIndex">
-                     <number>0</number>
+                     <number>1</number>
                     </property>
                     <widget class="QWidget" name="tab_2">
                      <attribute name="title">
@@ -2854,6 +2854,21 @@ QTabWidget::pane { /* The tab widget frame */
                               <item>
                                <property name="text">
                                 <string>av1_nvenc (40 series and up)</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>x264_vaapi</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>x265_vaapi</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>av1_vaapi</string>
                                </property>
                               </item>
                              </widget>
