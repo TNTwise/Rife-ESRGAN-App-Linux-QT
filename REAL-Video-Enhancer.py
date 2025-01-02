@@ -465,7 +465,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 dir=self.homeDir,
                 filter=binFileFilter,
             )
-            if getCustomModelScale(os.path.basename(modelFile)):
+            if getCustomModelScale(os.path.basename(modelBinFile)):
                 if modelBinFile == "":
                     RegularQTPopup("Please select a bin file!")
                     return

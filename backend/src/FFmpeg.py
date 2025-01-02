@@ -325,7 +325,13 @@ class FFMpegRender:
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
         )
-        sharedMemoryChunkSize = self.originalHeight * self.originalWidth * channels * self.upscaleTimes * self.upscaleTimes * self.upscaleTimes
+        sharedMemoryChunkSize = (
+            self.originalHeight
+            * self.originalWidth
+            * channels
+            * self.upscaleTimes
+            * self.upscaleTimes
+        )
         self.sharedMemoryThread = Thread(
             target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
         )
