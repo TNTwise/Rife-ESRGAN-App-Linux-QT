@@ -2937,6 +2937,11 @@ QTabWidget::pane { /* The tab widget frame */
                                 <string>libmp3lame</string>
                                </property>
                               </item>
+                              <item>
+                               <property name="text">
+                                <string>copy_audio</string>
+                               </property>
+                              </item>
                              </widget>
                             </item>
                            </layout>

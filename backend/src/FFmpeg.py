@@ -106,15 +106,23 @@ class Encoder(ABC):
     postInputSettings: str
     qualityControlMode: str = "-crf"
 
+class copyAudio(Encoder):
+    preset_tag = "copy_audio"
+    preInputsettings = None
+    postInputSettings = "-c:a copy"
+
+
 class aac(Encoder):
     preset_tag = "aac"
     preInputsettings = None
-    postInputSettings = "aac"
+    postInputSettings = "-c:a aac"
+
 
 class libmp3lame(Encoder):
     preset_tag = "libmp3lame"
     preInputsettings = None
-    postInputSettings = "libmp3lame"
+    postInputSettings = "-c:a libmp3lame"
+
 
 class libx264(Encoder):
     preset_tag="libx264"
@@ -415,20 +423,22 @@ class FFMpegRender:
                     "-map",
                     "1:s?",  # Map all subtitle streams from input 1
                 ]
+                command += self.audio_encoder.getPostInputSettings().split()
+                if not self.audio_encoder.getPresetTag() == "copy_audio":
+                    command += [
+                        "-b:a",
+                        self.audio_bitrate,
+                    ]
 
             command += [
-                
                 "-pix_fmt",
                 self.pixelFormat,
-                "-c:a",
-                self.audio_encoder.getPostInputSettings(),
-                "-b:a",
-                self.audio_bitrate,
                 "-c:s",
                 "copy",
                 "-loglevel",
                 "error",
             ]
+
             if self.custom_encoder is not None:
                 for i in self.custom_encoder.split():
                     command.append(i)
