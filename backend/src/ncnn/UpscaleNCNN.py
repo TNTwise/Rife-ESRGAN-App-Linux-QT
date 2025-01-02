@@ -3,7 +3,8 @@ import os
 from time import sleep
 import math
 
-import sys
+import ncnn
+
 try:
     from upscale_ncnn_py import UPSCALE
 

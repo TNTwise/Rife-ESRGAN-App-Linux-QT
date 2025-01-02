@@ -1,6 +1,5 @@
 import os
 import sys
-import socket
 
 PLATFORM = sys.platform
 
@@ -36,3 +35,5 @@ PYTHON_PATH = (
 )
 # is installed
 IS_INSTALLED = os.path.isfile(FFMPEG_PATH) and os.path.isfile(PYTHON_PATH)
+
+IMAGE_SHARED_MEMORY_ID = "/image_preview" + str(os.getpid())

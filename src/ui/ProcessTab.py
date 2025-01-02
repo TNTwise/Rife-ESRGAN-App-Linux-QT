@@ -3,6 +3,7 @@ import os
 from threading import Thread
 import re
 import time
+from tkinter.tix import IMAGE
 
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
@@ -16,7 +17,13 @@ from .QTcustom import (
     show_layout_widgets,
     hide_layout_widgets,
 )
-from ..constants import BACKEND_PATH, PYTHON_PATH, MODELS_PATH, CUSTOM_MODELS_PATH
+from ..constants import (
+    BACKEND_PATH,
+    PYTHON_PATH,
+    MODELS_PATH,
+    CUSTOM_MODELS_PATH,
+    IMAGE_SHARED_MEMORY_ID,
+)
 from ..Util import (
     currentDirectory,
     log,
@@ -215,9 +222,10 @@ class RenderOptions:
 class ProcessTab:
     def __init__(self, parent, settings: Settings):
         self.parent = parent
-        self.imagePreviewSharedMemoryID = "/image_preview" + str(os.getpid())
         self.renderTextOutputList = None
         self.isOverwrite = False
+        self.outputVideoHeight = None
+        self.outputVideoWidth = None
         self.currentFrame = 0
         self.animationHandler = AnimationHandler()
         self.tileUpAnimationHandler = AnimationHandler()
@@ -338,9 +346,11 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(False)
 
     def startGUIUpdate(self):
+        while self.outputVideoHeight is None:
+            time.sleep(0.1)
         self.workerThread = UpdateGUIThread(
             parent=self,
-            imagePreviewSharedMemoryID=self.imagePreviewSharedMemoryID,
+            imagePreviewSharedMemoryID=IMAGE_SHARED_MEMORY_ID,
             outputVideoHeight=self.outputVideoHeight,
             outputVideoWidth=self.outputVideoWidth,
         )
@@ -384,7 +394,7 @@ class ProcessTab:
             "Very High": "15",
         }
 
-        """if os.path.isfile(outputPath): 
+        if os.path.isfile(renderQueue[0].outputPath):
             self.isOverwrite = self.questionToOverride()
             if not self.isOverwrite:
                 self.onRenderCompletion()
@@ -504,7 +514,7 @@ class ProcessTab:
                 f"{self.settings.settings['pytorch_gpu_id']}",
             ]
 
-            if upscaleModelFile:
+            if renderOptions.upscaleModel:
                 modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
                 if upscaleModelArch == "custom":
                     modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
@@ -518,7 +528,7 @@ class ProcessTab:
                         f"{renderOptions.tilesize}",
                     ]
 
-            if interpolateModelFile:
+            if renderOptions.interpolateModel:
                 command += [
                     "--interpolate_model",
                     os.path.join(
@@ -548,7 +558,7 @@ class ProcessTab:
             if self.settings.settings["preview_enabled"] == "True":
                 command += [
                     "--shared_memory_id",
-                    f"{self.imagePreviewSharedMemoryID}",
+                    f"{IMAGE_SHARED_MEMORY_ID}",
                 ]
 
             if self.settings.settings["scene_change_detection_enabled"] == "False":
