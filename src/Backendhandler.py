@@ -149,7 +149,8 @@ class BackendHandler:
         start = output.find("[")
         end = output.find("]") + 1
         backends_str = output[start:end]
+
         # Convert the string representation of the list to an actual list
-        backends_str = backends_str.replace("[", "").replace("]", "").replace("'", "")
-        backends = backends_str.split(",")
+        backends = eval(backends_str)
+
         return backends, output
