@@ -2,8 +2,7 @@ import numpy as np
 import os
 from time import sleep
 import math
-from ..utils.Util import suppress_stdout_stderr
-import ncnn
+
 import sys
 try:
     from upscale_ncnn_py import UPSCALE
@@ -23,23 +22,27 @@ class NCNNParam:
         self,
         paramPath,
     ):
-        paramDict = {}
+        paramList = []
         with open(paramPath, "r") as f:
             for line in f.readlines():
                 try:
-                    paramDict[line.split()[0]] = line.split()[1::]
+                    paramList.append(line.split())
                 except IndexError:
                     pass
-        self.paramDict = paramDict
+        self.paramList = paramList
 
     def getPixelShuffleScale(self) -> int:
         scale = None
-
-        for value in self.paramDict["PixelShuffle"]:
-            if "0=" in value:
-                scale = int(value[2])
-                break
-        return scale
+        for layer in range(len(self.paramList)):
+            if "PixelShuffle" == self.paramList[layer][0]:
+                if "Convolution" in self.paramList[layer - 1]:
+                    for value in self.paramList[layer - 1]:
+                        if "0=" in value:
+                            scale = int(value[2:])  # this grabs the pixelshuffle scale
+                            scale = math.sqrt(scale / 3)
+                            if int(scale) != scale:
+                                scale = None
+                            return int(scale)
 
     def getInterpScale(self) -> int:
         scale = 1
@@ -48,6 +51,12 @@ class NCNNParam:
                 scale = int(value[2])
                 break
 
+        return scale
+
+    def getScale(self) -> int:
+        scale = self.getPixelShuffleScale()
+        if scale is None:
+            scale = self.getInterpScale()
         return scale
 
 
@@ -99,6 +108,8 @@ class UpscaleNCNN:
         self._load()
 
     def _load(self):
+        from ..utils.Util import suppress_stdout_stderr
+
         with suppress_stdout_stderr():
             if method == "ncnn_vulkan":
                 self.net = ncnn.Net()
@@ -244,3 +255,9 @@ class UpscaleNCNN:
                     output_start_x_tile:output_end_x_tile,
                 ]
         return self.output
+
+if __name__ == "__main__":
+    ncnnParam = NCNNParam(
+        "models/2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k/2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.param"
+    )
+    print(ncnnParam.getScale())

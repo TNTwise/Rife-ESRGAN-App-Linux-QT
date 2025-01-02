@@ -26,13 +26,10 @@ from src.ModelHandler import getCustomModelScale
 # other imports
 from src.Util import (
     getOSInfo,
-    get_gpu_info,
     getRAMAmount,
     getCPUInfo,
     checkForWritePermissions,
     getAvailableDiskSpace,
-    copyFile,
-    createDirectory,
     FileHandler,
 )
 from src.constants import CUSTOM_MODELS_PATH
@@ -46,6 +43,9 @@ from src.ui.AnimationHandler import AnimationHandler
 from src.ui.QTstyle import Palette
 from src.ui.QTcustom import RegularQTPopup
 
+svg = (
+    QtSvg.QSvgRenderer()
+)  # utilize the imported QtSvg module to render svg icons on windows
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -445,7 +445,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 outputModelPath = os.path.join(
                     CUSTOM_MODELS_PATH, os.path.basename(modelFile)
                 )
-                copyFile(modelFile, CUSTOM_MODELS_PATH)
+                FileHandler.copyFile(modelFile, CUSTOM_MODELS_PATH)
                 if os.path.isfile(outputModelPath):
                     RegularQTPopup(
                         "Model imported successfully!\nPlease restart the app for the changes to take effect."
@@ -482,15 +482,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     CUSTOM_MODELS_PATH,
                     os.path.basename(modelBinFile).replace(".bin", ""),
                 )
-                createDirectory(outputModelFolder)
+                FileHandler.createDirectory(outputModelFolder)
                 outputBinPath = os.path.join(
                     outputModelFolder, os.path.basename(modelBinFile)
                 )
-                copyFile(modelBinFile, outputModelFolder)
+                FileHandler.copyFile(modelBinFile, outputModelFolder)
                 outputParamPath = os.path.join(
                     outputModelFolder, os.path.basename(modelParamFile)
                 )
-                copyFile(modelParamFile, outputModelFolder)
+                FileHandler.copyFile(modelParamFile, outputModelFolder)
 
                 if os.path.isfile(outputBinPath) and os.path.isfile(outputParamPath):
                     RegularQTPopup(
