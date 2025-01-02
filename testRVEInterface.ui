@@ -2677,7 +2677,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <widget class="QWidget" name="widget_9" native="true">
                                <layout class="QHBoxLayout" name="horizontalLayout_25">
                                 <property name="spacing">
-                                 <number>0</number>
+                                 <number>6</number>
                                 </property>
                                 <property name="leftMargin">
                                  <number>0</number>
