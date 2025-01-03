@@ -125,6 +125,11 @@ class SettingsTab:
                 "video_container", self.parent.video_container.currentText()
             )
         )
+        self.parent.video_pixel_format.currentIndexChanged.connect(
+            lambda: self.settings.writeSetting(
+                "video_pixel_format", self.parent.video_pixel_format.currentText()
+            )
+        )
 
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
@@ -190,6 +195,9 @@ class SettingsTab:
         self.parent.video_container.setCurrentText(
             self.settings.settings["video_container"]
         )
+        self.parent.video_pixel_format.setCurrentText(
+            self.settings.settings["video_pixel_format"]
+        )
 
     def selectOutputFolder(self):
         outputFile = QFileDialog.getExistingDirectory(
@@ -237,6 +245,7 @@ class Settings:
             "pytorch_gpu_id": "0",
             "auto_border_cropping": "False",
             "video_container": "mkv",
+            "video_pixel_format": "yuv420p",
         }
         self.allowedSettings = {
             "precision": ("auto", "float32", "float16"),
@@ -271,6 +280,7 @@ class Settings:
             "pytorch_gpu_id": "ANY",
             "auto_border_cropping": ("True", "False"),
             "video_container": ("mkv", "mp4", "mov"),
+            "video_pixel_format": ("yuv420p", "yuv422p", "yuv444p"),
         }
         self.settings = self.defaultSettings.copy()
         if not os.path.isfile(self.settingsFile):

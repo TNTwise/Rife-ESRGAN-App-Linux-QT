@@ -32,6 +32,7 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+
 class BorderDetect:
     def __init__(self, inputFile):
         self.inputFile = inputFile
@@ -280,6 +281,7 @@ class FFMpegRender:
         channels=3,
         upscale_output_resolution: str = None,
         slowmo_mode: bool = False,
+        hdr_mode: bool = False,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -318,6 +320,7 @@ class FFMpegRender:
         self.audio_bitrate = audio_bitrate
         self.sharedMemoryID = sharedMemoryID
         self.upscale_output_resolution = upscale_output_resolution
+        self.hdr_mode = hdr_mode
 
         self.subtitleFiles = []
         
@@ -417,6 +420,16 @@ class FFMpegRender:
                 "-i",
                 "-",
             ]
+
+            if self.hdr_mode:
+                command += [
+                    "-color_primaries",
+                    "bt2020",
+                    "-color_trc",
+                    "smpte2084",
+                    "-colorspace",
+                    "bt2020nc",
+                ]
 
             if not self.slowmo_mode:
                 command += [

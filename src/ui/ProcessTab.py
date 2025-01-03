@@ -498,6 +498,8 @@ class ProcessTab:
                 f"{self.settings.settings['precision']}",
                 "--video_encoder_preset",
                 f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
+                "--video_pixel_format",
+                f"{self.settings.settings['video_pixel_format']}",
                 "--audio_encoder_preset",
                 f"{self.settings.settings['audio_encoder']}",
                 "--audio_bitrate",

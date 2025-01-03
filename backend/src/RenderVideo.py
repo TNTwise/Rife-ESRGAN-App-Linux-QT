@@ -42,8 +42,8 @@ class Render(FFMpegRender):
         backend="pytorch",
         device="default",
         precision="float16",
-        pytorch_gpu_id:int = 0,
-        ncnn_gpu_id:int = 0,
+        pytorch_gpu_id: int = 0,
+        ncnn_gpu_id: int = 0,
         # model settings
         upscaleModel=None,
         interpolateModel=None,
@@ -59,6 +59,7 @@ class Render(FFMpegRender):
         audio_encoder_preset: str = "aac",
         audio_bitrate: str = "192k",
         border_detect: bool = False,
+        hdr_mode: bool = False,
         # misc
         pausedFile=None,
         sceneDetectMethod: str = "pyscenedetect",
@@ -114,6 +115,7 @@ class Render(FFMpegRender):
             self.width, self.height, self.borderX, self.borderY = borderDetect.getBorders()
             log(f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}")
 
+
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
         if upscaleModel:
@@ -142,6 +144,7 @@ class Render(FFMpegRender):
             channels=3,
             upscale_output_resolution=upscale_output_resolution,
             slowmo_mode=slomo_mode,
+            hdr_mode=hdr_mode,
         )
         
         self.renderThread = Thread(target=self.render)

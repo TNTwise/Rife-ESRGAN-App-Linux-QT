@@ -5,6 +5,7 @@ import cv2
 import shutil
 import contextlib
 
+
 @contextlib.contextmanager
 def suppress_stdout_stderr():
     """Suppress stdout and stderr by redirecting them to /dev/null."""
@@ -326,6 +327,8 @@ def get_gpus_ncnn():
         log(str(e))
         return "Unable to get NCNN GPU"
 
+
 if __name__ == "__main__":
     print(get_gpus_ncnn())
     print(get_gpus_torch())
+

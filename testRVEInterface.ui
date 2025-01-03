@@ -2877,77 +2877,6 @@ QTabWidget::pane { /* The tab widget frame */
                           </widget>
                          </item>
                          <item>
-                          <widget class="QWidget" name="widget_20" native="true">
-                           <layout class="QHBoxLayout" name="horizontalLayout_2">
-                            <property name="spacing">
-                             <number>0</number>
-                            </property>
-                            <property name="leftMargin">
-                             <number>0</number>
-                            </property>
-                            <property name="topMargin">
-                             <number>0</number>
-                            </property>
-                            <property name="rightMargin">
-                             <number>0</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>0</number>
-                            </property>
-                            <item>
-                             <widget class="QLabel" name="encoderLabel_10">
-                              <property name="font">
-                               <font>
-                                <pointsize>12</pointsize>
-                               </font>
-                              </property>
-                              <property name="text">
-                               <string>Audio Encoder</string>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <spacer name="horizontalSpacer_30">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>382</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                            <item>
-                             <widget class="QComboBox" name="audio_encoder">
-                              <property name="minimumSize">
-                               <size>
-                                <width>200</width>
-                                <height>0</height>
-                               </size>
-                              </property>
-                              <item>
-                               <property name="text">
-                                <string>aac</string>
-                               </property>
-                              </item>
-                              <item>
-                               <property name="text">
-                                <string>libmp3lame</string>
-                               </property>
-                              </item>
-                              <item>
-                               <property name="text">
-                                <string>copy_audio</string>
-                               </property>
-                              </item>
-                             </widget>
-                            </item>
-                           </layout>
-                          </widget>
-                         </item>
-                         <item>
                           <widget class="QWidget" name="widget_18" native="true">
                            <layout class="QHBoxLayout" name="horizontalLayout_35">
                             <property name="spacing">
@@ -3016,6 +2945,148 @@ QTabWidget::pane { /* The tab widget frame */
                               <item>
                                <property name="text">
                                 <string>Low</string>
+                               </property>
+                              </item>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QWidget" name="widget_21" native="true">
+                           <layout class="QHBoxLayout" name="horizontalLayout_37">
+                            <property name="spacing">
+                             <number>0</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="encoderLabel_7">
+                              <property name="font">
+                               <font>
+                                <pointsize>12</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Video Pixel Format</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <spacer name="horizontalSpacer_20">
+                              <property name="orientation">
+                               <enum>Qt::Orientation::Horizontal</enum>
+                              </property>
+                              <property name="sizeHint" stdset="0">
+                               <size>
+                                <width>469</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                             </spacer>
+                            </item>
+                            <item>
+                             <widget class="QComboBox" name="video_pixel_format">
+                              <property name="minimumSize">
+                               <size>
+                                <width>100</width>
+                                <height>0</height>
+                               </size>
+                              </property>
+                              <item>
+                               <property name="text">
+                                <string>yuv420p</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>yuv422p</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>yuv444p</string>
+                               </property>
+                              </item>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QWidget" name="widget_20" native="true">
+                           <layout class="QHBoxLayout" name="horizontalLayout_2">
+                            <property name="spacing">
+                             <number>0</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="encoderLabel_10">
+                              <property name="font">
+                               <font>
+                                <pointsize>12</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Audio Encoder</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <spacer name="horizontalSpacer_30">
+                              <property name="orientation">
+                               <enum>Qt::Orientation::Horizontal</enum>
+                              </property>
+                              <property name="sizeHint" stdset="0">
+                               <size>
+                                <width>382</width>
+                                <height>20</height>
+                               </size>
+                              </property>
+                             </spacer>
+                            </item>
+                            <item>
+                             <widget class="QComboBox" name="audio_encoder">
+                              <property name="minimumSize">
+                               <size>
+                                <width>200</width>
+                                <height>0</height>
+                               </size>
+                              </property>
+                              <item>
+                               <property name="text">
+                                <string>aac</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>libmp3lame</string>
+                               </property>
+                              </item>
+                              <item>
+                               <property name="text">
+                                <string>copy_audio</string>
                                </property>
                               </item>
                              </widget>

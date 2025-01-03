@@ -82,41 +82,43 @@ class HandleApplication:
     def renderVideo(self):
         self.checkArguments()
         Render(
-                # model settings
-                inputFile=self.args.input,
-                outputFile=self.args.output,
-                interpolateModel=self.args.interpolate_model,
-                interpolateFactor=self.args.interpolate_factor,
-                upscaleModel=self.args.upscale_model,
-                tile_size=self.args.tilesize,
-                # backend settings
-                device="default",
-                backend=self.args.backend,
-                precision=self.args.precision,
-                pytorch_gpu_id=self.args.pytorch_gpu_id,
-                ncnn_gpu_id=self.args.ncnn_gpu_id,
-                # ffmpeg settings
-                overwrite=self.args.overwrite,
-                crf=self.args.crf,
-                video_encoder_preset=self.args.video_encoder_preset,
-                audio_encoder_preset=self.args.audio_encoder_preset,
-                audio_bitrate=self.args.audio_bitrate,
-                benchmark=self.args.benchmark,
-                custom_encoder=self.args.custom_encoder,
-                border_detect=self.args.border_detect,
-                # misc settingss
-                pausedFile=self.args.paused_file,
-                sceneDetectMethod=self.args.scene_detect_method,
-                sceneDetectSensitivity=self.args.scene_detect_threshold,
-                sharedMemoryID=self.args.shared_memory_id,
-                trt_optimization_level=self.args.tensorrt_opt_profile,
-                upscale_output_resolution=self.args.upscale_output_resolution,
-                UHD_mode=self.args.UHD_mode,
-                slomo_mode=self.args.slomo_mode,
-                dynamic_scaled_optical_flow=self.args.dynamic_scaled_optical_flow,
-                ensemble=self.args.ensemble,
-            )
-        
+            # model settings
+            inputFile=self.args.input,
+            outputFile=self.args.output,
+            interpolateModel=self.args.interpolate_model,
+            interpolateFactor=self.args.interpolate_factor,
+            upscaleModel=self.args.upscale_model,
+            tile_size=self.args.tilesize,
+            # backend settings
+            device="default",
+            backend=self.args.backend,
+            precision=self.args.precision,
+            pytorch_gpu_id=self.args.pytorch_gpu_id,
+            ncnn_gpu_id=self.args.ncnn_gpu_id,
+            # ffmpeg settings
+            overwrite=self.args.overwrite,
+            crf=self.args.crf,
+            video_encoder_preset=self.args.video_encoder_preset,
+            audio_encoder_preset=self.args.audio_encoder_preset,
+            audio_bitrate=self.args.audio_bitrate,
+            benchmark=self.args.benchmark,
+            custom_encoder=self.args.custom_encoder,
+            border_detect=self.args.border_detect,
+            hdr_mode=self.args.hdr_mode,
+            pixelFormat=self.args.video_pixel_format,
+            # misc settingss
+            pausedFile=self.args.paused_file,
+            sceneDetectMethod=self.args.scene_detect_method,
+            sceneDetectSensitivity=self.args.scene_detect_threshold,
+            sharedMemoryID=self.args.shared_memory_id,
+            trt_optimization_level=self.args.tensorrt_opt_profile,
+            upscale_output_resolution=self.args.upscale_output_resolution,
+            UHD_mode=self.args.UHD_mode,
+            slomo_mode=self.args.slomo_mode,
+            dynamic_scaled_optical_flow=self.args.dynamic_scaled_optical_flow,
+            ensemble=self.args.ensemble,
+        )
+
     def handleArguments(self) -> argparse.ArgumentParser:
         """_summary_
 
@@ -230,6 +232,17 @@ class HandleApplication:
             ],
             type=str,
         )
+        parser.add_argument(
+            "--video_pixel_format",
+            help="pixel format for output video",
+            default="yuv420p",
+            choices=[
+                "yuv420p",
+                "yuv422p",
+                "yuv444p",
+            ],
+            type=str,
+        )
 
         parser.add_argument(
             "--audio_encoder_preset",
@@ -283,6 +296,12 @@ class HandleApplication:
         parser.add_argument(
             "--slomo_mode",
             help="Instead of increasing framerate, it will remain the same while just increasing the length of the video.",
+            action="store_true",
+            default=False,
+        )
+        parser.add_argument(
+            "--hdr_mode",
+            help="Appends ffmpeg command to re encode with hdr colorspace",
             action="store_true",
             default=False,
         )
