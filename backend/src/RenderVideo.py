@@ -145,6 +145,7 @@ class Render(FFMpegRender):
             upscale_output_resolution=upscale_output_resolution,
             slowmo_mode=slomo_mode,
             hdr_mode=hdr_mode,
+            border_detect=border_detect,
         )
         
         self.renderThread = Thread(target=self.render)

@@ -32,7 +32,6 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
-
 class BorderDetect:
     def __init__(self, inputFile):
         self.inputFile = inputFile
@@ -282,6 +281,7 @@ class FFMpegRender:
         upscale_output_resolution: str = None,
         slowmo_mode: bool = False,
         hdr_mode: bool = False,
+        border_detect: bool = False,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -319,8 +319,8 @@ class FFMpegRender:
         self.crf = crf
         self.audio_bitrate = audio_bitrate
         self.sharedMemoryID = sharedMemoryID
+        self.border_detect = border_detect
         self.upscale_output_resolution = upscale_output_resolution
-        self.hdr_mode = hdr_mode
 
         self.subtitleFiles = []
         
@@ -334,6 +334,7 @@ class FFMpegRender:
             * channels
             * self.upscaleTimes
             * self.upscaleTimes
+            # * self.upscaleTimes  # this extends the shared memory size to prevent overflow
         )
         self.sharedMemoryThread = Thread(
             target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
@@ -420,16 +421,6 @@ class FFMpegRender:
                 "-i",
                 "-",
             ]
-
-            if self.hdr_mode:
-                command += [
-                    "-color_primaries",
-                    "bt2020",
-                    "-color_trc",
-                    "smpte2084",
-                    "-colorspace",
-                    "bt2020nc",
-                ]
 
             if not self.slowmo_mode:
                 command += [
@@ -584,8 +575,12 @@ class FFMpegRender:
                 self.realTimePrint(message)
                 if self.sharedMemoryID is not None and self.previewFrame is not None:
                     # Update the shared array
-                    if self.originalHeight != self.height:
-                        padded_frame = self.padFrame(self.previewFrame, self.originalWidth, self.originalHeight)
+                    if self.border_detect:
+                        padded_frame = self.padFrame(
+                            self.previewFrame,
+                            self.originalWidth * self.upscaleTimes,
+                            self.originalHeight * self.upscaleTimes,
+                        )
                         buffer[:fcs] = padded_frame
                     else:
                         buffer[:fcs] = self.previewFrame
@@ -665,16 +660,21 @@ class FFMpegRender:
         """
         # Convert bytes to numpy array
         frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
-        frame_array = frame_array.reshape((self.height, self.width, 3))
+        frame_array = frame_array.reshape(
+            (self.height * self.upscaleTimes, self.width * self.upscaleTimes, 3)
+        )
 
         padded_frame = np.full((target_height, target_width, 3), (52, 59, 71), dtype=np.uint8)
 
         # Calculate padding offsets
-        y_offset = (target_height - self.height) // 2
-        x_offset = (target_width - self.width) // 2
+        y_offset = (target_height - self.height * self.upscaleTimes) // 2
+        x_offset = (target_width - self.width * self.upscaleTimes) // 2
 
         # Place the original frame in the center of the padded frame
-        padded_frame[y_offset:y_offset + self.height, x_offset:x_offset + self.width] = frame_array
+        padded_frame[
+            y_offset : y_offset + self.height * self.upscaleTimes,
+            x_offset : x_offset + self.width * self.upscaleTimes,
+        ] = frame_array
 
         # Convert the padded frame back to bytes
         return padded_frame.tobytes()
