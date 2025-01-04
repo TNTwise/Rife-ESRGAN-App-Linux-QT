@@ -4,7 +4,7 @@ import math
 from time import sleep
 import sys
 
-from .FFmpeg import FFMpegRender
+from .FFmpeg import FFMpegRender, BorderDetect
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log, removeFile
 

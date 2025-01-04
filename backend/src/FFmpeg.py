@@ -14,6 +14,7 @@ from .utils.Util import (
     printAndLog,
 )
 from threading import Thread
+import numpy as np
 
 
 def convertTime(remaining_time):
@@ -31,7 +32,72 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+class BorderDetect:
+    def __init__(self, inputFile):
+        self.inputFile = inputFile
+    
+    def processBorders(self):
+        command = [
+            f"{FFMPEG_PATH}",
+            "-i",
+            f"{self.inputFile}",
+            "-vf",
+            "cropdetect",
+            "-f",
+            "null",
+            "-",
+        ]
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            universal_newlines=True,
+        )
+        output = process.communicate()
+        return output
+    
+    def processOutput(self, output):
+        borders = []
+        for line in output[1].split('\n'):
+            if "crop=" in line:
+                crop_value = line.split("crop=")[1].split(' ')[0]
+                borders.append(crop_value)
+        
+        if borders:
+            def parse_crop(crop_str):
+                # Expected format: "width:height:x:y"
+                try:
+                    width, height, x, y = map(int, crop_str.split(':'))
+                    if width <= 0 or height <= 0:
+                        log(f"Invalid crop dimensions: {crop_str}")
+                        return None
+                    return width, height, x, y
+                except ValueError:
+                    log(f"Invalid crop format: {crop_str}")
+                    return None
 
+            # Parse all crop values and filter out any invalid entries
+            parsed_crops = [parse_crop(crop) for crop in borders]
+            parsed_crops = [crop for crop in parsed_crops if crop is not None]
+
+            if not parsed_crops:
+                log("No valid crop values found.")
+                return None
+
+            # Determine the least cropped crop (i.e., largest area)
+            least_cropped = max(parsed_crops, key=lambda dims: dims[0] * dims[1])
+            least_cropped_str = f"{least_cropped[0]}:{least_cropped[1]}:{least_cropped[2]}:{least_cropped[3]}"
+
+            return least_cropped_str
+
+        return None
+    
+    def getBorders(self):
+        output = self.processBorders()
+        output = self.processOutput(output)
+        width, height, borderX, borderY = map(int, output.split(':'))
+        return width, height, borderX, borderY
    
 @dataclass
 class Encoder(ABC):
@@ -40,15 +106,23 @@ class Encoder(ABC):
     postInputSettings: str
     qualityControlMode: str = "-crf"
 
+class copyAudio(Encoder):
+    preset_tag = "copy_audio"
+    preInputsettings = None
+    postInputSettings = "-c:a copy"
+
+
 class aac(Encoder):
     preset_tag = "aac"
     preInputsettings = None
-    postInputSettings = "aac"
+    postInputSettings = "-c:a aac"
+
 
 class libmp3lame(Encoder):
     preset_tag = "libmp3lame"
     preInputsettings = None
-    postInputSettings = "libmp3lame"
+    postInputSettings = "-c:a libmp3lame"
+
 
 class libx264(Encoder):
     preset_tag="libx264"
@@ -94,6 +168,27 @@ class av1_nvenc(Encoder):
     preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
     postInputSettings = "-c:v av1_nvenc -preset slow"
     qualityControlMode: str = "-cq:v"
+
+class h264_vaapi(Encoder):
+    preset_tag = "h264_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v h264_vaapi"
+    qualityControlMode: str = "-qp"
+
+
+class h265_vaapi(Encoder):
+    preset_tag = "h265_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v h265_vaapi"
+    qualityControlMode: str = "-qp"
+
+
+class av1_vaapi(Encoder):
+    preset_tag = "av1_vaapi"
+    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
+    postInputSettings = "-rc_mode CQP -c:v av1_vaapi"
+    qualityControlMode: str = "-qp"
+
 
 class EncoderSettings:
     def __init__(self, encoder_preset):
@@ -185,6 +280,8 @@ class FFMpegRender:
         channels=3,
         upscale_output_resolution: str = None,
         slowmo_mode: bool = False,
+        hdr_mode: bool = False,
+        border_detect: bool = False,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -204,10 +301,11 @@ class FFMpegRender:
         self.upscaleTimes = upscaleTimes
         self.interpolateFactor = interpolateFactor
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
-
+        self.video_encoder_preset = video_encoder_preset
         if custom_encoder is None: # custom_encoder overrides these presets
             self.video_encoder = EncoderSettings(video_encoder_preset)
             self.audio_encoder = EncoderSettings(audio_encoder_preset)
+            
 
         self.custom_encoder = custom_encoder
         self.pixelFormat = pixelFormat
@@ -221,18 +319,27 @@ class FFMpegRender:
         self.crf = crf
         self.audio_bitrate = audio_bitrate
         self.sharedMemoryID = sharedMemoryID
+        self.border_detect = border_detect
         self.upscale_output_resolution = upscale_output_resolution
 
         self.subtitleFiles = []
-        self.sharedMemoryThread = Thread(
-            target=lambda: self.writeOutInformation(self.outputFrameChunkSize)
-        )
+        
         self.inputFrameChunkSize = self.width * self.height * channels
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
         )
+        sharedMemoryChunkSize = (
+            self.originalHeight
+            * self.originalWidth
+            * channels
+            * self.upscaleTimes
+            * self.upscaleTimes
+        )
+        self.sharedMemoryThread = Thread(
+            target=lambda: self.writeOutInformation(sharedMemoryChunkSize) 
+        )
         self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=self.outputFrameChunkSize
+            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
         )
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
@@ -253,6 +360,10 @@ class FFMpegRender:
 
         self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.originalWidth = self.width
+        self.originalHeight = self.height
+        self.borderX = 0
+        self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
         self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.fps = cap.get(cv2.CAP_PROP_FPS)
 
@@ -264,6 +375,8 @@ class FFMpegRender:
             f"{FFMPEG_PATH}",
             "-i",
             f"{self.inputFile}",
+            '-vf',
+            f'crop={self.width}:{self.height}:{self.borderX}:{self.borderY}',
             "-f",
             "image2pipe",
             "-pix_fmt",
@@ -274,6 +387,7 @@ class FFMpegRender:
             f"{self.width}x{self.height}",
             "-",
         ]
+        log("FFMPEG READ COMMAND: " + str(command))
         return command
 
     def getFFmpegWriteCommand(self):
@@ -318,20 +432,22 @@ class FFMpegRender:
                     "-map",
                     "1:s?",  # Map all subtitle streams from input 1
                 ]
+                command += self.audio_encoder.getPostInputSettings().split()
+                if not self.audio_encoder.getPresetTag() == "copy_audio":
+                    command += [
+                        "-b:a",
+                        self.audio_bitrate,
+                    ]
 
             command += [
-                
                 "-pix_fmt",
                 self.pixelFormat,
-                "-c:a",
-                self.audio_encoder.getPostInputSettings(),
-                "-b:a",
-                self.audio_bitrate,
                 "-c:s",
                 "copy",
                 "-loglevel",
                 "error",
             ]
+
             if self.custom_encoder is not None:
                 for i in self.custom_encoder.split():
                     command.append(i)
@@ -381,11 +497,19 @@ class FFMpegRender:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
+        #import numpy as np
+        #import cv2
+        #frame_count = 0
         while True:
             chunk = self.readProcess.stdout.read(self.inputFrameChunkSize)
             if len(chunk) < self.inputFrameChunkSize:
                 break
             self.readQueue.put(chunk)
+            
+            #np_array = np.frombuffer(chunk, np.uint8)
+            #image = np_array.reshape((self.height, self.width, 3))
+            #cv2.imwrite(f'frames/frame_{frame_count}.png', image)
+            #frame_count += 1
         log("Ending Video Read")
         self.readQueue.put(None)
         self.readingDone = True
@@ -450,9 +574,29 @@ class FFMpegRender:
                 self.realTimePrint(message)
                 if self.sharedMemoryID is not None and self.previewFrame is not None:
                     # Update the shared array
-                    buffer[:fcs] = bytes(self.previewFrame)
+                    if self.border_detect:
+                        padded_frame = self.padFrame(
+                            self.previewFrame,
+                            self.originalWidth * self.upscaleTimes,
+                            self.originalHeight * self.upscaleTimes,
+                        )
+                        buffer[:fcs] = bytes(padded_frame)
+                    else:
+                        buffer[:fcs] = bytes(self.previewFrame)
 
             time.sleep(0.1)
+
+    def onErroredExit(self):
+        self.writingDone = True
+        print("FFmpeg failed to render the video.",file=sys.stderr)
+        with open(FFMPEG_LOG_FILE, "r") as f:
+            for line in f.readlines():
+                print(line,file=sys.stderr)
+        if self.video_encoder_preset == 'x264_vulkan':
+            print("Vulkan encode failed, try restarting the render.",file=sys.stderr)
+            print("Make sure you have the latest drivers installed and your GPU supports vulkan encoding.",file=sys.stderr)
+        time.sleep(1)
+        os._exit(1)
 
     def writeOutVideoFrames(self):
         """
@@ -465,6 +609,7 @@ class FFMpegRender:
         self.startTime = time.time()
         self.framesRendered: int = 1
         self.last_length: int = 0
+        exit_code:int = 0
         try:
             with open (FFMPEG_LOG_FILE, "w") as f:  
                 with subprocess.Popen(
@@ -486,15 +631,49 @@ class FFMpegRender:
 
                     self.writeProcess.stdin.close()
                     self.writeProcess.wait()
+                    exit_code = self.writeProcess.returncode
 
                     renderTime = time.time() - self.startTime
                     self.writingDone = True
 
                     printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
-            print(
-                f"ERROR: {e}\nPlease remove everything related to the app, and reinstall it if the problem persists across multiple input videos."
-            )
-            self.shm.close()
-            self.shm.unlink()
-            os._exit(1)
+            print(str(e),file=sys.stderr)
+            self.onErroredExit()
+        if exit_code != 0:
+            self.onErroredExit()
+
+
+
+    def padFrame(self, frame_bytes: bytes, target_width: int, target_height: int) -> bytes:
+        """
+        Pads the frame to the target resolution.
+        
+        Args:
+            frame_bytes (bytes): The input frame in bytes.
+            target_width (int): The target width for padding.
+            target_height (int): The target height for padding.
+        
+        Returns:
+            bytes: The padded frame in bytes.
+        """
+        # Convert bytes to numpy array
+        frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
+        frame_array = frame_array.reshape(
+            (self.height * self.upscaleTimes, self.width * self.upscaleTimes, 3)
+        )
+
+        padded_frame = np.full((target_height, target_width, 3), (52, 59, 71), dtype=np.uint8)
+
+        # Calculate padding offsets
+        y_offset = (target_height - self.height * self.upscaleTimes) // 2
+        x_offset = (target_width - self.width * self.upscaleTimes) // 2
+
+        # Place the original frame in the center of the padded frame
+        padded_frame[
+            y_offset : y_offset + self.height * self.upscaleTimes,
+            x_offset : x_offset + self.width * self.upscaleTimes,
+        ] = frame_array
+
+        # Convert the padded frame back to bytes
+        return padded_frame.tobytes()
