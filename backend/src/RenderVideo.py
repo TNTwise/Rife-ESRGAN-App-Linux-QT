@@ -4,7 +4,7 @@ import math
 from time import sleep
 import sys
 
-from .FFmpeg import FFMpegRender, BorderDetect
+from .FFmpeg import FFMpegRender
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log, removeFile
 
@@ -144,8 +144,8 @@ class Render(FFMpegRender):
             channels=3,
             upscale_output_resolution=upscale_output_resolution,
             slowmo_mode=slomo_mode,
-            hdr_mode=hdr_mode,
-            border_detect=border_detect,
+            #hdr_mode=hdr_mode,
+            #border_detect=border_detect,
         )
         
         self.renderThread = Thread(target=self.render)
