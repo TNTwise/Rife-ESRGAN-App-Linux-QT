@@ -364,6 +364,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.addToRenderQueue(renderOptions)
 
         self.processTab.run(renderQueue=self.renderQueue)
+        self.renderQueue = []  # clear it as batching fully isnt implemented yet
 
     def disableProcessPage(self):
         for child in self.generalSettings.children():
