@@ -399,6 +399,51 @@ class ProcessTab:
                 self.onRenderCompletion()
                 self.guiChangesOnRenderCompletion()
                 return  # has to be put at end of function,  so allow for the exit processes to occur"""
+        renderOptions = renderQueue[0]
+        interpolateModels, upscaleModels = self.getModels(renderOptions.backend)
+        if renderOptions.interpolateModel == "None":
+            renderOptions.interpolateModel = None
+            self.interpolateModelFile = None
+        if renderOptions.upscaleModel == "None":
+            renderOptions.upscaleModel = None
+            self.upscaleModelFile = None
+
+        # if upscale or interpolate
+        """
+        Function to start the rendering process
+        It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
+        Then, based on the settings selected, it will build a command that is then passed into rve-backend
+        Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
+        """
+        # get model attributes
+
+        if renderOptions.interpolateModel:
+            self.interpolateModelFile, interpolateDownloadFile = (
+                interpolateModels[renderOptions.interpolateModel][0],
+                interpolateModels[renderOptions.interpolateModel][1],
+            )
+            DownloadModel(
+                modelFile=self.interpolateModelFile,
+                downloadModelFile=interpolateDownloadFile,
+            )
+        else:
+            renderOptions.interpolateTimes = 1
+        if renderOptions.upscaleModel:
+            self.upscaleModelFile, upscaleDownloadFile = (
+                upscaleModels[renderOptions.upscaleModel][0],
+                upscaleModels[renderOptions.upscaleModel][1],
+            )
+            self.upscaleTimes = upscaleModels[renderOptions.upscaleModel][2]
+            self.upscaleModelArch = upscaleModels[renderOptions.upscaleModel][3]
+            if self.upscaleModelArch != "custom":  # custom models are not downloaded
+                DownloadModel(
+                    modelFile=self.upscaleModelFile,
+                    downloadModelFile=upscaleDownloadFile,
+                )
+        else:
+            self.upscaleTimes = 1
+            self.upscaleModelArch = "custom"
+    
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
         self.startGUIUpdate()
@@ -408,53 +453,11 @@ class ProcessTab:
         renderQueue: list[RenderOptions],
     ):
         for renderOptions in renderQueue:
-            interpolateModels, upscaleModels = self.getModels(renderOptions.backend)
-            if renderOptions.interpolateModel == "None":
-                renderOptions.interpolateModel = None
-                interpolateModelFile = None
-            if renderOptions.upscaleModel == "None":
-                renderOptions.upscaleModel = None
-                upscaleModelFile = None
-
-            # if upscale or interpolate
-            """
-            Function to start the rendering process
-            It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
-            Then, based on the settings selected, it will build a command that is then passed into rve-backend
-            Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
-            """
-            # get model attributes
-
-            if renderOptions.interpolateModel:
-                interpolateModelFile, interpolateDownloadFile = (
-                    interpolateModels[renderOptions.interpolateModel][0],
-                    interpolateModels[renderOptions.interpolateModel][1],
-                )
-                DownloadModel(
-                    modelFile=interpolateModelFile,
-                    downloadModelFile=interpolateDownloadFile,
-                )
-            else:
-                renderOptions.interpolateTimes = 1
-            if renderOptions.upscaleModel:
-                upscaleModelFile, upscaleDownloadFile = (
-                    upscaleModels[renderOptions.upscaleModel][0],
-                    upscaleModels[renderOptions.upscaleModel][1],
-                )
-                upscaleTimes = upscaleModels[renderOptions.upscaleModel][2]
-                upscaleModelArch = upscaleModels[renderOptions.upscaleModel][3]
-                if upscaleModelArch != "custom":  # custom models are not downloaded
-                    DownloadModel(
-                        modelFile=upscaleModelFile,
-                        downloadModelFile=upscaleDownloadFile,
-                    )
-            else:
-                upscaleTimes = 1
-                upscaleModelArch = "custom"
+            
 
             # get video attributes
-            self.outputVideoWidth = renderOptions.videoWidth * upscaleTimes
-            self.outputVideoHeight = renderOptions.videoHeight * upscaleTimes
+            self.outputVideoWidth = renderOptions.videoWidth * self.upscaleTimes
+            self.outputVideoHeight = renderOptions.videoHeight * self.upscaleTimes
 
             # set up pausing
             self.pausedFile = os.path.join(
@@ -516,9 +519,9 @@ class ProcessTab:
             ]
 
             if renderOptions.upscaleModel:
-                modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
-                if upscaleModelArch == "custom":
-                    modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
+                modelPath = os.path.join(MODELS_PATH, self.upscaleModelFile)
+                if self.upscaleModelArch == "custom":
+                    modelPath = os.path.join(CUSTOM_MODELS_PATH, self.upscaleModelFile)
                 command += [
                     "--upscale_model",
                     modelPath,
@@ -534,7 +537,7 @@ class ProcessTab:
                     "--interpolate_model",
                     os.path.join(
                         MODELS_PATH,
-                        interpolateModelFile,
+                        self.interpolateModelFile,
                     ),
                     "--interpolate_factor",
                     f"{renderOptions.interpolateTimes}",
