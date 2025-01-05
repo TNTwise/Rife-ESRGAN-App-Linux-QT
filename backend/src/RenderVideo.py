@@ -55,7 +55,7 @@ class Render(FFMpegRender):
         benchmark: bool = False,
         overwrite: bool = False,
         crf: str = "18",
-        video_encoder_preset: str = "x264",
+        video_encoder_preset: str = "libx264",
         audio_encoder_preset: str = "aac",
         audio_bitrate: str = "192k",
         border_detect: bool = False,
@@ -144,8 +144,8 @@ class Render(FFMpegRender):
             channels=3,
             upscale_output_resolution=upscale_output_resolution,
             slowmo_mode=slomo_mode,
-            #hdr_mode=hdr_mode,
-            #border_detect=border_detect,
+            hdr_mode=hdr_mode,
+            border_detect=border_detect,
         )
         
         self.renderThread = Thread(target=self.render)

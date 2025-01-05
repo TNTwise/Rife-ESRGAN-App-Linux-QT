@@ -3,7 +3,6 @@ import os
 from threading import Thread
 import re
 import time
-from tkinter.tix import IMAGE
 
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor

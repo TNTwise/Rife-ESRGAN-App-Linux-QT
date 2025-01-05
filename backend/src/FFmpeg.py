@@ -270,7 +270,7 @@ class FFMpegRender:
         upscaleTimes: int = 1,
         custom_encoder: str = None,
         crf: int = 18,
-        video_encoder_preset: str = "x264",
+        video_encoder_preset: str = "libx264",
         audio_encoder_preset: str = "aac",
         audio_bitrate: str = "192k",
         pixelFormat: str = "yuv420p",
