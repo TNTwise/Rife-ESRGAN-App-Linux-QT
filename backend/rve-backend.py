@@ -106,7 +106,7 @@ class HandleApplication:
             border_detect=self.args.border_detect,
             hdr_mode=self.args.hdr_mode,
             pixelFormat=self.args.video_pixel_format,
-            # misc settingss
+            # misc settings
             pausedFile=self.args.paused_file,
             sceneDetectMethod=self.args.scene_detect_method,
             sceneDetectSensitivity=self.args.scene_detect_threshold,

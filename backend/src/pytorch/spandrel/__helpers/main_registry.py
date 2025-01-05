@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 from ..architectures import (
     ATD,
     CRAFT,
@@ -42,6 +43,7 @@ from ..architectures import (
     SwinIR,
     Uformer,
     Sebica,
+    RTMoSR,
 )
 from .registry import ArchRegistry, ArchSupport
 
@@ -94,4 +96,5 @@ MAIN_REGISTRY.add(
     ArchSupport.from_architecture(sudo_SPANPlus.sudo_SPANPlusArch()),
     ArchSupport.from_architecture(SPANPlus.SPANPlusArch()),
     ArchSupport.from_architecture(Sebica.SebicaArch()),
+    ArchSupport.from_architecture(RTMoSR.RTMoSRArch()),
 )
