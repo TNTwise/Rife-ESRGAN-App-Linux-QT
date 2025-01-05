@@ -597,16 +597,6 @@ class ProcessTab:
                 if self.renderProcess.poll() is not None:
                     break  # Exit the loop if the process has terminated
 
-                # filter out lines from logs here
-                if "torch_tensorrt.dynamo" in line:
-                    continue
-                if "INFO:torch_tensorrt" in line:
-                    continue
-                if "WARNING: [Torch-TensorRT]" in line:
-                    continue
-                if "Unable to import quantization" in line:
-                    continue
-
                 line = str(line.strip())
                 if "it/s" in line:
                     textOutput = textOutput[:-1]

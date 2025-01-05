@@ -24,12 +24,14 @@ SOFTWARE.
 
 import sys
 import os
-import torch
-import torch_tensorrt
-import tensorrt as trt
-from torch._decomp import get_decompositions
-from torch._export.converter import TS2EPConverter
-from torch.export.exported_program import ExportedProgram
+from ..utils.Util import suppress_stdout_stderr
+with suppress_stdout_stderr():
+    import torch
+    import torch_tensorrt
+    import tensorrt as trt
+    from torch._decomp import get_decompositions
+    from torch._export.converter import TS2EPConverter
+    from torch.export.exported_program import ExportedProgram
 
 def torchscript_to_dynamo(
             model: torch.nn.Module, example_inputs: list[torch.Tensor]
@@ -107,22 +109,25 @@ class TorchTensorRTHandler:
             for input in example_inputs
         ]
     
+    @torch.inference_mode()
     def dynamo_multi_precision_export(self, exported_program, example_inputs, device):
-        return torch_tensorrt.dynamo.compile(
-            exported_program,
-            tuple(self.prepare_inputs(example_inputs)),
-            device=device,
-            use_explicit_typing=True,
-            debug=self.debug,
-            num_avg_timing_iters=4,
-            workspace_size=self.trt_workspace_size,
-            min_block_size=1,
-            max_aux_streams=self.max_aux_streams,
-            optimization_level=self.optimization_level,
-        )
+        with suppress_stdout_stderr():
+            return torch_tensorrt.dynamo.compile(
+                exported_program,
+                tuple(self.prepare_inputs(example_inputs)),
+                device=device,
+                use_explicit_typing=True,
+                debug=self.debug,
+                num_avg_timing_iters=4,
+                workspace_size=self.trt_workspace_size,
+                min_block_size=1,
+                max_aux_streams=self.max_aux_streams,
+                optimization_level=self.optimization_level,
+            )
     
     def dynamo_export(self, exported_program, example_inputs, device, dtype):
-        return torch_tensorrt.dynamo.compile(
+        with suppress_stdout_stderr():
+            return torch_tensorrt.dynamo.compile(
                 exported_program,
                 tuple(self.prepare_inputs(example_inputs)),
                 device=device,
