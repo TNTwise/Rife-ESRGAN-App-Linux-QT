@@ -382,6 +382,7 @@ class ProcessTab:
         self,
         renderQueue: list[RenderOptions],
     ):
+        self.settings.readSettings()
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()

@@ -170,16 +170,16 @@ class av1_nvenc(Encoder):
     qualityControlMode: str = "-cq:v"
 
 class h264_vaapi(Encoder):
-    preset_tag = "h264_vaapi"
+    preset_tag = "x264_vaapi"
     preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
     postInputSettings = "-rc_mode CQP -c:v h264_vaapi"
     qualityControlMode: str = "-qp"
 
 
 class h265_vaapi(Encoder):
-    preset_tag = "h265_vaapi"
+    preset_tag = "x265_vaapi"
     preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
-    postInputSettings = "-rc_mode CQP -c:v h265_vaapi"
+    postInputSettings = "-rc_mode CQP -c:v hevc_vaapi"
     qualityControlMode: str = "-qp"
 
 

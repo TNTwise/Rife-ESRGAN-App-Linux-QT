@@ -317,6 +317,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateVideoGUIText()
 
     def startRender(self):
+        self.settings.readSettings()
         if not self.isVideoLoaded:
             RegularQTPopup("Please select a video file!")
             return
