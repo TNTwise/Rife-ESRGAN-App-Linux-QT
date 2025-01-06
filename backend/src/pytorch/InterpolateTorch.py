@@ -299,6 +299,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         ensemble: bool = False,
         dynamicScaledOpticalFlow: bool = False,
         gpu_id: int = 0,
+        max_timestep: float = 1,
         *args,
         **kwargs,
     ):
@@ -316,6 +317,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.dynamicScaledOpticalFlow = dynamicScaledOpticalFlow
         self.UHDMode = UHDMode
         self.CompareNet = None
+        self.max_timestep = max_timestep
         if UHDMode:
             self.scale = 0.5
         self._load()
@@ -362,6 +364,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 ensemble=self.ensemble,
                 dtype=self.dtype,
                 device=self.device,
+                max_timestep=self.max_timestep,
             )
             
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
@@ -405,6 +408,7 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 else:
                     if upscaleModel is not None:
                         img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
+                    self.flownet.reset_cache_after_transition()
                     writeQueue.put(img1)
             
             self.copyTensor(self.frame0, frame1)

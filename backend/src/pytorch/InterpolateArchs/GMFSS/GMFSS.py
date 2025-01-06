@@ -21,13 +21,16 @@ class GMFSS(nn.Module):
         self,
         model_path,
         model_type: str = "union",
-        scale: float = 1.,
+        scale: float = 1.0,
         ensemble: bool = False,
         width: int = 1920,
         height: int = 1080,
         trt=False,
         dtype: torch.dtype = torch.float16,
-        device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+        device: torch.device = torch.device(
+            "cuda" if torch.cuda.is_available() else "cpu"
+        ),
+        max_timestep: float = 0,
     ):
         super(GMFSS, self).__init__()
         self.model_type = model_type
@@ -36,6 +39,7 @@ class GMFSS(nn.Module):
         self.device = device
         self.width = width
         self.height = height
+        self.feat_ext0 = None
         _pad = 64
         tmp = max(_pad, int(_pad / self.scale))
         self.pw = math.ceil(self.width / tmp) * tmp
@@ -67,6 +71,10 @@ class GMFSS(nn.Module):
         self.metricnet.load_state_dict(combined_state_dict["metricnet"])
         self.feat_ext.load_state_dict(combined_state_dict["feat_ext"])
         self.fusionnet.load_state_dict(combined_state_dict["fusionnet"])
+        self.max_timestep = max_timestep
+        self.flow01, self.flow10 = None, None
+        self.feat11, self.feat12, self.feat13 = None, None, None
+        self.metric0, self.metric1 = None, None
 
         if trt:
             from ...TensorRTHandler import TorchTensorRTHandler
@@ -88,13 +96,12 @@ class GMFSS(nn.Module):
             self.feat_ext = trtHandler.load_engine("Feat.engine")
             self.flownet = trtHandler.load_engine("Flownet.engine")
 
-        
-
-    def reuse(self, img0, img1):
-        feat11, feat12, feat13 = self.feat_ext(img0)
+    def forward(self, img0, img1, timestep, scale=None):
+        if scale is not None:
+            self.scale = scale
+        if self.feat11 is None:
+            self.feat11, self.feat12, self.feat13 = self.feat_ext(img0)
         feat21, feat22, feat23 = self.feat_ext(img1)
-        feat_ext0 = [feat11, feat12, feat13]
-        feat_ext1 = [feat21, feat22, feat23]
 
         img0 = F.interpolate(img0, scale_factor=0.5, mode="bilinear")
         img1 = F.interpolate(img1, scale_factor=0.5, mode="bilinear")
@@ -105,47 +112,32 @@ class GMFSS(nn.Module):
         else:
             imgf0 = img0
             imgf1 = img1
-        flow01 = self.flownet(imgf0, imgf1)
-        flow10 = self.flownet(imgf1, imgf0)
+        if self.flow01 is None:
+            self.flow01 = self.flownet(imgf0, imgf1)
+            self.flow10 = self.flownet(imgf1, imgf0)
         if self.scale != 1.0:
-            flow01 = (
-                F.interpolate(flow01, scale_factor=1.0 / self.scale, mode="bilinear")
+            self.flow01 = (
+                F.interpolate(
+                    self.flow01, scale_factor=1.0 / self.scale, mode="bilinear"
+                )
                 / self.scale
             )
-            flow10 = (
-                F.interpolate(flow10, scale_factor=1.0 / self.scale, mode="bilinear")
+            self.flow10 = (
+                F.interpolate(
+                    self.flow10, scale_factor=1.0 / self.scale, mode="bilinear"
+                )
                 / self.scale
             )
+        if self.metric0 is None:
+            self.metric0, self.metric1 = self.metricnet(
+                img0, img1, self.flow01, self.flow10
+            )
 
-        metric0, metric1 = self.metricnet(img0, img1, flow01, flow10)
+        F1t = timestep * self.flow01
+        F2t = (1 - timestep) * self.flow10
 
-        return flow01, flow10, metric0, metric1, feat_ext0, feat_ext1
-
-    def forward(self, img0, img1, timestep, scale=None):
-        if scale is not None:
-            self.scale = scale
-        dtype = img0.dtype
-        reuse_things = self.reuse(img0, img1)
-        flow01, metric0, feat11, feat12, feat13 = (
-            reuse_things[0],
-            reuse_things[2],
-            reuse_things[4][0],
-            reuse_things[4][1],
-            reuse_things[4][2],
-        )
-        flow10, metric1, feat21, feat22, feat23 = (
-            reuse_things[1],
-            reuse_things[3],
-            reuse_things[5][0],
-            reuse_things[5][1],
-            reuse_things[5][2],
-        )
-
-        F1t = timestep * flow01
-        F2t = (1 - timestep) * flow10
-
-        Z1t = timestep * metric0
-        Z2t = (1 - timestep) * metric1
+        Z1t = timestep * self.metric0
+        Z2t = (1 - timestep) * self.metric1
 
         img0 = F.interpolate(img0, scale_factor=0.5, mode="bilinear")
         I1t = warp(img0, F1t, Z1t, strMode="soft")
@@ -155,19 +147,19 @@ class GMFSS(nn.Module):
         if self.model_type == "union":
             rife = self.ifnet(img0, img1, timestep)
 
-        feat1t1 = warp(feat11, F1t, Z1t, strMode="soft")
+        feat1t1 = warp(self.feat11, F1t, Z1t, strMode="soft")
         feat2t1 = warp(feat21, F2t, Z2t, strMode="soft")
 
         F1td = F.interpolate(F1t, scale_factor=0.5, mode="bilinear") * 0.5
         Z1d = F.interpolate(Z1t, scale_factor=0.5, mode="bilinear")
-        feat1t2 = warp(feat12, F1td, Z1d, strMode="soft")
+        feat1t2 = warp(self.feat12, F1td, Z1d, strMode="soft")
         F2td = F.interpolate(F2t, scale_factor=0.5, mode="bilinear") * 0.5
         Z2d = F.interpolate(Z2t, scale_factor=0.5, mode="bilinear")
         feat2t2 = warp(feat22, F2td, Z2d, strMode="soft")
 
         F1tdd = F.interpolate(F1t, scale_factor=0.25, mode="bilinear") * 0.25
         Z1dd = F.interpolate(Z1t, scale_factor=0.25, mode="bilinear")
-        feat1t3 = warp(feat13, F1tdd, Z1dd, strMode="soft")
+        feat1t3 = warp(self.feat13, F1tdd, Z1dd, strMode="soft")
         F2tdd = F.interpolate(F2t, scale_factor=0.25, mode="bilinear") * 0.25
         Z2dd = F.interpolate(Z2t, scale_factor=0.25, mode="bilinear")
         feat2t3 = warp(feat23, F2tdd, Z2dd, strMode="soft")
@@ -187,7 +179,19 @@ class GMFSS(nn.Module):
         )
             
         out = out[:, :, : self.height, : self.width]
+        if timestep == self.max_timestep:  # last interp, going to next frames
+            self.feat11, self.feat12, self.feat13 = feat21, feat22, feat23
+            self.reset_cache_after_inference()
         return torch.clamp(out, 0, 1)
+
+    def reset_cache_after_inference(self):
+        self.flow10 = None
+        self.flow01 = None
+        self.metric0 = None
+        self.metric1 = None
+
+    def reset_cache_after_transition(self):
+        self.feat11, self.feat12, self.feat13 = None, None, None
 
     def rife_example_input(self):
         return [

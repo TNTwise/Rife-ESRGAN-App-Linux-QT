@@ -89,6 +89,7 @@ class Render(FFMpegRender):
         self.upscaleTimes = 1  # if no upscaling, it will default to 1
         self.interpolateFactor = interpolateFactor
         # max timestep is a hack to make sure ncnn cache frames too early, and ncnn breaks if i modify the code at all so ig this is what we are doing
+        # also used to help with performace and caching
         self.maxTimestep = (interpolateFactor - 1) / interpolateFactor
         self.ncnn = self.backend == "ncnn"
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
@@ -303,4 +304,5 @@ class Render(FFMpegRender):
                 trt_optimization_level=self.trt_optimization_level,
                 ensemble=self.ensemble,
                 dynamicScaledOpticalFlow=self.dynamic_scaled_optical_flow,
+                max_timestep=self.maxTimestep,
             )
