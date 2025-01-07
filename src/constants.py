@@ -37,3 +37,4 @@ PYTHON_PATH = (
 IS_INSTALLED = os.path.isfile(FFMPEG_PATH) and os.path.isfile(PYTHON_PATH)
 
 IMAGE_SHARED_MEMORY_ID = "/image_preview" + str(os.getpid())
+PAUSED_STATE_SHARED_MEMORY_ID = "/paused_state" + str(os.getpid())

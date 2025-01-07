@@ -3,6 +3,7 @@ import os
 import math
 from time import sleep
 import sys
+from multiprocessing import shared_memory
 
 from .FFmpeg import FFMpegRender, BorderDetect
 from .utils.SceneDetect import SceneDetect
@@ -108,6 +109,7 @@ class Render(FFMpegRender):
         self.ensemble = ensemble
         self.pytorch_gpu_id = pytorch_gpu_id
         self.ncnn_gpu_id = ncnn_gpu_id
+        # self.pausedSharedMemory = shared_memory.SharedMemory(name=self.pausedFile)
         # get video properties early
         self.getVideoProperties(inputFile)
         if border_detect:
@@ -158,7 +160,7 @@ class Render(FFMpegRender):
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
-        self.readPausedFileThread1.start()
+        # self.readPausedFileThread1.start()
 
     def readPausedFileThread(self):
         activate = True
@@ -166,7 +168,7 @@ class Render(FFMpegRender):
         while not self.writingDone:
             if os.path.isfile(self.pausedFile):
                 with open(self.pausedFile, "r") as f:
-                    self.isPaused = f.read().strip() == "True"
+                    self.isPaused = f.read().strip() == "1"
                     activate = self.prevState != self.isPaused
                 if activate:
                     if self.isPaused:

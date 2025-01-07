@@ -1,5 +1,5 @@
 import cv2
-from abc import ABCMeta, ABC
+from abc import ABC
 from dataclasses import dataclass
 import os
 import subprocess
@@ -8,7 +8,7 @@ import sys
 import time
 import math
 from multiprocessing import shared_memory
-from .constants import CWD, FFMPEG_PATH, FFMPEG_LOG_FILE
+from .constants import FFMPEG_PATH, FFMPEG_LOG_FILE
 from .utils.Util import (
     log,
     printAndLog,

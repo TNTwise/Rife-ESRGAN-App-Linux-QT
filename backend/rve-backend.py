@@ -18,6 +18,7 @@ from src.utils.Util import (
 class HandleApplication:
     def __init__(self):
         self.args = self.handleArguments()
+        self.batchProcessing()
         if not self.args.list_backends:
             self.renderVideo()
         else:
@@ -27,16 +28,19 @@ class HandleApplication:
         """
         Checks if the input is a text file. If so, it will start batch processing.
         """
-
-        if os.path.split(self.args.input)[-1] == ".txt":
+        if os.path.splitext(self.args.input)[-1] == ".txt":
             with open(self.args.input, "r") as f:
                 for line in f.readlines():  # iterate through each render
                     sys.argv[1:] = (
                         line.split()
                     )  # replace the line after the input file name
-
-                    self.handleArguments()  # re check the arguments based on the new sys.argv
+                    self.args = (
+                        self.handleArguments()
+                    )  # overwrite arguments based on the new sys.argv
                     self.renderVideo()
+            exit()  # exit after batch is done
+        else:
+            return
 
     def listBackends(self):
         half_prec_supp = False
@@ -364,7 +368,8 @@ class HandleApplication:
 
     def checkArguments(self):
         if (
-            os.path.isfile(self.args.output)
+            self.args.output is not None
+            and os.path.isfile(self.args.output)
             and not self.args.overwrite
             and not self.args.benchmark
         ):

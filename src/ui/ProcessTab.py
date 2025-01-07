@@ -3,6 +3,7 @@ import os
 from threading import Thread
 import re
 import time
+from multiprocessing import shared_memory
 
 from PySide6 import QtGui
 from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
@@ -22,6 +23,7 @@ from ..constants import (
     MODELS_PATH,
     CUSTOM_MODELS_PATH,
     IMAGE_SHARED_MEMORY_ID,
+    PAUSED_STATE_SHARED_MEMORY_ID,
 )
 from ..Util import (
     currentDirectory,
@@ -230,6 +232,9 @@ class ProcessTab:
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
         self.settings = settings
+        self.pausedSharedMemory = shared_memory.SharedMemory(
+            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
+        )
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
@@ -331,14 +336,14 @@ class ProcessTab:
             log("No render process!")
 
     def pauseRender(self):
-        with open(self.pausedFile, "w") as f:
+        with open(PAUSED_STATE_SHARED_MEMORY_ID, "w") as f:
             f.write("True")
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
 
     def resumeRender(self):
-        with open(self.pausedFile, "w") as f:
+        with open(PAUSED_STATE_SHARED_MEMORY_ID, "w") as f:
             f.write("False")
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.onRenderButtonsContiainer.setEnabled(True)
@@ -512,7 +517,7 @@ class ProcessTab:
                 "--tensorrt_opt_profile",
                 f"{self.settings.settings['tensorrt_optimization_level']}",
                 "--paused_file",
-                f"{self.pausedFile}",
+                f"{PAUSED_STATE_SHARED_MEMORY_ID}",
                 "--ncnn_gpu_id",
                 f"{self.settings.settings['ncnn_gpu_id']}",
                 "--pytorch_gpu_id",
