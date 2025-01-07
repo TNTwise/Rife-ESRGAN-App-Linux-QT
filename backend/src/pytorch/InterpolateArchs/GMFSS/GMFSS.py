@@ -139,9 +139,7 @@ class GMFSS(nn.Module):
         Z1t = timestep * self.metric0
         Z2t = (1 - timestep) * self.metric1
 
-        img0 = F.interpolate(img0, scale_factor=0.5, mode="bilinear")
         I1t = warp(img0, F1t, Z1t, strMode="soft")
-        img1 = F.interpolate(img1, scale_factor=0.5, mode="bilinear")
         I2t = warp(img1, F2t, Z2t, strMode="soft")
 
         if self.model_type == "union":
