@@ -78,15 +78,11 @@ class GMFSS(nn.Module):
 
         if trt:
             from ...TensorRTHandler import TorchTensorRTHandler
-            trtHandler = TorchTensorRTHandler(multi_precision_engine=False,trt_optimization_level=5)
+            trtHandler = TorchTensorRTHandler(multi_precision_engine=False, trt_optimization_level=3, debug=True)
             trtHandler.build_engine(self.flownet, dtype=dtype, device=device, example_inputs=self.flownet_example_input(), trt_engine_path="Flownet.engine")
-            #trtHandler.build_engine(self.ifnet, dtype=dtype, device=device, example_inputs=self.rife_example_input(), trt_engine_path="IFNet.engine")
-            #trtHandler.build_engine(self.feat_ext, dtype=dtype, device=device, example_inputs=self.img0_example_input(), trt_engine_path="Feat.engine")
-            #trtHandler.build_engine(self.fusionnet, dtype=dtype, device=device, example_inputs=self.flownet_example_input(), trt_engine_path="Flownet.engine")
-            self.ifnet = None
-            self.feat_ext = None
-            #self.fusionnet = None
-            self.flownet = None
+            trtHandler.build_engine(self.ifnet, dtype=dtype, device=device, example_inputs=self.rife_example_input(), trt_engine_path="IFNet.engine")
+            trtHandler.build_engine(self.feat_ext, dtype=dtype, device=device, example_inputs=self.img0_example_input(), trt_engine_path="Feat.engine")
+            trtHandler.build_engine(self.fusionnet, dtype=dtype, device=device, example_inputs=self.flownet_example_input(), trt_engine_path="FusionNet.engine")
             import gc
             gc.collect()
             torch.cuda.empty_cache()

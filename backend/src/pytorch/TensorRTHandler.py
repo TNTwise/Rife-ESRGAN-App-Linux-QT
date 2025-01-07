@@ -111,7 +111,7 @@ class TorchTensorRTHandler:
     
     @torch.inference_mode()
     def dynamo_multi_precision_export(self, exported_program, example_inputs, device):
-        with suppress_stdout_stderr():
+        
             return torch_tensorrt.dynamo.compile(
                 exported_program,
                 tuple(self.prepare_inputs(example_inputs)),
@@ -126,7 +126,6 @@ class TorchTensorRTHandler:
             )
     
     def dynamo_export(self, exported_program, example_inputs, device, dtype):
-        with suppress_stdout_stderr():
             return torch_tensorrt.dynamo.compile(
                 exported_program,
                 tuple(self.prepare_inputs(example_inputs)),
@@ -174,7 +173,7 @@ class TorchTensorRTHandler:
         torch.cuda.empty_cache()
 
         exported_program = self.grid_sample_decomp(exported_program)
-
+        
         if self.multi_precision_engine:
             model_trt = self.dynamo_multi_precision_export(exported_program, example_inputs, device)
         else:
@@ -230,9 +229,15 @@ class TorchTensorRTHandler:
             file=sys.stderr,
         )
         if self.export_format == "dynamo":
-            self.export_using_dynamo(
-                model, example_inputs, device, dtype, trt_engine_path
-            )
+            if not self.debug:
+                self.export_using_dynamo(
+                    model, example_inputs, device, dtype, trt_engine_path
+                )
+            else:
+                 with suppress_stdout_stderr():
+                    self.export_using_dynamo(
+                        model, example_inputs, device, dtype, trt_engine_path
+                    )
         elif self.export_format == "torchscript":
             self.export_torchscript_model(
                 model, example_inputs, device, dtype, trt_engine_path
