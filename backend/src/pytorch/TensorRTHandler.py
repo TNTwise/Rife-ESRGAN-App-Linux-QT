@@ -229,7 +229,7 @@ class TorchTensorRTHandler:
             file=sys.stderr,
         )
         if self.export_format == "dynamo":
-            if not self.debug:
+            if self.debug:
                 self.export_using_dynamo(
                     model, example_inputs, device, dtype, trt_engine_path
                 )
