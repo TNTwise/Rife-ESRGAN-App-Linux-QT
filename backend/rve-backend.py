@@ -1,4 +1,5 @@
 import argparse
+import sys
 import os
 from src.RenderVideo import Render
 
@@ -21,6 +22,21 @@ class HandleApplication:
             self.renderVideo()
         else:
             self.listBackends()
+
+    def batchProcessing(self):
+        """
+        Checks if the input is a text file. If so, it will start batch processing.
+        """
+
+        if os.path.split(self.args.input)[-1] == ".txt":
+            with open(self.args.input, "r") as f:
+                for line in f.readlines():  # iterate through each render
+                    sys.argv[1:] = (
+                        line.split()
+                    )  # replace the line after the input file name
+
+                    self.handleArguments()  # re check the arguments based on the new sys.argv
+                    self.renderVideo()
 
     def listBackends(self):
         half_prec_supp = False
@@ -340,7 +356,7 @@ class HandleApplication:
             type=str,
             default=None,
         )
-
+        # append extra args
         return parser.parse_args()
 
     def fullModelPathandName(self):
