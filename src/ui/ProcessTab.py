@@ -91,6 +91,15 @@ class ProcessTab:
     def QConnect(self):
         # connect file select buttons
         self.parent.addToRenderQueueButton.clicked.connect(self.parent.addToRenderQueue)
+        self.parent.RemoveFromRenderQueue.clicked.connect(
+            self.parent.renderQueue.remove
+        )
+        self.parent.MoveUpRenderQueue.clicked.connect(
+            lambda: self.parent.renderQueue.moveitem("up")
+        )
+        self.parent.MoveDownRenderQueue.clicked.connect(
+            lambda: self.parent.renderQueue.moveitem("down")
+        )
         self.parent.inputFileSelectButton.clicked.connect(self.parent.openInputFile)
         self.parent.inputFileText.textChanged.connect(self.parent.loadVideo)
         self.parent.outputFileSelectButton.clicked.connect(self.parent.openOutputFolder)

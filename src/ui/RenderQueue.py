@@ -203,11 +203,51 @@ class RenderOptions:
 class RenderQueue:
     def __init__(self, qlistwidget: QListWidget):
         self.queue = []
+        self.inputNameList = []  # this list links up 1:1 with the queue, storing input names allow for index searching
         self.qlistwidget = qlistwidget
 
     def add(self, renderable: RenderOptions):
         self.queue.append(renderable)
         self.qlistwidget.addItem(renderable.inputFile)
-    
+        self.inputNameList.append(renderable.inputFile)
+
     def get(self):
         return self.queue.pop(0)
+
+    def _getCurrentlySelectedIndex(self):
+        item = self.qlistwidget.currentItem()
+        text = item.text()
+        index = self.inputNameList.index(text)  # get the index
+        return index
+
+    def _swapListPositions(self, list1, index1, index2):
+        list1[index1], list1[index2] = (
+            list1[index2],
+            list1[index1],
+        )  # flip
+
+    def remove(self):
+        index = self._getCurrentlySelectedIndex()
+        del self.queue[index]
+        del self.inputNameList[index]
+        self.qlistwidget.takeItem(index)  # remove the item from the list widget
+
+    def moveitem(self, direction="up"):
+        if direction == "down":
+            increment = -1
+        else:
+            increment = 1
+        try:
+            index = self._getCurrentlySelectedIndex()
+            self._swapListPositions(self.queue, index, index + increment)
+            self._swapListPositions(
+                self.inputNameList, index, index + increment
+            )  # swap in index
+
+            currentRow = self.qlistwidget.currentRow()
+            currentItem = self.qlistwidget.takeItem(index)
+            self.qlistwidget.insertItem(
+                currentRow - increment, currentItem
+            )  # swap in gui
+        except Exception:  # if there is no greater index, pass
+            pass

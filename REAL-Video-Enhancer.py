@@ -313,62 +313,68 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateVideoGUIText()
 
     def addToRenderQueue(self):
-
         interpolate = self.interpolateModelComboBox.currentText()
         upscale = self.upscaleModelComboBox.currentText()
         if interpolate == "None":
             interpolate = None
         if upscale == "None":
             upscale = None
-        backend = self.backendComboBox.currentText()
-        upscaleTimes = 1
-        upscaleModelArch = "custom"
-        interpolateModels, upscaleModels = getModels(backend)
 
-        if interpolate:
-            interpolateDownloadFile = interpolateModels[interpolate][1]
-            interpolateModelFile = interpolateModels[interpolate][0]
-            DownloadModel(
-                modelFile=interpolateModelFile,
-                downloadModelFile=interpolateDownloadFile,
-            )
-        
-        if upscale:
-            upscaleModelFile = upscaleModels[upscale][0]
-            upscaleDownloadFile = upscaleModels[upscale][1]
-            upscaleTimes = upscaleModels[upscale][2]
-            upscaleModelArch = upscaleModels[upscale][3]
-            DownloadModel(
-                modelFile=upscaleModelFile,
-                downloadModelFile=upscaleDownloadFile,
-            )
-            
-        renderOptions = RenderOptions(
-            inputFile=self.inputFileText.text(),
-            outputPath=self.outputFileText.text(),
-            videoWidth=self.videoWidth,
-            videoHeight=self.videoHeight,
-            videoFps=self.videoFps,
-            tilingEnabled=self.tilingCheckBox.isChecked(),
-            tilesize=self.tileSizeComboBox.currentText(),
-            videoFrameCount=self.videoFrameCount,
-            backend=self.backendComboBox.currentText(),
-            interpolateModel=interpolate,
-            upscaleModel=upscale,
-            interpolateTimes=self.getInterpolationMultiplier(
-                self.interpolateModelComboBox.currentText()
-            ),
-            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
-            sloMoMode=self.sloMoModeCheckBox.isChecked(),
-            dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
-            ensemble=self.ensembleCheckBox.isChecked(),
-            upscaleModelArch=upscaleModelArch,
-            upscaleTimes=upscaleTimes,
-            upscaleModelFile=upscaleModelFile if upscale else None,
-            interpolateModelFile=interpolateModelFile if interpolate else None,
-        )
-        
-        self.renderQueue.add(renderOptions)
+        if self.isVideoLoaded:
+            if interpolate or upscale:
+                backend = self.backendComboBox.currentText()
+                upscaleTimes = 1
+                upscaleModelArch = "custom"
+                interpolateModels, upscaleModels = getModels(backend)
+
+                if interpolate:
+                    interpolateDownloadFile = interpolateModels[interpolate][1]
+                    interpolateModelFile = interpolateModels[interpolate][0]
+                    DownloadModel(
+                        modelFile=interpolateModelFile,
+                        downloadModelFile=interpolateDownloadFile,
+                    )
+
+                if upscale:
+                    upscaleModelFile = upscaleModels[upscale][0]
+                    upscaleDownloadFile = upscaleModels[upscale][1]
+                    upscaleTimes = upscaleModels[upscale][2]
+                    upscaleModelArch = upscaleModels[upscale][3]
+                    DownloadModel(
+                        modelFile=upscaleModelFile,
+                        downloadModelFile=upscaleDownloadFile,
+                    )
+
+                renderOptions = RenderOptions(
+                    inputFile=self.inputFileText.text(),
+                    outputPath=self.outputFileText.text(),
+                    videoWidth=self.videoWidth,
+                    videoHeight=self.videoHeight,
+                    videoFps=self.videoFps,
+                    tilingEnabled=self.tilingCheckBox.isChecked(),
+                    tilesize=self.tileSizeComboBox.currentText(),
+                    videoFrameCount=self.videoFrameCount,
+                    backend=self.backendComboBox.currentText(),
+                    interpolateModel=interpolate,
+                    upscaleModel=upscale,
+                    interpolateTimes=self.getInterpolationMultiplier(
+                        self.interpolateModelComboBox.currentText()
+                    ),
+                    benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
+                    sloMoMode=self.sloMoModeCheckBox.isChecked(),
+                    dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
+                    ensemble=self.ensembleCheckBox.isChecked(),
+                    upscaleModelArch=upscaleModelArch,
+                    upscaleTimes=upscaleTimes,
+                    upscaleModelFile=upscaleModelFile if upscale else None,
+                    interpolateModelFile=interpolateModelFile if interpolate else None,
+                )
+
+                self.renderQueue.add(renderOptions)
+            else:
+                RegularQTPopup("Please select at least one model!")
+        else:
+            RegularQTPopup("Video is not loaded!")
 
     def startRender(self):
         self.settings.readSettings()
