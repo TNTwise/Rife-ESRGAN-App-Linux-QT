@@ -9,6 +9,7 @@
 ### Changed
  - Adjusted dynamic scale.
  - Transcodes audio by default, to fix potential audio copying issues.
+ - Moved pausing to shared memory.
 ### Fixed
  - Win10 tooltips and pop ups.
    
