@@ -328,19 +328,7 @@ class FFMpegRender:
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
         )
-        sharedMemoryChunkSize = (
-            self.originalHeight
-            * self.originalWidth
-            * channels
-            * self.upscaleTimes
-            * self.upscaleTimes
-        )
-        self.sharedMemoryThread = Thread(
-            target=lambda: self.writeOutInformation(sharedMemoryChunkSize) 
-        )
-        self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
-        )
+        
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
         self.writeOutPipe = self.outputFile == "PIPE"
@@ -551,41 +539,7 @@ class FFMpegRender:
         # convert to hours, minutes, and seconds
         hours, minutes, seconds = convertTime(remaining_time)
         return f"{hours}:{minutes}:{seconds}"
-
-    def writeOutInformation(self, fcs):
-        """
-        fcs = framechunksize
-        """
-        # Create a shared memory block
-
-        buffer = self.shm.buf
-
-        log(f"Shared memory name: {self.shm.name}")
-        while True:
-            if self.writingDone:
-                self.shm.close()
-                self.shm.unlink()
-                break
-            if self.previewFrame is not None:
-                # print out data to stdout
-                fps = round(self.framesRendered / (time.time() - self.startTime))
-                eta = self.calculateETA()
-                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
-                self.realTimePrint(message)
-                if self.sharedMemoryID is not None and self.previewFrame is not None:
-                    # Update the shared array
-                    if self.border_detect:
-                        padded_frame = self.padFrame(
-                            self.previewFrame,
-                            self.originalWidth * self.upscaleTimes,
-                            self.originalHeight * self.upscaleTimes,
-                        )
-                        buffer[:fcs] = bytes(padded_frame)
-                    else:
-                        buffer[:fcs] = bytes(self.previewFrame)
-
-            time.sleep(0.1)
-
+    
     def onErroredExit(self):
         self.writingDone = True
         print("FFmpeg failed to render the video.",file=sys.stderr)

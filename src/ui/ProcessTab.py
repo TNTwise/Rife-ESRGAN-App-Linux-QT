@@ -465,12 +465,6 @@ class ProcessTab:
             self.outputVideoWidth = renderOptions.videoWidth * self.upscaleTimes
             self.outputVideoHeight = renderOptions.videoHeight * self.upscaleTimes
 
-            # set up pausing
-            self.pausedFile = os.path.join(
-                currentDirectory(),
-                os.path.basename(renderOptions.inputFile) + "_pausedState.txt",
-            )
-
             # discord rpc
             if self.settings.settings["discord_rich_presence"] == "True":
                 try:
@@ -516,7 +510,7 @@ class ProcessTab:
                 f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
                 "--tensorrt_opt_profile",
                 f"{self.settings.settings['tensorrt_optimization_level']}",
-                "--paused_file",
+                "--pause_shared_memory_id",
                 f"{PAUSED_STATE_SHARED_MEMORY_ID}",
                 "--ncnn_gpu_id",
                 f"{self.settings.settings['ncnn_gpu_id']}",
@@ -567,7 +561,7 @@ class ProcessTab:
 
             if self.settings.settings["preview_enabled"] == "True":
                 command += [
-                    "--shared_memory_id",
+                    "--preview_shared_memory_id",
                     f"{IMAGE_SHARED_MEMORY_ID}",
                 ]
 

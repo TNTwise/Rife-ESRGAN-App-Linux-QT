@@ -22,7 +22,7 @@ class HandleApplication:
 
             if not self.batchProcessing():
                 self.renderVideo()
-                
+
         else:
             self.listBackends()
 
@@ -129,10 +129,10 @@ class HandleApplication:
             hdr_mode=self.args.hdr_mode,
             pixelFormat=self.args.video_pixel_format,
             # misc settings
-            pausedFile=self.args.paused_file,
+            pause_shared_memory_id=self.args.pause_shared_memory_id,
             sceneDetectMethod=self.args.scene_detect_method,
             sceneDetectSensitivity=self.args.scene_detect_threshold,
-            sharedMemoryID=self.args.shared_memory_id,
+            sharedMemoryID=self.args.preview_shared_memory_id,
             trt_optimization_level=self.args.tensorrt_opt_profile,
             upscale_output_resolution=self.args.upscale_output_resolution,
             UHD_mode=self.args.UHD_mode,
@@ -340,8 +340,8 @@ class HandleApplication:
             default=False,
         )
         parser.add_argument(
-            "--shared_memory_id",
-            help="Memory ID to share preview ons",
+            "--preview_shared_memory_id",
+            help="Memory ID to share preview on",
             type=str,
             default=None,
         )
@@ -351,7 +351,7 @@ class HandleApplication:
             action="store_true",
         )
         parser.add_argument(
-            "--paused_file",
+            "--pause_shared_memory_id",
             help="File to store paused state (True means paused, False means unpaused)",
             type=str,
             default=None,

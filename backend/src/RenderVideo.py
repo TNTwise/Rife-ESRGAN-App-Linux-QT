@@ -1,13 +1,13 @@
 from threading import Thread
 import os
 import math
-from time import sleep
+from time import sleep, time
 import sys
 from multiprocessing import shared_memory
 
 from .FFmpeg import FFMpegRender, BorderDetect
 from .utils.SceneDetect import SceneDetect
-from .utils.Util import printAndLog, log, removeFile
+from .utils.Util import printAndLog, log
 
 
 class Render(FFMpegRender):
@@ -62,7 +62,7 @@ class Render(FFMpegRender):
         border_detect: bool = False,
         hdr_mode: bool = False,
         # misc
-        pausedFile=None,
+        pause_shared_memory_id=None,
         sceneDetectMethod: str = "pyscenedetect",
         sceneDetectSensitivity: float = 3.0,
         sharedMemoryID: str = None,
@@ -105,8 +105,22 @@ class Render(FFMpegRender):
         self.pytorch_gpu_id = pytorch_gpu_id
         self.ncnn_gpu_id = ncnn_gpu_id
         
+        
         # get video properties early
         self.getVideoProperties(inputFile)
+
+        sharedMemoryChunkSize = (
+            self.originalHeight
+            * self.originalWidth
+            * 3 # channels
+            * self.upscaleTimes
+            * self.upscaleTimes
+        )
+
+        self.shm = shared_memory.SharedMemory(
+            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
+        )
+
         if border_detect:
             print("Detecting borders", file=sys.stderr)
             borderDetect = BorderDetect(inputFile=self.inputFile)
@@ -146,40 +160,89 @@ class Render(FFMpegRender):
             border_detect=border_detect,
         )
         
+        
         self.renderThread = Thread(target=self.render)
         self.ffmpegReadThread = Thread(target=self.readinVideoFrames)
         self.ffmpegWriteThread = Thread(target=self.writeOutVideoFrames)
+        self.sharedMemoryThread = Thread(
+            target=lambda: self.writeOutInformation(sharedMemoryChunkSize, pause_shared_memory_id=pause_shared_memory_id) 
+        )
         self.sharedMemoryThread.start()
+        
 
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
-        if pausedFile is not None:
-            readPausedFileThread = Thread(target=lambda: self.readPausedFileThread(pausedFile))
-            self.pausedSharedMemory = shared_memory.SharedMemory(name=pausedFile)
-            readPausedFileThread.start()
+        
 
-    def readPausedFileThread(self, pausedFile):
+    def writeOutInformation(self, fcs, pause_shared_memory_id=None):
+        """
+        fcs = framechunksize
+        """
+        # Create a shared memory block
+
+        buffer = self.shm.buf
         activate = True
         self.prevState = False
-        while not self.writingDone:
-            self.isPaused = self.pausedSharedMemory.buf[0] == 1
-            activate = self.prevState != self.isPaused
-            if activate:
-                if self.isPaused:
-                    if self.interpolateOption:
-                        self.interpolateOption.hotUnload()
-                    if self.upscaleOption:
-                        self.upscaleOption.hotUnload()
-                    print("\nRender Paused")
-                else:
-                    print("\nResuming Render")
-                    if self.upscaleOption:
-                        self.upscaleOption.hotReload()
-                    if self.interpolateOption:
-                        self.interpolateOption.hotReload()
-            self.prevState = self.isPaused
-            sleep(1)
+
+        try:
+            self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id)
+        except Exception as e:
+            printAndLog("Error reading paused shared memory: " + str(e))
+
+        log(f"Shared memory name: {self.shm.name}")
+
+        while True:
+
+            if self.writingDone:
+                self.shm.close()
+                self.shm.unlink()
+                break
+
+            if self.previewFrame is not None:
+
+                # print out data to stdout
+                fps = round(self.framesRendered / (time() - self.startTime))
+                eta = self.calculateETA()
+                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
+                self.realTimePrint(message)
+                if self.sharedMemoryID is not None and self.previewFrame is not None:
+
+                    # Update the shared array
+                    if self.border_detect:
+
+                        padded_frame = self.padFrame(
+                            self.previewFrame,
+                            self.originalWidth * self.upscaleTimes,
+                            self.originalHeight * self.upscaleTimes,
+                        )
+                        buffer[:fcs] = bytes(padded_frame)
+
+                    else:
+
+                        buffer[:fcs] = bytes(self.previewFrame)
+
+            if pause_shared_memory_id is not None:
+
+                self.isPaused = self.pausedSharedMemory.buf[0] == 1
+                activate = self.prevState != self.isPaused
+                if activate:
+                    if self.isPaused:
+                        if self.interpolateOption:
+                            self.interpolateOption.hotUnload()
+                        if self.upscaleOption:
+                            self.upscaleOption.hotUnload()
+                        print("\nRender Paused")
+                    else:
+                        print("\nResuming Render")
+                        if self.upscaleOption:
+                            self.upscaleOption.hotReload()
+                        if self.interpolateOption:
+                            self.interpolateOption.hotReload()
+                self.prevState = self.isPaused
+            sleep(0.1)
+
+    
 
     def render(self):
         while True:
