@@ -10,10 +10,11 @@ from PySide6.QtGui import QPixmap, QPainter, QPainterPath, QColor
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QMessageBox
 
+from .RenderQueue import RenderQueue
+
 from .AnimationHandler import AnimationHandler
 from .QTcustom import (
     UpdateGUIThread,
-    RegularQTPopup,
     show_layout_widgets,
     hide_layout_widgets,
 )
@@ -26,199 +27,15 @@ from ..constants import (
     PAUSED_STATE_SHARED_MEMORY_ID,
 )
 from ..Util import (
-    currentDirectory,
     log,
-    errorAndLog,
 )
 from ..DownloadModels import DownloadModel
 from .SettingsTab import Settings
 from ..DiscordRPC import DiscordRPC
 from ..ModelHandler import (
-    ncnnInterpolateModels,
-    ncnnUpscaleModels,
-    pytorchInterpolateModels,
-    pytorchUpscaleModels,
-    pytorchDenoiseModels,
-    tensorrtInterpolateModels,
-    tensorrtUpscaleModels,
-    onnxUpscaleModels,
-    onnxInterpolateModels,
-    totalModels,
+    getModels
 )
-from dataclasses import dataclass
-
-
-@dataclass
-# ...existing code...
-
-class RenderOptions:
-    def __init__(
-        self,
-        inputFile: str,
-        outputPath: str,
-        videoWidth: int,
-        videoHeight: int,
-        videoFps: int,
-        tilingEnabled: bool,
-        tilesize: str,
-        videoFrameCount: int,
-        backend: str,
-        interpolateModel: str,
-        upscaleModel: str,
-        interpolateTimes: int,
-        benchmarkMode: bool,
-        sloMoMode: bool,
-        dyanmicScaleOpticalFlow: bool,
-        ensemble: bool,
-    ):
-        self._inputFile = inputFile
-        self._outputPath = outputPath
-        self._videoWidth = videoWidth
-        self._videoHeight = videoHeight
-        self._videoFps = videoFps
-        self._tilingEnabled = tilingEnabled
-        self._tilesize = tilesize
-        self._videoFrameCount = videoFrameCount
-        self._backend = backend
-        self._interpolateModel = interpolateModel
-        self._upscaleModel = upscaleModel
-        self._interpolateTimes = interpolateTimes
-        self._benchmarkMode = benchmarkMode
-        self._sloMoMode = sloMoMode
-        self._dyanmicScaleOpticalFlow = dyanmicScaleOpticalFlow
-        self._ensemble = ensemble
-
-    @property
-    def inputFile(self):
-        return self._inputFile
-
-    @inputFile.setter
-    def inputFile(self, value: str):
-        self._inputFile = value
-
-    @property
-    def outputPath(self):
-        return self._outputPath
-
-    @outputPath.setter
-    def outputPath(self, value: str):
-        self._outputPath = value
-
-    @property
-    def videoWidth(self):
-        return self._videoWidth
-
-    @videoWidth.setter
-    def videoWidth(self, value: int):
-        self._videoWidth = value
-
-    @property
-    def videoHeight(self):
-        return self._videoHeight
-
-    @videoHeight.setter
-    def videoHeight(self, value: int):
-        self._videoHeight = value
-
-    @property
-    def videoFps(self):
-        return self._videoFps
-
-    @videoFps.setter
-    def videoFps(self, value: int):
-        self._videoFps = value
-
-    @property
-    def tilingEnabled(self):
-        return self._tilingEnabled
-
-    @tilingEnabled.setter
-    def tilingEnabled(self, value: bool):
-        self._tilingEnabled = value
-
-    @property
-    def tilesize(self):
-        return self._tilesize
-
-    @tilesize.setter
-    def tilesize(self, value: str):
-        self._tilesize = value
-
-    @property
-    def videoFrameCount(self):
-        return self._videoFrameCount
-
-    @videoFrameCount.setter
-    def videoFrameCount(self, value: int):
-        self._videoFrameCount = value
-
-    @property
-    def backend(self):
-        return self._backend
-
-    @backend.setter
-    def backend(self, value: str):
-        self._backend = value
-
-    @property
-    def interpolateModel(self):
-        return self._interpolateModel
-
-    @interpolateModel.setter
-    def interpolateModel(self, value: str):
-        self._interpolateModel = value
-
-    @property
-    def upscaleModel(self):
-        return self._upscaleModel
-
-    @upscaleModel.setter
-    def upscaleModel(self, value: str):
-        self._upscaleModel = value
-
-    @property
-    def interpolateTimes(self):
-        return self._interpolateTimes
-
-    @interpolateTimes.setter
-    def interpolateTimes(self, value: int):
-        self._interpolateTimes = value
-
-    @property
-    def benchmarkMode(self):
-        return self._benchmarkMode
-
-    @benchmarkMode.setter
-    def benchmarkMode(self, value: bool):
-        self._benchmarkMode = value
-
-    @property
-    def sloMoMode(self):
-        return self._sloMoMode
-
-    @sloMoMode.setter
-    def sloMoMode(self, value: bool):
-        self._sloMoMode = value
-
-    @property
-    def dyanmicScaleOpticalFlow(self):
-        return self._dyanmicScaleOpticalFlow
-
-    @dyanmicScaleOpticalFlow.setter
-    def dyanmicScaleOpticalFlow(self, value: bool):
-        self._dyanmicScaleOpticalFlow = value
-
-    @property
-    def ensemble(self):
-        return self._ensemble
-
-    @ensemble.setter
-    def ensemble(self, value: bool):
-        self._ensemble = value
-
-
-# ...existing code...
-
+from .RenderQueue import RenderOptions
 
 class ProcessTab:
     def __init__(self, parent, settings: Settings):
@@ -232,6 +49,12 @@ class ProcessTab:
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
         self.settings = settings
+        self.qualityToCRF = {
+            "Low": "28",
+            "Medium": "23",
+            "High": "18",
+            "Very High": "15",
+        }
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
@@ -240,40 +63,13 @@ class ProcessTab:
         self.QConnect()
         self.populateModels(self.parent.backendComboBox.currentText())
 
-    def getModels(self, backend):
-        """
-        returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
-        """
-        match backend:
-            case "ncnn":
-                interpolateModels = ncnnInterpolateModels
-                upscaleModels = ncnnUpscaleModels
-            case "pytorch (cuda)":
-                interpolateModels = pytorchInterpolateModels
-                upscaleModels = pytorchUpscaleModels
-            case "pytorch (rocm)":
-                interpolateModels = pytorchInterpolateModels
-                upscaleModels = pytorchUpscaleModels
-            case "tensorrt":
-                interpolateModels = tensorrtInterpolateModels
-                upscaleModels = tensorrtUpscaleModels
-            case "directml":
-                interpolateModels = onnxInterpolateModels
-                upscaleModels = onnxUpscaleModels
-            case _:
-                RegularQTPopup(
-                    "Failed to import any backends!, please try to reinstall the app!"
-                )
-                errorAndLog("Failed to import any backends!")
-                return {}
-        return interpolateModels, upscaleModels
 
     def populateModels(self, backend) -> dict:
         """
         returns
         the current models available given a method (interpolate, upscale) and a backend (ncnn, tensorrt, pytorch)
         """
-        interpolateModels, upscaleModels = self.getModels(backend)
+        interpolateModels, upscaleModels = getModels(backend)
         self.parent.interpolateModelComboBox.clear()
         self.parent.upscaleModelComboBox.clear()
         self.parent.interpolateModelComboBox.addItems(
@@ -294,7 +90,7 @@ class ProcessTab:
 
     def QConnect(self):
         # connect file select buttons
-
+        self.parent.addToRenderQueueButton.clicked.connect(self.parent.addToRenderQueue)
         self.parent.inputFileSelectButton.clicked.connect(self.parent.openInputFile)
         self.parent.inputFileText.textChanged.connect(self.parent.loadVideo)
         self.parent.outputFileSelectButton.clicked.connect(self.parent.openOutputFolder)
@@ -382,7 +178,7 @@ class ProcessTab:
 
     def run(
         self,
-        renderQueue: list[RenderOptions],
+        renderQueue: RenderQueue,
     ):
         self.settings.readSettings()
         self.pausedSharedMemory = shared_memory.SharedMemory(
@@ -392,12 +188,7 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
-        self.qualityToCRF = {
-            "Low": "28",
-            "Medium": "23",
-            "High": "18",
-            "Very High": "15",
-        }
+        
 
         if os.path.isfile(renderQueue[0].outputPath):
             self.isOverwrite = self.questionToOverride()
@@ -406,13 +197,8 @@ class ProcessTab:
                 self.guiChangesOnRenderCompletion()
                 return  # has to be put at end of function,  so allow for the exit processes to occur"""
         renderOptions = renderQueue[0]
-        interpolateModels, upscaleModels = self.getModels(renderOptions.backend)
-        if renderOptions.interpolateModel == "None":
-            renderOptions.interpolateModel = None
-            self.interpolateModelFile = None
-        if renderOptions.upscaleModel == "None":
-            renderOptions.upscaleModel = None
-            self.upscaleModelFile = None
+        
+        
 
         # if upscale or interpolate
         """
@@ -454,30 +240,11 @@ class ProcessTab:
         writeThread.start()
         self.startGUIUpdate()
 
-    def renderToPipeThread(
-        self,
-        renderQueue: list[RenderOptions],
-    ):
-        for renderOptions in renderQueue:
-            
+    def build_command(self, renderOptions: RenderOptions):
 
-            # get video attributes
-            self.outputVideoWidth = renderOptions.videoWidth * self.upscaleTimes
-            self.outputVideoHeight = renderOptions.videoHeight * self.upscaleTimes
+        
 
-            # discord rpc
-            if self.settings.settings["discord_rich_presence"] == "True":
-                try:
-                    self.discordRPC = DiscordRPC()
-                    self.discordRPC.start_discordRPC(
-                        "Enhancing",
-                        os.path.basename(renderOptions.inputFile),
-                        renderOptions.backend,
-                    )
-                except Exception:
-                    pass
-            # builds command
-            if (
+        if (
                 renderOptions.backend == "pytorch (cuda)"
                 or renderOptions.backend == "pytorch (rocm)"
             ):
@@ -485,7 +252,7 @@ class ProcessTab:
                     "pytorch"  # pytorch is the same for both cuda and rocm
                 )
 
-            command = [
+        command = [
                 f"{PYTHON_PATH}",
                 "-W",
                 "ignore",
@@ -518,73 +285,100 @@ class ProcessTab:
                 f"{self.settings.settings['pytorch_gpu_id']}",
             ]
 
-            if renderOptions.upscaleModel:
-                modelPath = os.path.join(MODELS_PATH, self.upscaleModelFile)
-                if self.upscaleModelArch == "custom":
-                    modelPath = os.path.join(CUSTOM_MODELS_PATH, self.upscaleModelFile)
+        if renderOptions.upscaleModel:
+            modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
+            if self.upscaleModelArch == "custom":
+                modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
+            command += [
+                "--upscale_model",
+                modelPath,
+            ]
+            if renderOptions.tilingEnabled:
                 command += [
-                    "--upscale_model",
-                    modelPath,
-                ]
-                if renderOptions.tilingEnabled:
-                    command += [
-                        "--tilesize",
-                        f"{renderOptions.tilesize}",
-                    ]
-
-            if renderOptions.interpolateModel:
-                command += [
-                    "--interpolate_model",
-                    os.path.join(
-                        MODELS_PATH,
-                        self.interpolateModelFile,
-                    ),
-                    "--interpolate_factor",
-                    f"{renderOptions.interpolateTimes}",
-                ]
-                if renderOptions.sloMoMode:
-                    command += [
-                        "--slomo_mode",
-                    ]
-                if renderOptions.dyanmicScaleOpticalFlow:
-                    command += [
-                        "--dynamic_scaled_optical_flow",
-                    ]
-                if renderOptions.ensemble:
-                    command += [
-                        "--ensemble",
-                    ]
-            if self.settings.settings["auto_border_cropping"] == "True":
-                command += [
-                    "--border_detect",
+                    "--tilesize",
+                    f"{renderOptions.tilesize}",
                 ]
 
-            if self.settings.settings["preview_enabled"] == "True":
+        if renderOptions.interpolateModel:
+            command += [
+                "--interpolate_model",
+                os.path.join(
+                    MODELS_PATH,
+                    interpolateModelFile,
+                ),
+                "--interpolate_factor",
+                f"{renderOptions.interpolateTimes}",
+            ]
+            if renderOptions.sloMoMode:
                 command += [
-                    "--preview_shared_memory_id",
-                    f"{IMAGE_SHARED_MEMORY_ID}",
+                    "--slomo_mode",
                 ]
-
-            if self.settings.settings["scene_change_detection_enabled"] == "False":
-                command += ["--scene_detect_method", "none"]
-            else:
+            if renderOptions.dyanmicScaleOpticalFlow:
                 command += [
-                    "--scene_detect_method",
-                    self.settings.settings["scene_change_detection_method"],
-                    "--scene_detect_threshold",
-                    self.settings.settings["scene_change_detection_threshold"],
+                    "--dynamic_scaled_optical_flow",
                 ]
+            if renderOptions.ensemble:
+                command += [
+                    "--ensemble",
+                ]
+        if self.settings.settings["auto_border_cropping"] == "True":
+            command += [
+                "--border_detect",
+            ]
 
-            if renderOptions.benchmarkMode:
-                command += ["--benchmark"]
+        if self.settings.settings["preview_enabled"] == "True":
+            command += [
+                "--preview_shared_memory_id",
+                f"{IMAGE_SHARED_MEMORY_ID}",
+            ]
 
-            if self.settings.settings["uhd_mode"] == "True":
-                if renderOptions.videoWidth > 1920 or renderOptions.videoHeight > 1080:
-                    command += ["--UHD_mode"]
-                    log("UHD mode enabled")
+        if self.settings.settings["scene_change_detection_enabled"] == "False":
+            command += ["--scene_detect_method", "none"]
+        else:
+            command += [
+                "--scene_detect_method",
+                self.settings.settings["scene_change_detection_method"],
+                "--scene_detect_threshold",
+                self.settings.settings["scene_change_detection_threshold"],
+            ]
 
-            if self.isOverwrite:
-                command += ["--overwrite"]
+        if renderOptions.benchmarkMode:
+            command += ["--benchmark"]
+
+        if self.settings.settings["uhd_mode"] == "True":
+            if renderOptions.videoWidth > 1920 or renderOptions.videoHeight > 1080:
+                command += ["--UHD_mode"]
+                log("UHD mode enabled")
+
+        if self.isOverwrite:
+            command += ["--overwrite"]
+
+        return command
+    
+    def renderToPipeThread(
+        self,
+        renderQueue: list[RenderOptions],
+    ):
+        for renderOptions in renderQueue:
+            
+
+            # get video attributes
+            self.outputVideoWidth = renderOptions.videoWidth * self.upscaleTimes
+            self.outputVideoHeight = renderOptions.videoHeight * self.upscaleTimes
+
+            # discord rpc
+            if self.settings.settings["discord_rich_presence"] == "True":
+                try:
+                    self.discordRPC = DiscordRPC()
+                    self.discordRPC.start_discordRPC(
+                        "Enhancing",
+                        os.path.basename(renderOptions.inputFile),
+                        renderOptions.backend,
+                    )
+                except Exception:
+                    pass
+            # builds command
+            command = self.build_command(renderOptions)            
 
             self.renderProcess = subprocess.Popen(
                 command,

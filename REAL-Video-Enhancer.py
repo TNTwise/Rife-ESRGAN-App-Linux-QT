@@ -21,7 +21,7 @@ from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
 from src.InputHandler import VideoLoader
-from src.ModelHandler import getCustomModelScale
+from src.ModelHandler import getCustomModelScale, getModels
 
 # other imports
 from src.Util import (
@@ -33,7 +33,7 @@ from src.Util import (
     FileHandler,
 )
 from src.constants import CUSTOM_MODELS_PATH
-from src.ui.ProcessTab import ProcessTab, RenderOptions
+from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
 from src.ui.SettingsTab import SettingsTab, Settings
 from src.ui.HomeTab import HomeTab
@@ -42,6 +42,7 @@ from src.ModelHandler import totalModels
 from src.ui.AnimationHandler import AnimationHandler
 from src.ui.QTstyle import Palette
 from src.ui.QTcustom import RegularQTPopup
+from src.ui.RenderQueue import RenderQueue, RenderOptions
 
 svg = (
     QtSvg.QSvgRenderer()
@@ -98,7 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         backendHandler = BackendHandler(self)
         backendHandler.enableCorrectBackends()
 
-        self.renderQueue: list[RenderOptions] = []
+        self.renderQueue = RenderQueue(self.renderQueueListWidget)
 
         backendHandler.setupBackendDeps()
         self.backends, self.fullOutput = (
@@ -187,9 +188,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settingsBtn.clicked.connect(self.switchToSettingsPage)
         self.downloadBtn.clicked.connect(self.switchToDownloadPage)
         # connect getting default output file
-
-    def addToRenderQueue(self, renderOptions: RenderOptions):
-        self.renderQueue.append(renderOptions)
 
     def setButtonsUnchecked(self, buttonToIgnore):
         buttons = [
@@ -316,6 +314,48 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
         self.updateVideoGUIText()
 
+    def addToRenderQueue(self):
+
+        interpolate = self.interpolateModelComboBox.currentText()
+        upscale = self.upscaleModelComboBox.currentText()
+        if interpolate == "None":
+            interpolate = None
+        if upscale == "None":
+            upscale = None
+        backend = self.backendComboBox.currentText()
+        upscaleTimes = 1
+        upscaleModelArch = "custom"
+        interpolateModels, upscaleModels = getModels(backend)
+        interpolateModelFile = interpolateModels[interpolate][0] if interpolate else None
+        upscaleModelFile, upscaleTimes, upscaleModelArch = upscaleModels[upscale][0] if upscale else None ,upscaleModels[upscale][2] if upscale else 1, upscaleModels[upscale][3] if upscale else  "custom"
+
+        renderOptions = RenderOptions(
+            inputFile=self.inputFileText.text(),
+            outputPath=self.outputFileText.text(),
+            videoWidth=self.videoWidth,
+            videoHeight=self.videoHeight,
+            videoFps=self.videoFps,
+            tilingEnabled=self.tilingCheckBox.isChecked(),
+            tilesize=self.tileSizeComboBox.currentText(),
+            videoFrameCount=self.videoFrameCount,
+            backend=self.backendComboBox.currentText(),
+            interpolateModel=interpolate,
+            upscaleModel=upscale,
+            interpolateTimes=self.getInterpolationMultiplier(
+                self.interpolateModelComboBox.currentText()
+            ),
+            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
+            sloMoMode=self.sloMoModeCheckBox.isChecked(),
+            dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
+            ensemble=self.ensembleCheckBox.isChecked(),
+            upscaleModelArch=upscaleModelArch,
+            upscaleTimes=upscaleTimes,
+            upscaleModelFile=upscaleModelFile,
+            interpolateModelFile=interpolateModelFile,
+        )
+        
+        self.renderQueue.add(renderOptions)
+
     def startRender(self):
         self.settings.readSettings()
         if not self.isVideoLoaded:
@@ -342,30 +382,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
-        renderOptions = RenderOptions(
-            inputFile=self.inputFileText.text(),
-            outputPath=self.outputFileText.text(),
-            videoWidth=self.videoWidth,
-            videoHeight=self.videoHeight,
-            videoFps=self.videoFps,
-            tilingEnabled=self.tilingCheckBox.isChecked(),
-            tilesize=self.tileSizeComboBox.currentText(),
-            videoFrameCount=self.videoFrameCount,
-            backend=self.backendComboBox.currentText(),
-            interpolateModel=self.interpolateModelComboBox.currentText(),
-            upscaleModel=self.upscaleModelComboBox.currentText(),
-            interpolateTimes=self.getInterpolationMultiplier(
-                self.interpolateModelComboBox.currentText()
-            ),
-            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
-            sloMoMode=self.sloMoModeCheckBox.isChecked(),
-            dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
-            ensemble=self.ensembleCheckBox.isChecked(),
-        )
-        self.addToRenderQueue(renderOptions)
-
-        self.processTab.run(renderQueue=self.renderQueue)
-        self.renderQueue = []  # clear it as batching fully isnt implemented yet
+        
+        
+        
 
     def disableProcessPage(self):
         for child in self.generalSettings.children():

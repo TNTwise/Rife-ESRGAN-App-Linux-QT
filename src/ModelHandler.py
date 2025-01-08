@@ -1,8 +1,9 @@
 import os
 import re
 
-from .Util import createDirectory, log
+from .Util import createDirectory, log, errorAndLog
 from .constants import CUSTOM_MODELS_PATH
+from .ui.QTcustom import RegularQTPopup
 
 """
 Key value pairs of the model name in the GUI
@@ -347,3 +348,31 @@ totalModels = (
     | tensorrtInterpolateModels
     | tensorrtUpscaleModels
 )  # this doesnt include all models due to overwriting, but includes every case of every unique model name
+
+def getModels(backend):
+        """
+        returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
+        """
+        match backend:
+            case "ncnn":
+                interpolateModels = ncnnInterpolateModels
+                upscaleModels = ncnnUpscaleModels
+            case "pytorch (cuda)":
+                interpolateModels = pytorchInterpolateModels
+                upscaleModels = pytorchUpscaleModels
+            case "pytorch (rocm)":
+                interpolateModels = pytorchInterpolateModels
+                upscaleModels = pytorchUpscaleModels
+            case "tensorrt":
+                interpolateModels = tensorrtInterpolateModels
+                upscaleModels = tensorrtUpscaleModels
+            case "directml":
+                interpolateModels = onnxInterpolateModels
+                upscaleModels = onnxUpscaleModels
+            case _:
+                RegularQTPopup(
+                    "Failed to import any backends!, please try to reinstall the app!"
+                )
+                errorAndLog("Failed to import any backends!")
+                return {}
+        return interpolateModels, upscaleModels
