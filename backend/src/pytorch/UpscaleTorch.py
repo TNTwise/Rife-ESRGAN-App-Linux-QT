@@ -8,7 +8,6 @@ import sys
 from time import sleep
 
 from ..utils.Util import (
-    printAndLog,
     check_bfloat16_support,
     get_gpus_torch,
 )

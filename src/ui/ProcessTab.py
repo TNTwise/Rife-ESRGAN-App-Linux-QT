@@ -336,15 +336,15 @@ class ProcessTab:
             log("No render process!")
 
     def pauseRender(self):
-        with open(PAUSED_STATE_SHARED_MEMORY_ID, "w") as f:
-            f.write("True")
+        shmbuf = self.pausedSharedMemory.buf
+        shmbuf[0] = 1 # 1 = True
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
 
     def resumeRender(self):
-        with open(PAUSED_STATE_SHARED_MEMORY_ID, "w") as f:
-            f.write("False")
+        shmbuf = self.pausedSharedMemory.buf
+        shmbuf[0] = 0 # 0 = False
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.onRenderButtonsContiainer.setEnabled(True)
         self.parent.startRenderButton.setVisible(False)

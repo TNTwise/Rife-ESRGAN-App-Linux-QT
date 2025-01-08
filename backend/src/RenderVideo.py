@@ -75,12 +75,7 @@ class Render(FFMpegRender):
     ):
         
         
-        if pausedFile is None:
-            pausedFile = os.path.basename(inputFile) + "_paused_state.txt"
         self.inputFile = inputFile
-        self.pausedFile = pausedFile
-        with open(self.pausedFile, "w") as f:
-            f.write("False")
         self.backend = backend
         self.upscaleModel = upscaleModel
         self.interpolateModel = interpolateModel
@@ -109,7 +104,7 @@ class Render(FFMpegRender):
         self.ensemble = ensemble
         self.pytorch_gpu_id = pytorch_gpu_id
         self.ncnn_gpu_id = ncnn_gpu_id
-        # self.pausedSharedMemory = shared_memory.SharedMemory(name=self.pausedFile)
+        
         # get video properties early
         self.getVideoProperties(inputFile)
         if border_detect:
@@ -152,7 +147,6 @@ class Render(FFMpegRender):
         )
         
         self.renderThread = Thread(target=self.render)
-        self.readPausedFileThread1 = Thread(target=self.readPausedFileThread)
         self.ffmpegReadThread = Thread(target=self.readinVideoFrames)
         self.ffmpegWriteThread = Thread(target=self.writeOutVideoFrames)
         self.sharedMemoryThread.start()
@@ -160,30 +154,31 @@ class Render(FFMpegRender):
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
-        # self.readPausedFileThread1.start()
+        if pausedFile is not None:
+            readPausedFileThread = Thread(target=lambda: self.readPausedFileThread(pausedFile))
+            self.pausedSharedMemory = shared_memory.SharedMemory(name=pausedFile)
+            readPausedFileThread.start()
 
-    def readPausedFileThread(self):
+    def readPausedFileThread(self, pausedFile):
         activate = True
         self.prevState = False
         while not self.writingDone:
-            if os.path.isfile(self.pausedFile):
-                with open(self.pausedFile, "r") as f:
-                    self.isPaused = f.read().strip() == "1"
-                    activate = self.prevState != self.isPaused
-                if activate:
-                    if self.isPaused:
-                        if self.interpolateOption:
-                            self.interpolateOption.hotUnload()
-                        if self.upscaleOption:
-                            self.upscaleOption.hotUnload()
-                        print("\nRender Paused")
-                    else:
-                        print("\nResuming Render")
-                        if self.upscaleOption:
-                            self.upscaleOption.hotReload()
-                        if self.interpolateOption:
-                            self.interpolateOption.hotReload()
-                self.prevState = self.isPaused
+            self.isPaused = self.pausedSharedMemory.buf[0] == 1
+            activate = self.prevState != self.isPaused
+            if activate:
+                if self.isPaused:
+                    if self.interpolateOption:
+                        self.interpolateOption.hotUnload()
+                    if self.upscaleOption:
+                        self.upscaleOption.hotUnload()
+                    print("\nRender Paused")
+                else:
+                    print("\nResuming Render")
+                    if self.upscaleOption:
+                        self.upscaleOption.hotReload()
+                    if self.interpolateOption:
+                        self.interpolateOption.hotReload()
+            self.prevState = self.isPaused
             sleep(1)
 
     def render(self):
@@ -209,7 +204,6 @@ class Render(FFMpegRender):
             else:
                 sleep(1)
         self.writeQueue.put(None)
-        removeFile(self.pausedFile)
 
     def setupUpscale(self):
         """

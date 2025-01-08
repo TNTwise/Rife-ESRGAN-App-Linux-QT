@@ -146,8 +146,8 @@ def checkForTensorRT() -> bool:
         import torch
         import torchvision
         import tensorrt
-        import torch_tensorrt
-
+        with suppress_stdout_stderr():
+            import torch_tensorrt
         return True
     except ImportError as e:
         log(str(e))

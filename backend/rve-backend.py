@@ -18,13 +18,15 @@ from src.utils.Util import (
 class HandleApplication:
     def __init__(self):
         self.args = self.handleArguments()
-        self.batchProcessing()
         if not self.args.list_backends:
-            self.renderVideo()
+
+            if not self.batchProcessing():
+                self.renderVideo()
+                
         else:
             self.listBackends()
 
-    def batchProcessing(self):
+    def batchProcessing(self) -> bool:
         """
         Checks if the input is a text file. If so, it will start batch processing.
         """
@@ -38,9 +40,9 @@ class HandleApplication:
                         self.handleArguments()
                     )  # overwrite arguments based on the new sys.argv
                     self.renderVideo()
-            exit()  # exit after batch is done
+            return True # batch processing is being done, so no need to call renderVideo
         else:
-            return
+            return False
 
     def listBackends(self):
         half_prec_supp = False
