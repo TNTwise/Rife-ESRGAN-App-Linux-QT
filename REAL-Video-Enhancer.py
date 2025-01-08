@@ -1,8 +1,5 @@
 import sys
 import os
-
-from backend.src.RenderVideo import Render
-
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -32,6 +29,7 @@ from src.Util import (
     getAvailableDiskSpace,
     FileHandler,
 )
+from src.DownloadModels import DownloadModel
 from src.constants import CUSTOM_MODELS_PATH
 from src.ui.ProcessTab import ProcessTab
 from src.ui.DownloadTab import DownloadTab
@@ -326,9 +324,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         upscaleTimes = 1
         upscaleModelArch = "custom"
         interpolateModels, upscaleModels = getModels(backend)
-        interpolateModelFile = interpolateModels[interpolate][0] if interpolate else None
-        upscaleModelFile, upscaleTimes, upscaleModelArch = upscaleModels[upscale][0] if upscale else None ,upscaleModels[upscale][2] if upscale else 1, upscaleModels[upscale][3] if upscale else  "custom"
 
+        if interpolate:
+            interpolateDownloadFile = interpolateModels[interpolate][1]
+            interpolateModelFile = interpolateModels[interpolate][0]
+            DownloadModel(
+                modelFile=interpolateModelFile,
+                downloadModelFile=interpolateDownloadFile,
+            )
+        
+        if upscale:
+            upscaleModelFile = upscaleModels[upscale][0]
+            upscaleDownloadFile = upscaleModels[upscale][1]
+            upscaleTimes = upscaleModels[upscale][2]
+            upscaleModelArch = upscaleModels[upscale][3]
+            DownloadModel(
+                modelFile=upscaleModelFile,
+                downloadModelFile=upscaleDownloadFile,
+            )
+            
         renderOptions = RenderOptions(
             inputFile=self.inputFileText.text(),
             outputPath=self.outputFileText.text(),
@@ -350,8 +364,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ensemble=self.ensembleCheckBox.isChecked(),
             upscaleModelArch=upscaleModelArch,
             upscaleTimes=upscaleTimes,
-            upscaleModelFile=upscaleModelFile,
-            interpolateModelFile=interpolateModelFile,
+            upscaleModelFile=upscaleModelFile if upscale else None,
+            interpolateModelFile=interpolateModelFile if interpolate else None,
         )
         
         self.renderQueue.add(renderOptions)

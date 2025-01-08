@@ -195,11 +195,7 @@ class ProcessTab:
             if not self.isOverwrite:
                 self.onRenderCompletion()
                 self.guiChangesOnRenderCompletion()
-                return  # has to be put at end of function,  so allow for the exit processes to occur"""
-        renderOptions = renderQueue[0]
-        
-        
-
+                return  # has to be put at end of function,  so allow for the exit processes to occur"""        
         # if upscale or interpolate
         """
         Function to start the rendering process
@@ -208,33 +204,6 @@ class ProcessTab:
         Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
         """
         # get model attributes
-
-        if renderOptions.interpolateModel:
-            self.interpolateModelFile, interpolateDownloadFile = (
-                interpolateModels[renderOptions.interpolateModel][0],
-                interpolateModels[renderOptions.interpolateModel][1],
-            )
-            DownloadModel(
-                modelFile=self.interpolateModelFile,
-                downloadModelFile=interpolateDownloadFile,
-            )
-        else:
-            renderOptions.interpolateTimes = 1
-        if renderOptions.upscaleModel:
-            self.upscaleModelFile, upscaleDownloadFile = (
-                upscaleModels[renderOptions.upscaleModel][0],
-                upscaleModels[renderOptions.upscaleModel][1],
-            )
-            self.upscaleTimes = upscaleModels[renderOptions.upscaleModel][2]
-            self.upscaleModelArch = upscaleModels[renderOptions.upscaleModel][3]
-            if self.upscaleModelArch != "custom":  # custom models are not downloaded
-                DownloadModel(
-                    modelFile=self.upscaleModelFile,
-                    downloadModelFile=upscaleDownloadFile,
-                )
-        else:
-            self.upscaleTimes = 1
-            self.upscaleModelArch = "custom"
     
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
@@ -286,9 +255,9 @@ class ProcessTab:
             ]
 
         if renderOptions.upscaleModel:
-            modelPath = os.path.join(MODELS_PATH, upscaleModelFile)
-            if self.upscaleModelArch == "custom":
-                modelPath = os.path.join(CUSTOM_MODELS_PATH, upscaleModelFile)
+            modelPath = os.path.join(MODELS_PATH, renderOptions.upscaleModelFile)
+            if renderOptions.upscaleModelArch == "custom":
+                modelPath = os.path.join(CUSTOM_MODELS_PATH, renderOptions.upscaleModelFile)
             command += [
                 "--upscale_model",
                 modelPath,
@@ -304,7 +273,7 @@ class ProcessTab:
                 "--interpolate_model",
                 os.path.join(
                     MODELS_PATH,
-                    interpolateModelFile,
+                    renderOptions.interpolateModelFile,
                 ),
                 "--interpolate_factor",
                 f"{renderOptions.interpolateTimes}",
@@ -363,8 +332,8 @@ class ProcessTab:
             
 
             # get video attributes
-            self.outputVideoWidth = renderOptions.videoWidth * self.upscaleTimes
-            self.outputVideoHeight = renderOptions.videoHeight * self.upscaleTimes
+            self.outputVideoWidth = renderOptions.videoWidth * renderOptions.upscaleTimes
+            self.outputVideoHeight = renderOptions.videoHeight * renderOptions.upscaleTimes
 
             # discord rpc
             if self.settings.settings["discord_rich_presence"] == "True":
