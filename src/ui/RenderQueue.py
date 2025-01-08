@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QListWidget
-
 from dataclasses import dataclass
+
 @dataclass
 class RenderOptions:
     def __init__(
@@ -214,12 +214,6 @@ class RenderQueue:
     def get(self):
         return self.queue.pop(0)
 
-    def _getCurrentlySelectedIndex(self):
-        item = self.qlistwidget.currentItem()
-        text = item.text()
-        index = self.inputNameList.index(text)  # get the index
-        return index
-
     def _swapListPositions(self, list1, index1, index2):
         list1[index1], list1[index2] = (
             list1[index2],
@@ -227,27 +221,25 @@ class RenderQueue:
         )  # flip
 
     def remove(self):
-        index = self._getCurrentlySelectedIndex()
+        index = self.qlistwidget.currentRow()
         del self.queue[index]
         del self.inputNameList[index]
         self.qlistwidget.takeItem(index)  # remove the item from the list widget
 
     def moveitem(self, direction="up"):
-        if direction == "down":
-            increment = -1
-        else:
-            increment = 1
         try:
-            index = self._getCurrentlySelectedIndex()
-            self._swapListPositions(self.queue, index, index + increment)
+            index = self.qlistwidget.currentRow()
+            if direction == "down":
+                new_index = index + 1
+            else:
+                new_index = index - 1
+            self._swapListPositions(self.queue, index, new_index)
             self._swapListPositions(
-                self.inputNameList, index, index + increment
+                self.inputNameList, index, new_index
             )  # swap in index
 
-            currentRow = self.qlistwidget.currentRow()
             currentItem = self.qlistwidget.takeItem(index)
-            self.qlistwidget.insertItem(
-                currentRow - increment, currentItem
-            )  # swap in gui
-        except Exception:  # if there is no greater index, pass
+            self.qlistwidget.insertItem(new_index, currentItem)  # swap in gui
+            self.qlistwidget.setCurrentRow(new_index)
+        except Exception:  # catches out of index errors, not that much of an issue
             pass
