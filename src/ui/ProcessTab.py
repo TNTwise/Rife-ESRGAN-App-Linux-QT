@@ -232,9 +232,6 @@ class ProcessTab:
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
         self.settings = settings
-        self.pausedSharedMemory = shared_memory.SharedMemory(
-            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
-        )
         # encoder dict
         # key is the name in RVE gui
         # value is the encoder used
@@ -388,6 +385,9 @@ class ProcessTab:
         renderQueue: list[RenderOptions],
     ):
         self.settings.readSettings()
+        self.pausedSharedMemory = shared_memory.SharedMemory(
+            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
+        )
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
