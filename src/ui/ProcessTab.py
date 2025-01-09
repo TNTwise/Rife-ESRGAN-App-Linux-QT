@@ -25,6 +25,7 @@ from ..constants import (
     CUSTOM_MODELS_PATH,
     IMAGE_SHARED_MEMORY_ID,
     PAUSED_STATE_SHARED_MEMORY_ID,
+    INPUT_TEXT_FILE,
 )
 from ..Util import (
     log,
@@ -182,8 +183,15 @@ class ProcessTab:
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,  # type: ignore
         )
-        return reply == QMessageBox.Yes # type: ignore
-            
+        return reply == QMessageBox.Yes  # type: ignore
+
+    def askForOverwrite(self, outputPath):
+        if os.path.isfile(outputPath):
+            self.isOverwrite = self.questionToOverride()
+            if not self.isOverwrite:
+                self.onRenderCompletion()
+                self.guiChangesOnRenderCompletion()
+                return  # has to be put at end of function,  so allow for the exit processes to occur"""
 
     def run(
         self,
@@ -197,30 +205,20 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
-        
 
-        if os.path.isfile(renderQueue[0].outputPath):
-            self.isOverwrite = self.questionToOverride()
-            if not self.isOverwrite:
-                self.onRenderCompletion()
-                self.guiChangesOnRenderCompletion()
-                return  # has to be put at end of function,  so allow for the exit processes to occur"""        
-        # if upscale or interpolate
-        """
-        Function to start the rendering process
-        It will initially check for any issues with the current setup, (invalid file, no permissions, etc..)
-        Then, based on the settings selected, it will build a command that is then passed into rve-backend
-        Finally, It will handle the render via ffmpeg. Taking in the frames from pipe and handing them into ffmpeg on a sperate thread
-        """
-        # get model attributes
-    
+        queue = renderQueue.getQueue()
+        with open(f"{INPUT_TEXT_FILE}", "w") as f:
+            for renderOptions in queue:
+                command = self.build_command(renderOptions=renderOptions)
+                for item in command:
+                    f.write(item)
+                f.write("\n")
+
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
         self.startGUIUpdate()
 
     def build_command(self, renderOptions: RenderOptions):
-
-        
 
         if (
                 renderOptions.backend == "pytorch (cuda)"
@@ -332,62 +330,60 @@ class ProcessTab:
             command += ["--overwrite"]
 
         return command
-    
+
+    def startDiscordRPC(self, inputFile, backend):
+        if self.settings.settings["discord_rich_presence"] == "True":
+            try:
+                self.discordRPC = DiscordRPC()
+                self.discordRPC.start_discordRPC(
+                    "Enhancing",
+                    os.path.basename(inputFile),
+                    backend,
+                )
+            except Exception:
+                pass
+
     def renderToPipeThread(
         self,
-        renderQueue: list[RenderOptions],
     ):
-        for renderOptions in renderQueue:
-            
+        command = [
+            f"{PYTHON_PATH}",
+            "-W",
+            "ignore",
+            os.path.join(BACKEND_PATH, "rve-backend.py"),
+            "-i",
+            f"{INPUT_TEXT_FILE}",
+        ]
+        self.renderProcess = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        )
+        textOutput = []
+        for line in iter(self.renderProcess.stdout.readline, b""):
+            if self.renderProcess.poll() is not None:
+                break  # Exit the loop if the process has terminated
 
-            # get video attributes
-            self.outputVideoWidth = renderOptions.videoWidth * renderOptions.upscaleTimes
-            self.outputVideoHeight = renderOptions.videoHeight * renderOptions.upscaleTimes
-
-            # discord rpc
-            if self.settings.settings["discord_rich_presence"] == "True":
-                try:
-                    self.discordRPC = DiscordRPC()
-                    self.discordRPC.start_discordRPC(
-                        "Enhancing",
-                        os.path.basename(renderOptions.inputFile),
-                        renderOptions.backend,
-                    )
-                except Exception:
-                    pass
-            # builds command
-            command = self.build_command(renderOptions)            
-
-            self.renderProcess = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-            )
-            textOutput = []
-            for line in iter(self.renderProcess.stdout.readline, b""):
-                if self.renderProcess.poll() is not None:
-                    break  # Exit the loop if the process has terminated
-
-                line = str(line.strip())
-                if "it/s" in line:
-                    textOutput = textOutput[:-1]
-                if "FPS" in line:
-                    textOutput = textOutput[
-                        :-1
-                    ]  # slice the list to only get the last updated data
-                    self.currentFrame = int(
-                        re.search(r"Current Frame: (\d+)", line).group(1)
-                    )
-                if any(char.isalpha() for char in line):
-                    textOutput.append(line)
-                # self.setRenderOutputContent(textOutput)
-                self.renderTextOutputList = textOutput.copy()
-                if "Time to complete render" in line:
-                    break
-            for line in textOutput:
-                if len(line) > 2:
-                    log(line)
+            line = str(line.strip())
+            if "it/s" in line:
+                textOutput = textOutput[:-1]
+            if "FPS" in line:
+                textOutput = textOutput[
+                    :-1
+                ]  # slice the list to only get the last updated data
+                self.currentFrame = int(
+                    re.search(r"Current Frame: (\d+)", line).group(1)
+                )
+            if any(char.isalpha() for char in line):
+                textOutput.append(line)
+            # self.setRenderOutputContent(textOutput)
+            self.renderTextOutputList = textOutput.copy()
+            if "Time to complete render" in line:
+                break
+        for line in textOutput:
+            if len(line) > 2:
+                log(line)
         self.onRenderCompletion()
 
     def guiChangesOnRenderCompletion(self):

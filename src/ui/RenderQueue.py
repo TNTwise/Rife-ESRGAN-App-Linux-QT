@@ -211,8 +211,8 @@ class RenderQueue:
         self.qlistwidget.addItem(renderable.inputFile)
         self.inputNameList.append(renderable.inputFile)
 
-    def get(self):
-        return self.queue.pop(0)
+    def getQueue(self):
+        return self.queue
 
     def _swapListPositions(self, list1, index1, index2):
         list1[index1], list1[index2] = (

@@ -313,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateVideoGUIText()
 
     def addToRenderQueue(self):
+        self.settings.readSettings()
         interpolate = self.interpolateModelComboBox.currentText()
         upscale = self.upscaleModelComboBox.currentText()
         if interpolate == "None":
@@ -377,19 +378,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             RegularQTPopup("Video is not loaded!")
 
     def startRender(self):
-        self.settings.readSettings()
-        if not self.isVideoLoaded:
-            RegularQTPopup("Please select a video file!")
-            return
-        if not checkForWritePermissions(os.path.dirname(self.outputFileText.text())):
-            RegularQTPopup("No write permissions to the output directory!")
-            return
-        if (
-            self.interpolateModelComboBox.currentText() == "None"
-            and self.upscaleModelComboBox.currentText() == "None"
-        ):
-            RegularQTPopup("Please select at least one model!")
-            return
         self.startRenderButton.setEnabled(False)
         self.progressBar.setRange(
             0,
@@ -402,9 +390,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
-        
-        
-        
 
     def disableProcessPage(self):
         for child in self.generalSettings.children():
