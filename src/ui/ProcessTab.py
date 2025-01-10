@@ -176,7 +176,7 @@ class ProcessTab:
         reply = QMessageBox.question(
             self.parent,
             "",
-            "File exists, do you want to overwrite?",
+            "Output files in render queue already exist, do you want to overwrite?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,  # type: ignore
         )
@@ -188,7 +188,14 @@ class ProcessTab:
             if not self.isOverwrite:
                 self.onRenderCompletion()
                 self.guiChangesOnRenderCompletion()
-                return  # has to be put at end of function,  so allow for the exit processes to occur"""
+                return False
+        return True
+
+    def checkForOverwrite(self, renderQueue: RenderQueue):
+        for renderOptions in renderQueue.getQueue():
+            if not self.askForOverwrite(renderOptions.outputPath):
+                return False
+        return True
 
     def run(
         self,
@@ -199,6 +206,9 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
+
+        if not self.checkForOverwrite(renderQueue):
+            return
 
         self.startDiscordRPC()
         self.settings.readSettings()
@@ -218,6 +228,8 @@ class ProcessTab:
                 self.discordRPC.start_discordRPC()
             except Exception:
                 pass
+
+    
 
     def renderToPipeThread(
         self,

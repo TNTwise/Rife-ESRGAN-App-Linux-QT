@@ -234,10 +234,13 @@ class RenderQueue:
         )  # flip
 
     def remove(self):
-        index = self.qlistwidget.currentRow()
-        del self.queue[index]
-        del self.inputNameList[index]
-        self.qlistwidget.takeItem(index)  # remove the item from the list widget
+        try:
+            index = self.qlistwidget.currentRow()
+            del self.queue[index]
+            del self.inputNameList[index]
+            self.qlistwidget.takeItem(index)  # remove the item from the list widget
+        except IndexError:
+            pass
 
     def moveitem(self, direction="up"):
         try:
