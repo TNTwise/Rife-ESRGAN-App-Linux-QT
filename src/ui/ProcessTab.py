@@ -194,13 +194,15 @@ class ProcessTab:
         self,
         renderQueue: RenderQueue,
     ):
-        
+        # gui changes
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
 
+        self.startDiscordRPC()
         self.settings.readSettings()
+
         self.pausedSharedMemory = shared_memory.SharedMemory(
             name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
         )
@@ -208,8 +210,141 @@ class ProcessTab:
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
         
+
+    def startDiscordRPC(self):
+        if self.settings.settings["discord_rich_presence"] == "True":
+            try:
+                self.discordRPC = DiscordRPC()
+                self.discordRPC.start_discordRPC()
+            except Exception:
+                pass
+
+    def renderToPipeThread(
+        self,
+        renderQueue: RenderQueue,
+    ):
+        for renderOptions in renderQueue.getQueue():
+
+            self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
+
+            command = self.build_command(renderOptions)
+            self.renderProcess = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
+            textOutput = []
+            for line in iter(self.renderProcess.stdout.readline, b""):
+                if self.renderProcess.poll() is not None:
+                    break  # Exit the loop if the process has terminated
+
+                line = str(line.strip())
+                if "it/s" in line:
+                    textOutput = textOutput[:-1]
+                if "FPS" in line:
+                    textOutput = textOutput[
+                        :-1
+                    ]  # slice the list to only get the last updated data
+                    self.currentFrame = int(
+                        re.search(r"Current Frame: (\d+)", line).group(1)
+                    )
+                if any(char.isalpha() for char in line):
+                    textOutput.append(line)
+                # self.setRenderOutputContent(textOutput)
+                self.renderTextOutputList = textOutput.copy()
+                if "Time to complete render" in line:
+                    break
+            for line in textOutput:
+                if len(line) > 2:
+                    log(line)
         
-        
+        renderQueue.clear()
+        self.onRenderCompletion()
+
+    def guiChangesOnRenderCompletion(self):
+        # Have to swap the visibility of these here otherwise crash for some reason
+        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
+        self.parent.startRenderButton.setEnabled(True)
+        self.parent.previewLabel.clear()
+        self.parent.startRenderButton.clicked.disconnect()
+        self.parent.startRenderButton.clicked.connect(self.parent.startRender)
+        self.parent.enableProcessPage()
+        self.parent.startRenderButton.setVisible(True)
+
+    def onRenderCompletion(self):
+        try:
+            self.renderProcess.wait()
+        except Exception:
+            pass
+        # Have to swap the visibility of these here otherwise crash for some reason
+        if (
+            self.settings.settings["discord_rich_presence"] == "True"
+        ):  # only close if it exists
+            self.discordRPC.closeRPC()
+        try:
+            self.workerThread.stop()
+            self.workerThread.quit()
+            self.workerThread.wait()
+        except Exception:
+            pass  # pass just incase internet error caused a skip
+
+    def getRoundedPixmap(self, pixmap, corner_radius):
+        size = pixmap.size()
+        mask = QPixmap(size)
+        mask.fill(Qt.transparent)  # type: ignore
+
+        painter = QPainter(mask)
+        painter.setRenderHint(QPainter.Antialiasing)  # type: ignore
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)  # type: ignore
+
+        path = QPainterPath()
+        path.addRoundedRect(
+            0, 0, size.width(), size.height(), corner_radius, corner_radius
+        )
+
+        painter.setClipPath(path)
+        painter.drawPixmap(0, 0, pixmap)
+        painter.end()
+
+        rounded_pixmap = QPixmap(size)
+        rounded_pixmap.fill(Qt.transparent)  # type: ignore
+
+        painter = QPainter(rounded_pixmap)
+        painter.setRenderHint(QPainter.Antialiasing)  # type: ignore
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)  # type: ignore
+        painter.drawPixmap(0, 0, mask)
+        painter.end()
+
+        return rounded_pixmap
+
+    def modelNameToFile(self):
+        pass
+
+    def updateProcessTab(self, qimage: QtGui.QImage):
+        """
+        Called by the worker QThread, and updates the GUI elements: Progressbar, Preview, FPS
+        """
+
+        if self.renderTextOutputList is not None:
+            # print(self.renderTextOutputList)
+            self.parent.renderOutput.setPlainText(
+                self.splitListIntoStringWithNewLines(self.renderTextOutputList)
+            )
+            scrollbar = self.parent.renderOutput.verticalScrollBar()
+            scrollbar.setValue(scrollbar.maximum())
+            self.parent.progressBar.setValue(self.currentFrame)
+        if not qimage.isNull():
+            label_width = self.parent.previewLabel.width()
+            label_height = self.parent.previewLabel.height()
+
+            p = qimage.scaled(
+                label_width, label_height, Qt.AspectRatioMode.KeepAspectRatio
+            )  # type: ignore
+            pixmap = QtGui.QPixmap.fromImage(p)
+
+            roundedPixmap = self.getRoundedPixmap(pixmap, corner_radius=10)
+            self.parent.previewLabel.setPixmap(roundedPixmap)
 
     def build_command(self, renderOptions: RenderOptions):
 
@@ -323,140 +458,3 @@ class ProcessTab:
             command += ["--overwrite"]
 
         return command
-
-    def startDiscordRPC(self, inputFile, backend):
-        if self.settings.settings["discord_rich_presence"] == "True":
-            try:
-                self.discordRPC = DiscordRPC()
-                self.discordRPC.start_discordRPC(
-                    "Enhancing",
-                    os.path.basename(inputFile),
-                    backend,
-                )
-            except Exception:
-                pass
-
-    def renderToPipeThread(
-        self,
-        renderQueue: RenderQueue,
-    ):
-        for renderOptions in renderQueue.getQueue():
-
-            self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
-
-            command = self.build_command(renderOptions)
-            self.renderProcess = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-            )
-            textOutput = []
-            for line in iter(self.renderProcess.stdout.readline, b""):
-                if self.renderProcess.poll() is not None:
-                    break  # Exit the loop if the process has terminated
-
-                line = str(line.strip())
-                if "it/s" in line:
-                    textOutput = textOutput[:-1]
-                if "FPS" in line:
-                    textOutput = textOutput[
-                        :-1
-                    ]  # slice the list to only get the last updated data
-                    self.currentFrame = int(
-                        re.search(r"Current Frame: (\d+)", line).group(1)
-                    )
-                if any(char.isalpha() for char in line):
-                    textOutput.append(line)
-                # self.setRenderOutputContent(textOutput)
-                self.renderTextOutputList = textOutput.copy()
-                if "Time to complete render" in line:
-                    break
-            for line in textOutput:
-                if len(line) > 2:
-                    log(line)
-        self.onRenderCompletion()
-
-    def guiChangesOnRenderCompletion(self):
-        # Have to swap the visibility of these here otherwise crash for some reason
-        hide_layout_widgets(self.parent.onRenderButtonsContiainer)
-        self.parent.startRenderButton.setEnabled(True)
-        self.parent.previewLabel.clear()
-        self.parent.startRenderButton.clicked.disconnect()
-        self.parent.startRenderButton.clicked.connect(self.parent.startRender)
-        self.parent.enableProcessPage()
-        self.parent.startRenderButton.setVisible(True)
-
-    def onRenderCompletion(self):
-        try:
-            self.renderProcess.wait()
-        except Exception:
-            pass
-        # Have to swap the visibility of these here otherwise crash for some reason
-        if (
-            self.settings.settings["discord_rich_presence"] == "True"
-        ):  # only close if it exists
-            self.discordRPC.closeRPC()
-        try:
-            self.workerThread.stop()
-            self.workerThread.quit()
-            self.workerThread.wait()
-        except Exception:
-            pass  # pass just incase internet error caused a skip
-
-    def getRoundedPixmap(self, pixmap, corner_radius):
-        size = pixmap.size()
-        mask = QPixmap(size)
-        mask.fill(Qt.transparent)  # type: ignore
-
-        painter = QPainter(mask)
-        painter.setRenderHint(QPainter.Antialiasing)  # type: ignore
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)  # type: ignore
-
-        path = QPainterPath()
-        path.addRoundedRect(
-            0, 0, size.width(), size.height(), corner_radius, corner_radius
-        )
-
-        painter.setClipPath(path)
-        painter.drawPixmap(0, 0, pixmap)
-        painter.end()
-
-        rounded_pixmap = QPixmap(size)
-        rounded_pixmap.fill(Qt.transparent)  # type: ignore
-
-        painter = QPainter(rounded_pixmap)
-        painter.setRenderHint(QPainter.Antialiasing)  # type: ignore
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)  # type: ignore
-        painter.drawPixmap(0, 0, mask)
-        painter.end()
-
-        return rounded_pixmap
-
-    def modelNameToFile(self):
-        pass
-
-    def updateProcessTab(self, qimage: QtGui.QImage):
-        """
-        Called by the worker QThread, and updates the GUI elements: Progressbar, Preview, FPS
-        """
-
-        if self.renderTextOutputList is not None:
-            # print(self.renderTextOutputList)
-            self.parent.renderOutput.setPlainText(
-                self.splitListIntoStringWithNewLines(self.renderTextOutputList)
-            )
-            scrollbar = self.parent.renderOutput.verticalScrollBar()
-            scrollbar.setValue(scrollbar.maximum())
-            self.parent.progressBar.setValue(self.currentFrame)
-        if not qimage.isNull():
-            label_width = self.parent.previewLabel.width()
-            label_height = self.parent.previewLabel.height()
-
-            p = qimage.scaled(
-                label_width, label_height, Qt.AspectRatioMode.KeepAspectRatio
-            )  # type: ignore
-            pixmap = QtGui.QPixmap.fromImage(p)
-
-            roundedPixmap = self.getRoundedPixmap(pixmap, corner_radius=10)
-            self.parent.previewLabel.setPixmap(roundedPixmap)

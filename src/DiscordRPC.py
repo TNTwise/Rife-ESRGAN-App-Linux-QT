@@ -5,7 +5,7 @@ from .constants import IS_FLATPAK
 
 
 class DiscordRPC:
-    def start_discordRPC(self, mode: str, videoName: str, backend: str):
+    def start_discordRPC(self):
         if networkCheck():
             """
             Attempts to connect to discord for RPC suppor
@@ -36,8 +36,8 @@ class DiscordRPC:
                     self.RPC.connect()  # Start the handshake loop
 
                     self.RPC.update(
-                        state=f"{mode} Video",
-                        details=f"Backend: {backend}",
+                        state="Enhancing Video",
+                        details="Running batch process...",
                         large_image="logo-v2",
                     )
                 except Exception:

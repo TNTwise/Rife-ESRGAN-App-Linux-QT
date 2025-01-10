@@ -218,6 +218,11 @@ class RenderQueue:
         self.queue.append(renderable)
         self.qlistwidget.addItem(renderable.inputFile)
         self.inputNameList.append(renderable.inputFile)
+    
+    def clear(self):
+        self.queue.clear()
+        self.inputNameList.clear()
+        self.qlistwidget.clear()
 
     def getQueue(self) -> list[RenderOptions]:
         return self.queue

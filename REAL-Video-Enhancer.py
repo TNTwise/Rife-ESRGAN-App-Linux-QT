@@ -397,11 +397,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             child.setEnabled(False)
         for child in self.advancedSettings.children():
             child.setEnabled(False)
+        for child in self.renderQueueTab.children():
+            child.setEnabled(False)
 
     def enableProcessPage(self):
         for child in self.generalSettings.children():
             child.setEnabled(True)
         for child in self.advancedSettings.children():
+            child.setEnabled(True)
+        for child in self.renderQueueTab.children():
             child.setEnabled(True)
 
     def loadVideo(self, inputFile):
