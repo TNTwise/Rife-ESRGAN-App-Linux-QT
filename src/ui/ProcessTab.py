@@ -277,7 +277,11 @@ class ProcessTab:
             for line in textOutput:
                 if len(line) > 2:
                     log(line)
-        
+
+            self.parent.OutputFilesListWidget.add(
+                renderOptions.outputPath
+            )  # add the file to the list widget
+
         renderQueue.clear()
         self.onRenderCompletion()
 
