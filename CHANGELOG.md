@@ -6,6 +6,7 @@
  - Auto border cropping
  - GPU ID selection
  - Default video container setting
+ - Batch input support
 ### Changed
  - Adjusted dynamic scale.
  - Transcodes audio by default, to fix potential audio copying issues.
