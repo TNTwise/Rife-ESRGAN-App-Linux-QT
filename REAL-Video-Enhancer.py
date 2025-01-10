@@ -390,6 +390,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else self.videoFrameCount,
         )
         self.disableProcessPage()
+        self.processTab.run(self.renderQueue)
 
     def disableProcessPage(self):
         for child in self.generalSettings.children():

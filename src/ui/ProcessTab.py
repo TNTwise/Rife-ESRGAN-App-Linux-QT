@@ -211,10 +211,10 @@ class ProcessTab:
             for renderOptions in queue:
                 command = self.build_command(renderOptions=renderOptions)
                 for item in command:
-                    f.write(item)
+                    f.write(item + " ")
                 f.write("\n")
 
-        writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
+        writeThread = Thread(target=lambda: self.renderToPipeThread())
         writeThread.start()
         self.startGUIUpdate()
 
@@ -229,37 +229,37 @@ class ProcessTab:
                 )
 
         command = [
-                f"{PYTHON_PATH}",
-                "-W",
-                "ignore",
-                os.path.join(BACKEND_PATH, "rve-backend.py"),
-                "-i",
-                renderOptions.inputFile,
-                "-o",
-                f"{renderOptions.outputPath}",
-                "-b",
-                f"{renderOptions.backend}",
-                "--precision",
-                f"{self.settings.settings['precision']}",
-                "--video_encoder_preset",
-                f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
-                "--video_pixel_format",
-                f"{self.settings.settings['video_pixel_format']}",
-                "--audio_encoder_preset",
-                f"{self.settings.settings['audio_encoder']}",
-                "--audio_bitrate",
-                f"{self.settings.settings['audio_bitrate']}",
-                "--crf",
-                f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
-                "--tensorrt_opt_profile",
-                f"{self.settings.settings['tensorrt_optimization_level']}",
-                "--pause_shared_memory_id",
-                f"{PAUSED_STATE_SHARED_MEMORY_ID}",
-                "--ncnn_gpu_id",
-                f"{self.settings.settings['ncnn_gpu_id']}",
-                "--pytorch_gpu_id",
-                f"{self.settings.settings['pytorch_gpu_id']}",
-            ]
+            f"{PYTHON_PATH}",
+            "-W",
+            "ignore",
+            os.path.join(BACKEND_PATH, "rve-backend.py"),
+            "-i",
+            f'"{renderOptions.inputFile}"',
+            "-o",
+            f'"{renderOptions.outputPath}"',
+            "-b",
+            f"{renderOptions.backend}",
+            "--precision",
+            f"{self.settings.settings['precision']}",
+            "--video_encoder_preset",
+            f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
+            "--video_pixel_format",
+            f"{self.settings.settings['video_pixel_format']}",
+            "--audio_encoder_preset",
+            f"{self.settings.settings['audio_encoder']}",
+            "--audio_bitrate",
+            f"{self.settings.settings['audio_bitrate']}",
+            "--crf",
+            f"{self.qualityToCRF[self.settings.settings['video_quality']]}",
+            "--tensorrt_opt_profile",
+            f"{self.settings.settings['tensorrt_optimization_level']}",
+            "--pause_shared_memory_id",
+            f"{PAUSED_STATE_SHARED_MEMORY_ID}",
+            "--ncnn_gpu_id",
+            f"{self.settings.settings['ncnn_gpu_id']}",
+            "--pytorch_gpu_id",
+            f"{self.settings.settings['pytorch_gpu_id']}",
+        ]
 
         if renderOptions.upscaleModel:
             modelPath = os.path.join(MODELS_PATH, renderOptions.upscaleModelFile)
@@ -267,7 +267,7 @@ class ProcessTab:
                 modelPath = os.path.join(CUSTOM_MODELS_PATH, renderOptions.upscaleModelFile)
             command += [
                 "--upscale_model",
-                modelPath,
+                f'"{modelPath}"',
             ]
             if renderOptions.tilingEnabled:
                 command += [
@@ -280,7 +280,7 @@ class ProcessTab:
                 "--interpolate_model",
                 os.path.join(
                     MODELS_PATH,
-                    renderOptions.interpolateModelFile,
+                    f'"{renderOptions.interpolateModelFile}"',
                 ),
                 "--interpolate_factor",
                 f"{renderOptions.interpolateTimes}",

@@ -199,6 +199,14 @@ class RenderOptions:
     def ensemble(self, value: bool):
         self._ensemble = value
 
+    @property
+    def upscaleModelFile(self):
+        return self._upscaleModelFile
+
+    @upscaleModelFile.setter
+    def upscaleModelFile(self, value: str):
+        self._upscaleModelFile = value
+
 
 class RenderQueue:
     def __init__(self, qlistwidget: QListWidget):
