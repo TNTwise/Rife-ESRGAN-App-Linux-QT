@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>984</width>
-    <height>809</height>
+    <height>582</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -96,7 +96,7 @@ background-color:#fff;
        <item>
         <widget class="QWidget" name="mainWindowContainer" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -321,7 +321,7 @@ QScrollBar:horizontal{
                  <item row="0" column="1">
                   <widget class="QLabel" name="label">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -616,7 +616,7 @@ background-color:#16191d
                 <property name="maximumSize">
                  <size>
                   <width>500</width>
-                  <height>16777215</height>
+                  <height>500</height>
                  </size>
                 </property>
                 <property name="styleSheet">
@@ -644,7 +644,7 @@ background-color:#16191d
                  <item>
                   <widget class="QTabWidget" name="processSettingsContainer">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -660,7 +660,7 @@ background-color:#16191d
                    </property>
                    <widget class="QWidget" name="generalSettings">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -692,7 +692,7 @@ background-color:#16191d
                           <property name="minimumSize">
                            <size>
                             <width>0</width>
-                            <height>30</height>
+                            <height>0</height>
                            </size>
                           </property>
                           <property name="maximumSize">
@@ -719,7 +719,7 @@ background-color:#16191d
                           <property name="minimumSize">
                            <size>
                             <width>0</width>
-                            <height>30</height>
+                            <height>0</height>
                            </size>
                           </property>
                           <property name="maximumSize">
@@ -759,7 +759,7 @@ background-color:#16191d
                           <property name="minimumSize">
                            <size>
                             <width>0</width>
-                            <height>30</height>
+                            <height>0</height>
                            </size>
                           </property>
                           <property name="maximumSize">
@@ -789,7 +789,7 @@ background-color:#16191d
                           <property name="minimumSize">
                            <size>
                             <width>0</width>
-                            <height>30</height>
+                            <height>0</height>
                            </size>
                           </property>
                           <property name="maximumSize">
@@ -833,7 +833,7 @@ background-color:#16191d
                         <item>
                          <widget class="QComboBox" name="backendComboBox">
                           <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
@@ -885,7 +885,7 @@ background-color:#16191d
                         <item>
                          <widget class="QComboBox" name="upscaleModelComboBox">
                           <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
@@ -937,7 +937,7 @@ background-color:#16191d
                         <item>
                          <widget class="QComboBox" name="interpolateModelComboBox">
                           <property name="sizePolicy">
-                           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
@@ -1000,7 +1000,7 @@ background-color:#16191d
                           <property name="minimumSize">
                            <size>
                             <width>75</width>
-                            <height>30</height>
+                            <height>0</height>
                            </size>
                           </property>
                           <property name="maximumSize">
@@ -1190,7 +1190,7 @@ text-align: center;
                        <property name="minimumSize">
                         <size>
                          <width>351</width>
-                         <height>128</height>
+                         <height>0</height>
                         </size>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -1696,7 +1696,7 @@ border-radius:10px;
                  <item>
                   <widget class="QWidget" name="bottomMenuSubContainer" native="true">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1800,7 +1800,7 @@ border-radius:10px;
                              <bool>false</bool>
                             </property>
                             <property name="sizePolicy">
-                             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                               <horstretch>0</horstretch>
                               <verstretch>0</verstretch>
                              </sizepolicy>
@@ -1808,7 +1808,7 @@ border-radius:10px;
                             <property name="minimumSize">
                              <size>
                               <width>0</width>
-                              <height>125</height>
+                              <height>0</height>
                              </size>
                             </property>
                             <property name="maximumSize">
@@ -2019,7 +2019,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                        <item>
                         <widget class="QProgressBar" name="progressBar">
                          <property name="sizePolicy">
-                          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                            <horstretch>0</horstretch>
                            <verstretch>0</verstretch>
                           </sizepolicy>
@@ -2044,7 +2044,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item row="0" column="1">
                <widget class="QWidget" name="processInfoContainer" native="true">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -2110,7 +2110,7 @@ border-radius: 10px;
                     <item>
                      <widget class="QLabel" name="previewLabel">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -2158,7 +2158,7 @@ QLabel{
                     <item>
                      <widget class="QTextEdit" name="renderOutput">
                       <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
@@ -2387,7 +2387,7 @@ QTabWidget::pane { /* The tab widget frame */
                    <x>0</x>
                    <y>0</y>
                    <width>383</width>
-                   <height>331</height>
+                   <height>326</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -2430,7 +2430,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <x>0</x>
                               <y>0</y>
                               <width>462</width>
-                              <height>216</height>
+                              <height>211</height>
                              </rect>
                             </property>
                             <layout class="QVBoxLayout" name="verticalLayout_25">
@@ -2485,7 +2485,7 @@ QTabWidget::pane { /* The tab widget frame */
                                   <property name="minimumSize">
                                    <size>
                                     <width>0</width>
-                                    <height>25</height>
+                                    <height>0</height>
                                    </size>
                                   </property>
                                  </widget>
@@ -2819,7 +2819,7 @@ QTabWidget::pane { /* The tab widget frame */
                                   <property name="minimumSize">
                                    <size>
                                     <width>75</width>
-                                    <height>30</height>
+                                    <height>0</height>
                                    </size>
                                   </property>
                                   <property name="decimals">
@@ -3584,7 +3584,7 @@ QTabWidget::pane { /* The tab widget frame */
                              <property name="minimumSize">
                               <size>
                                <width>0</width>
-                               <height>30</height>
+                               <height>0</height>
                               </size>
                              </property>
                             </widget>
@@ -3635,7 +3635,7 @@ QTabWidget::pane { /* The tab widget frame */
                              <property name="minimumSize">
                               <size>
                                <width>0</width>
-                               <height>30</height>
+                               <height>0</height>
                               </size>
                              </property>
                             </widget>
@@ -3952,7 +3952,7 @@ QScrollBar:horizontal{
                  <item>
                   <widget class="QScrollArea" name="scrollArea_2">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -4368,7 +4368,7 @@ QScrollBar:horizontal{
                     <enum>Qt::Orientation::Horizontal</enum>
                    </property>
                    <property name="sizeType">
-                    <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                    <enum>QSizePolicy::Policy::Preferred</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
@@ -4624,7 +4624,7 @@ QScrollBar:horizontal{
              <enum>Qt::Orientation::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Policy::Expanding</enum>
+             <enum>QSizePolicy::Policy::Preferred</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
