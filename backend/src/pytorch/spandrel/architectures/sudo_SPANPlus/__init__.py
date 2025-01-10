@@ -1,3 +1,4 @@
+from sympy import false
 from typing_extensions import override
 
 from ...util import KeyCondition, get_scale_and_output_channels
@@ -16,7 +17,6 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
                 "feats.1.conv_2.sk.weight",
                 "feats.1.conv_2.eval_conv.weight",
                 "feats.1.conv_cat.weight",
-                "upsampler.end_conv.weight",
                 "dynamic.kernels_weights",
                 "dynamic.attention.to_scores.0.weight",
             ),
@@ -47,6 +47,8 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
         upscale = 2
         num_out_ch = 3
 
+        downsample = "downsample.0" in state_dict
+
         model = sudo_SPANPlus(
             num_in_ch=num_in_ch,
             num_out_ch=num_out_ch,
@@ -54,6 +56,7 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
             feature_channels=feature_channels,
             upscale=upscale,
             drop_rate=drop_rate,
+            downsample=downsample,
         )
 
         return ImageModelDescriptor(

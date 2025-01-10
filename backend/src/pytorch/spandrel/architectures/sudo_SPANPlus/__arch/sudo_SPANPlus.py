@@ -490,11 +490,18 @@ class sudo_SPANPlus(nn.Module):
         upscale: int = 2,
         drop_rate: float = 0.0,
         upsampler: str = "dys",  # "lp", "ps", "conv"- only 1x
+        downsample: bool = False,
     ):
         super().__init__()
-
-        self.shrink = torch.nn.PixelUnshuffle(2)
-        in_channels = 12
+        if downsample:
+            self.shrink = torch.nn.PixelUnshuffle(2)
+            in_channels = 12
+        else:
+            self.shrink = nn.Identity()
+            in_channels = 3
+        self.downsample = downsample
+        self.upscale = upscale
+        
         if not isinstance(blocks, list):
             blocks = [int(blocks)]
         if not self.training:
@@ -512,7 +519,11 @@ class sudo_SPANPlus(nn.Module):
             padding=1,
             bias=True,
         )
-        self.upsampler = DySample(feature_channels, feature_channels, 4)
+        
+        if downsample:
+            upscale = upscale * 2
+
+        self.upsampler = DySample(feature_channels, feature_channels, upscale)
         self.dynamic = DynamicConvolution(
             3,
             1,
@@ -525,15 +536,16 @@ class sudo_SPANPlus(nn.Module):
 
     def forward(self, x):
         n, c, h, w = x.shape
-        if h % 8 != 0 or w % 8 != 0:
-            ph = ((h - 1) // 8 + 1) * 8
-            pw = ((w - 1) // 8 + 1) * 8
-            padding = (0, pw - w, 0, ph - h)
-            x = F.pad(x, padding)
+        if self.downsample:
+            if h % 8 != 0 or w % 8 != 0:
+                ph = ((h - 1) // 8 + 1) * 8
+                pw = ((w - 1) // 8 + 1) * 8
+                padding = (0, pw - w, 0, ph - h)
+                x = F.pad(x, padding)
 
-        x = self.shrink(x)
+            x = self.shrink(x)
         out = self.feats(x)
         out = self.dynamic_prio(out)
         out = self.upsampler(out)
         out = self.dynamic(out)
-        return out[:, :, : h * 2, : w * 2]
+        return out[:, :, : h * self.upscale, : w * self.upscale]
