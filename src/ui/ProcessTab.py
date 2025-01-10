@@ -2,7 +2,7 @@ import subprocess
 import os
 from threading import Thread
 import re
-import time
+import math
 from multiprocessing import shared_memory
 
 from PySide6 import QtGui
@@ -226,7 +226,14 @@ class ProcessTab:
         for renderOptions in renderQueue.getQueue():
 
             self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
-
+            self.parent.progressBar.setRange(
+            0,
+            # only set the range to multiply the frame count if the method is interpolate
+            int(
+                renderOptions.videoFrameCount
+                * math.ceil(renderOptions.interpolateTimes)
+            )
+        )
             command = self.build_command(renderOptions)
             self.renderProcess = subprocess.Popen(
                 command,

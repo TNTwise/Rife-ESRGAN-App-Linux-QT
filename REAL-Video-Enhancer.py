@@ -379,16 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def startRender(self):
         self.startRenderButton.setEnabled(False)
-        self.progressBar.setRange(
-            0,
-            # only set the range to multiply the frame count if the method is interpolate
-            int(
-                self.videoFrameCount
-                * math.ceil(self.interpolationMultiplierSpinBox.value())
-            )
-            if self.interpolateModelComboBox.currentText() != "None"
-            else self.videoFrameCount,
-        )
+        
         self.disableProcessPage()
         self.processTab.run(self.renderQueue)
 
