@@ -87,15 +87,20 @@ class UpdateGUIThread(QThread):
     latestPreviewPixmap = Signal(QtGui.QImage)
 
     def __init__(
-        self, parent, imagePreviewSharedMemoryID, outputVideoHeight, outputVideoWidth
+        self, parent, imagePreviewSharedMemoryID
     ):
         super().__init__()
         self._parent = parent
         self._stop_flag = False  # Boolean flag to control stopping
         self._mutex = QMutex()  # Atomic flag to control stopping
         self.imagePreviewSharedMemoryID = imagePreviewSharedMemoryID
-        self.outputVideoHeight = outputVideoHeight
-        self.outputVideoWidth = outputVideoWidth
+        self.outputVideoHeight = None
+        self.outputVideoWidth = None
+
+    def setOutputVideoRes(self, width, height):
+        self.outputVideoHeight = height
+        self.outputVideoWidth = width
+    
 
     def run(self):
         while True:
@@ -103,21 +108,22 @@ class UpdateGUIThread(QThread):
                 if self._stop_flag:
                     break
             try:
-                self.shm = shared_memory.SharedMemory(
-                    name=self.imagePreviewSharedMemoryID
-                )
-                image_bytes = self.shm.buf[
-                    : self.outputVideoHeight * self.outputVideoWidth * 3
-                ].tobytes()
-                expected_size = self.outputVideoHeight * self.outputVideoWidth * 3
-                if len(image_bytes) < expected_size:
-                    image_bytes += b'\x00' * (expected_size - len(image_bytes))
-                # Convert image bytes back to numpy array
-                image_array = np.frombuffer(image_bytes, dtype=np.uint8).reshape(
-                    (self.outputVideoHeight, self.outputVideoWidth, 3)
-                )
-                pixmap = self.convert_cv_qt(image_array)
-                self.latestPreviewPixmap.emit(pixmap)
+                if self.outputVideoHeight and self.outputVideoWidth:
+                    self.shm = shared_memory.SharedMemory(
+                        name=self.imagePreviewSharedMemoryID
+                    )
+                    image_bytes = self.shm.buf[
+                        : self.outputVideoHeight * self.outputVideoWidth * 3
+                    ].tobytes()
+                    expected_size = self.outputVideoHeight * self.outputVideoWidth * 3
+                    if len(image_bytes) < expected_size:
+                        image_bytes += b'\x00' * (expected_size - len(image_bytes))
+                    # Convert image bytes back to numpy array
+                    image_array = np.frombuffer(image_bytes, dtype=np.uint8).reshape(
+                        (self.outputVideoHeight, self.outputVideoWidth, 3)
+                    )
+                    pixmap = self.convert_cv_qt(image_array)
+                    self.latestPreviewPixmap.emit(pixmap)
             except FileNotFoundError:
                 # print("preview not available")
                 self.latestPreviewPixmap.emit(None)

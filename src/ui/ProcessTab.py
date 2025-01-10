@@ -153,13 +153,10 @@ class ProcessTab:
         self.parent.startRenderButton.setVisible(False)
 
     def startGUIUpdate(self):
-        while self.outputVideoHeight is None:
-            time.sleep(0.1)
+        
         self.workerThread = UpdateGUIThread(
             parent=self,
             imagePreviewSharedMemoryID=IMAGE_SHARED_MEMORY_ID,
-            outputVideoHeight=self.outputVideoHeight,
-            outputVideoWidth=self.outputVideoWidth,
         )
         self.workerThread.latestPreviewPixmap.connect(self.updateProcessTab)
         self.workerThread.finished.connect(self.guiChangesOnRenderCompletion)
@@ -197,26 +194,22 @@ class ProcessTab:
         self,
         renderQueue: RenderQueue,
     ):
-        self.settings.readSettings()
-        self.pausedSharedMemory = shared_memory.SharedMemory(
-            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
-        )
+        
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
         self.parent.startRenderButton.clicked.disconnect()
         self.parent.startRenderButton.clicked.connect(self.resumeRender)
 
-        queue = renderQueue.getQueue()
-        with open(f"{INPUT_TEXT_FILE}", "w") as f:
-            for renderOptions in queue:
-                command = self.build_command(renderOptions=renderOptions)
-                for item in command:
-                    f.write(item + " ")
-                f.write("\n")
-
-        writeThread = Thread(target=lambda: self.renderToPipeThread())
-        writeThread.start()
+        self.settings.readSettings()
+        self.pausedSharedMemory = shared_memory.SharedMemory(
+            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
+        )
         self.startGUIUpdate()
+        writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
+        writeThread.start()
+        
+        
+        
 
     def build_command(self, renderOptions: RenderOptions):
 
@@ -234,9 +227,9 @@ class ProcessTab:
             "ignore",
             os.path.join(BACKEND_PATH, "rve-backend.py"),
             "-i",
-            f'"{renderOptions.inputFile}"',
+            renderOptions.inputFile,
             "-o",
-            f'"{renderOptions.outputPath}"',
+            renderOptions.outputPath,
             "-b",
             f"{renderOptions.backend}",
             "--precision",
@@ -267,7 +260,7 @@ class ProcessTab:
                 modelPath = os.path.join(CUSTOM_MODELS_PATH, renderOptions.upscaleModelFile)
             command += [
                 "--upscale_model",
-                f'"{modelPath}"',
+                modelPath,
             ]
             if renderOptions.tilingEnabled:
                 command += [
@@ -280,7 +273,7 @@ class ProcessTab:
                 "--interpolate_model",
                 os.path.join(
                     MODELS_PATH,
-                    f'"{renderOptions.interpolateModelFile}"',
+                    renderOptions.interpolateModelFile,
                 ),
                 "--interpolate_factor",
                 f"{renderOptions.interpolateTimes}",
@@ -345,45 +338,43 @@ class ProcessTab:
 
     def renderToPipeThread(
         self,
+        renderQueue: RenderQueue,
     ):
-        command = [
-            f"{PYTHON_PATH}",
-            "-W",
-            "ignore",
-            os.path.join(BACKEND_PATH, "rve-backend.py"),
-            "-i",
-            f"{INPUT_TEXT_FILE}",
-        ]
-        self.renderProcess = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        )
-        textOutput = []
-        for line in iter(self.renderProcess.stdout.readline, b""):
-            if self.renderProcess.poll() is not None:
-                break  # Exit the loop if the process has terminated
+        for renderOptions in renderQueue.getQueue():
 
-            line = str(line.strip())
-            if "it/s" in line:
-                textOutput = textOutput[:-1]
-            if "FPS" in line:
-                textOutput = textOutput[
-                    :-1
-                ]  # slice the list to only get the last updated data
-                self.currentFrame = int(
-                    re.search(r"Current Frame: (\d+)", line).group(1)
-                )
-            if any(char.isalpha() for char in line):
-                textOutput.append(line)
-            # self.setRenderOutputContent(textOutput)
-            self.renderTextOutputList = textOutput.copy()
-            if "Time to complete render" in line:
-                break
-        for line in textOutput:
-            if len(line) > 2:
-                log(line)
+            self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
+
+            command = self.build_command(renderOptions)
+            self.renderProcess = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
+            textOutput = []
+            for line in iter(self.renderProcess.stdout.readline, b""):
+                if self.renderProcess.poll() is not None:
+                    break  # Exit the loop if the process has terminated
+
+                line = str(line.strip())
+                if "it/s" in line:
+                    textOutput = textOutput[:-1]
+                if "FPS" in line:
+                    textOutput = textOutput[
+                        :-1
+                    ]  # slice the list to only get the last updated data
+                    self.currentFrame = int(
+                        re.search(r"Current Frame: (\d+)", line).group(1)
+                    )
+                if any(char.isalpha() for char in line):
+                    textOutput.append(line)
+                # self.setRenderOutputContent(textOutput)
+                self.renderTextOutputList = textOutput.copy()
+                if "Time to complete render" in line:
+                    break
+            for line in textOutput:
+                if len(line) > 2:
+                    log(line)
         self.onRenderCompletion()
 
     def guiChangesOnRenderCompletion(self):

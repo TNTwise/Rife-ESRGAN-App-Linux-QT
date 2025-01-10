@@ -82,7 +82,6 @@ class Render(FFMpegRender):
         self.tilesize = tile_size
         self.device = device
         self.precision = precision
-        self.upscaleTimes = 1  # if no upscaling, it will default to 1
         self.interpolateFactor = interpolateFactor
         # max timestep is a hack to make sure ncnn cache frames too early, and ncnn breaks if i modify the code at all so ig this is what we are doing
         # also used to help with performace and caching
@@ -109,17 +108,7 @@ class Render(FFMpegRender):
         # get video properties early
         self.getVideoProperties(inputFile)
 
-        sharedMemoryChunkSize = (
-            self.originalHeight
-            * self.originalWidth
-            * 3 # channels
-            * self.upscaleTimes
-            * self.upscaleTimes
-        )
-
-        self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
-        )
+        
 
         if border_detect:
             print("Detecting borders", file=sys.stderr)
@@ -134,10 +123,26 @@ class Render(FFMpegRender):
             self.setupUpscale()
 
             printAndLog("Using Upscaling Model: " + self.upscaleModel)
+        else:
+            self.upscaleTimes = 1  # if no upscaling, it will default to 1
         if interpolateModel:
             self.setupInterpolate()
 
             printAndLog("Using Interpolation Model: " + self.interpolateModel)
+
+        
+        # has to be after to detect upscale times
+        sharedMemoryChunkSize = (
+            self.originalHeight
+            * self.originalWidth
+            * 3 # channels
+            * self.upscaleTimes
+            * self.upscaleTimes
+        )
+
+        self.shm = shared_memory.SharedMemory(
+            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
+        )
 
         super().__init__(
             inputFile=inputFile,
@@ -188,6 +193,7 @@ class Render(FFMpegRender):
         try:
             self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id)
         except Exception as e:
+            self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id, create=True, size=1) # create it if it doesnt exist
             printAndLog("Error reading paused shared memory: " + str(e))
 
         log(f"Shared memory name: {self.shm.name}")
