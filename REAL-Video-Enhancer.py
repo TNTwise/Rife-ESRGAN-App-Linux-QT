@@ -341,10 +341,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     upscaleDownloadFile = upscaleModels[upscale][1]
                     upscaleTimes = upscaleModels[upscale][2]
                     upscaleModelArch = upscaleModels[upscale][3]
-                    DownloadModel(
-                        modelFile=upscaleModelFile,
-                        downloadModelFile=upscaleDownloadFile,
-                    )
+                    if upscaleModelArch != "custom":
+                        DownloadModel(
+                            modelFile=upscaleModelFile,
+                            downloadModelFile=upscaleDownloadFile,
+                        )
 
                 renderOptions = RenderOptions(
                     inputFile=self.inputFileText.text(),
