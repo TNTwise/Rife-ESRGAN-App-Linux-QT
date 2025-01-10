@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>707</height>
+    <width>974</width>
+    <height>777</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1666,6 +1666,23 @@ border-radius:10px;
                          </widget>
                         </item>
                        </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_51">
+                       <property name="text">
+                        <string>Finished Output Files:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QListWidget" name="listWidget">
+                       <property name="styleSheet">
+                        <string notr="true">QListWidget{
+background-color:#1f232a;
+border-radius:10px;
+}</string>
+                       </property>
                       </widget>
                      </item>
                     </layout>
