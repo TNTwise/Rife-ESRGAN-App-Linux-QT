@@ -194,7 +194,7 @@ class Render(FFMpegRender):
             self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id)
         except Exception as e:
             self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id, create=True, size=1) # create it if it doesnt exist
-            printAndLog("Error reading paused shared memory: " + str(e))
+            print("Error reading paused shared memory: " + str(e), sys.stderr)
 
         log(f"Shared memory name: {self.shm.name}")
 

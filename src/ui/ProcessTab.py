@@ -50,6 +50,7 @@ class ProcessTab:
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
         self.settings = settings
+        
         self.qualityToCRF = {
             "Low": "28",
             "Medium": "23",
@@ -201,6 +202,7 @@ class ProcessTab:
         self,
         renderQueue: RenderQueue,
     ):
+        
         # gui changes
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
@@ -213,9 +215,7 @@ class ProcessTab:
         self.startDiscordRPC()
         self.settings.readSettings()
 
-        self.pausedSharedMemory = shared_memory.SharedMemory(
-            name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
-        )
+        
         self.startGUIUpdate()
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
@@ -230,12 +230,22 @@ class ProcessTab:
                 pass
 
     
-
+    def createPausedSharedMemory(self):
+        try:
+                self.pausedSharedMemory = shared_memory.SharedMemory(
+                    name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
+                )
+        except FileExistsError:
+            self.pausedSharedMemory = shared_memory.SharedMemory(
+                name=PAUSED_STATE_SHARED_MEMORY_ID
+            )
+    
     def renderToPipeThread(
         self,
         renderQueue: RenderQueue,
     ):
         for renderOptions in renderQueue.getQueue():
+            self.createPausedSharedMemory()
 
             self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
             self.parent.progressBar.setRange(
@@ -281,6 +291,8 @@ class ProcessTab:
             self.parent.OutputFilesListWidget.addItem(
                 renderOptions.outputPath
             )  # add the file to the list widget
+
+            self.pausedSharedMemory.close()
 
         renderQueue.clear()
         self.onRenderCompletion()
