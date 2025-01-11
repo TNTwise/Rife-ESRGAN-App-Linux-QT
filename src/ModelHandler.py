@@ -186,8 +186,8 @@ ncnnUpscaleModels = {
 
 pytorchUpscaleModels = {
     "Sudo Shuffle SPAN (Animation) (2X) (Fast)": (
-        "2xSudoShuffleSPAN.pth",
-        "2xSudoShuffleSPAN.pth",
+        "2xSudo_Shuffle_Span_no_update_params.pth",
+        "2xSudo_Shuffle_Span_no_update_params.pth",
         2,
         "SPAN",
     ),
@@ -245,8 +245,8 @@ pytorchDenoiseModels = {
 
 tensorrtUpscaleModels = {
     "Sudo Shuffle SPAN (Animation) (2X) (Fast)": (
-        "2xSudoShuffleSPAN.pth",
-        "2xSudoShuffleSPAN.pth",
+        "2xSudo_Shuffle_Span_no_update_params.pth",
+        "2xSudo_Shuffle_Span_no_update_params.pth",
         2,
         "SPAN",
     ),

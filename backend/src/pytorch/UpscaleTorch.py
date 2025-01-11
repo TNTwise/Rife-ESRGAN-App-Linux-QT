@@ -249,6 +249,8 @@ class UpscalePytorch:
                 .cpu()
                 .numpy()
             )
+            #torch.save(self.model.state_dict(), "Sudo_Shuffle_Span_no_update_params.pth")
+            #exit()
         self.stream.synchronize()
         return output
 

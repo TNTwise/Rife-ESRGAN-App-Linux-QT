@@ -416,7 +416,6 @@ class Conv3XC(nn.Module):
             x_pad = F.pad(x, (1, 1, 1, 1), "constant", 0)
             out = self.conv(x_pad) + self.sk(x)
         else:
-            self.update_params()
             out = self.eval_conv(x)
 
         return out
