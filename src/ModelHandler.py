@@ -244,6 +244,12 @@ pytorchDenoiseModels = {
 }
 
 tensorrtUpscaleModels = {
+    "Sudo Shuffle SPAN (Animation) (2X) (Fast)": (
+        "2xSudoShuffleSPAN.pth",
+        "2xSudoShuffleSPAN.pth",
+        2,
+        "SPAN",
+    ),
     "SPAN Spanimation V2 (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",

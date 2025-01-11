@@ -3,26 +3,44 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import trunc_normal_
-
-upscale = 2
-
-
-"""
-28-Sep-21
-https://github.com/TArdelean/DynamicConvolution/blob/master/dynamic_convolutions.py
-https://github.com/TArdelean/DynamicConvolution/blob/master/models/common.py
-"""
-
+from torch.nn.modules.utils import _pair
+from torch.nn import init, Module
+from ...__arch_helpers.dysample import DySample
 import itertools
 import math
 from collections.abc import Iterable
 from typing import (
     TypeVar,
 )
+upscale = 2
 
-from torch.nn import *
-from torch.nn import init
-from torch.nn.modules.utils import _pair
+"""
+28-Sep-21
+https://github.com/TArdelean/DynamicConvolution/blob/master/dynamic_convolutions.py
+https://github.com/TArdelean/DynamicConvolution/blob/master/models/common.py
+MIT License
+
+Copyright (c) 2024 Andrei-Timotei Ardelean,  Andreea Dogaru,  Alexey Larionov, Saian Protasov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 
 T = TypeVar("T", bound=Module)
 
@@ -41,67 +59,47 @@ def constant_init(module, val, bias=0):
         nn.init.constant_(module.bias, bias)
 
 
-class DySample(nn.Module):
-    def __init__(self, in_channels: int, out_ch: int, scale: int = 2, groups: int = 4):
+class Conv2dWrapper(nn.Conv2d):
+    """
+    Wrapper for pytorch Conv2d class which can take additional parameters(like temperature) and ignores them.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def forward(self, x: torch.Tensor, *args, **kwargs) -> torch.Tensor:
+        return super().forward(x)
+
+
+class TempModule(nn.Module):
+    def __init__(self):
         super().__init__()
 
-        assert in_channels >= groups and in_channels % groups == 0
-        out_channels = 2 * groups * scale**2
+    def forward(self, x, temperature) -> torch.Tensor:
+        return x
 
-        self.scale = scale
-        self.groups = groups
-        self.end_conv = nn.Conv2d(in_channels, out_ch, kernel_size=1)
-        self.offset = nn.Conv2d(in_channels, out_channels, 1)
-        self.scope = nn.Conv2d(in_channels, out_channels, 1, bias=False)
-        self.register_buffer("init_pos", self._init_pos())
 
-        normal_init(self.end_conv, std=0.001)
-        normal_init(self.offset, std=0.001)
-        constant_init(self.scope, val=0.0)
+class BaseModel(TempModule):
+    def __init__(self, ConvLayer):
+        super().__init__()
+        self.ConvLayer = ConvLayer
 
-    def _init_pos(self):
-        h = torch.arange((-self.scale + 1) / 2, (self.scale - 1) / 2 + 1) / self.scale
-        return (
-            torch.stack(torch.meshgrid([h, h], indexing="ij"))
-            .transpose(1, 2)
-            .repeat(1, self.groups, 1)
-            .reshape(1, -1, 1, 1)
+
+class TemperatureScheduler:
+    def __init__(self, initial_value, final_value=None, final_epoch=None):
+        self.initial_value = initial_value
+        self.final_value = final_value if final_value else initial_value
+        self.final_epoch = final_epoch if final_epoch else 1
+        self.step = (
+            0
+            if self.final_epoch == 1
+            else (final_value - initial_value) / (final_epoch - 1)
         )
 
-    def forward(self, x):
-        offset = self.offset(x) * self.scope(x).sigmoid() * 0.5 + self.init_pos
-        B, _, H, W = offset.shape
-        offset = offset.view(B, 2, -1, H, W)
-        coords_h = torch.arange(H) + 0.5
-        coords_w = torch.arange(W) + 0.5
-        coords = (
-            torch.stack(torch.meshgrid([coords_w, coords_h], indexing="ij"))
-            .transpose(1, 2)
-            .unsqueeze(1)
-            .unsqueeze(0)
-            .type(x.dtype)
-            .to(x.device)
-        )
-        normalizer = torch.tensor([W, H], dtype=x.dtype, device=x.device).view(
-            1, 2, 1, 1, 1
-        )
-        coords = 2 * (coords + offset) / normalizer - 1
-        coords = (
-            F.pixel_shuffle(coords.reshape(B, -1, H, W), self.scale)
-            .view(B, 2, -1, self.scale * H, self.scale * W)
-            .permute(0, 2, 3, 4, 1)
-            .contiguous()
-            .flatten(0, 1)
-        )
-        return self.end_conv(
-            F.grid_sample(
-                x.reshape(B * self.groups, -1, H, W),
-                coords,
-                mode="bilinear",
-                align_corners=False,
-                padding_mode="border",
-            ).view(B, -1, self.scale * H, self.scale * W)
-        )
+    def get(self, crt_epoch=None):
+        crt_epoch = crt_epoch if crt_epoch else self.final_epoch
+        return self.initial_value + (min(crt_epoch, self.final_epoch) - 1) * self.step
+
 
 
 class Conv2dWrapper(nn.Conv2d):
@@ -493,21 +491,14 @@ class sudo_SPANPlus(nn.Module):
         downsample: bool = False,
     ):
         super().__init__()
-        if downsample:
-            self.shrink = torch.nn.PixelUnshuffle(2)
-            in_channels = 12
-        else:
-            self.shrink = nn.Identity()
-            in_channels = 3
         self.downsample = downsample
-        self.upscale = upscale
-        
+        self.shrink = torch.nn.PixelUnshuffle(2)
         if not isinstance(blocks, list):
             blocks = [int(blocks)]
         if not self.training:
             drop_rate = 0
         self.feats = nn.Sequential(
-            *[Conv3XC(in_channels, feature_channels, gain=2, s=1)]
+            *[Conv3XC(num_in_ch, feature_channels, gain=2, s=1)]
             + [SPABS(feature_channels, n_blocks, drop_rate) for n_blocks in blocks]
         )
         self.dynamic_prio = DynamicConvolution(
@@ -519,9 +510,10 @@ class sudo_SPANPlus(nn.Module):
             padding=1,
             bias=True,
         )
-        
+
         if downsample:
-            upscale = upscale * 2
+            upscale = upscale**2
+
 
         self.upsampler = DySample(feature_channels, feature_channels, upscale)
         self.dynamic = DynamicConvolution(
@@ -537,6 +529,7 @@ class sudo_SPANPlus(nn.Module):
     def forward(self, x):
         n, c, h, w = x.shape
         if self.downsample:
+            
             if h % 8 != 0 or w % 8 != 0:
                 ph = ((h - 1) // 8 + 1) * 8
                 pw = ((w - 1) // 8 + 1) * 8
@@ -548,4 +541,4 @@ class sudo_SPANPlus(nn.Module):
         out = self.dynamic_prio(out)
         out = self.upsampler(out)
         out = self.dynamic(out)
-        return out[:, :, : h * self.upscale, : w * self.upscale]
+        return out[:, :, : h * 2, : w * 2]

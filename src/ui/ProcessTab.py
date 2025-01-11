@@ -278,7 +278,7 @@ class ProcessTab:
                 if len(line) > 2:
                     log(line)
 
-            self.parent.OutputFilesListWidget.add(
+            self.parent.OutputFilesListWidget.addItem(
                 renderOptions.outputPath
             )  # add the file to the list widget
 
