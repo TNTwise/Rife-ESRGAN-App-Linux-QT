@@ -1,5 +1,4 @@
 import cv2
-from abc import ABC
 from dataclasses import dataclass
 import os
 import subprocess
@@ -15,6 +14,8 @@ from .utils.Util import (
 )
 from threading import Thread
 import numpy as np
+from .utils.Encoders import EncoderSettings
+from .utils.BorderDetect import BorderDetect
 
 
 def convertTime(remaining_time):
@@ -32,188 +33,8 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
-class BorderDetect:
-    def __init__(self, inputFile):
-        self.inputFile = inputFile
-    
-    def processBorders(self):
-        command = [
-            f"{FFMPEG_PATH}",
-            "-i",
-            f"{self.inputFile}",
-            "-vf",
-            "cropdetect",
-            "-f",
-            "null",
-            "-",
-        ]
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            universal_newlines=True,
-        )
-        output = process.communicate()
-        return output
-    
-    def processOutput(self, output):
-        borders = []
-        for line in output[1].split('\n'):
-            if "crop=" in line:
-                crop_value = line.split("crop=")[1].split(' ')[0]
-                borders.append(crop_value)
-        
-        if borders:
-            def parse_crop(crop_str):
-                # Expected format: "width:height:x:y"
-                try:
-                    width, height, x, y = map(int, crop_str.split(':'))
-                    if width <= 0 or height <= 0:
-                        log(f"Invalid crop dimensions: {crop_str}")
-                        return None
-                    return width, height, x, y
-                except ValueError:
-                    log(f"Invalid crop format: {crop_str}")
-                    return None
-
-            # Parse all crop values and filter out any invalid entries
-            parsed_crops = [parse_crop(crop) for crop in borders]
-            parsed_crops = [crop for crop in parsed_crops if crop is not None]
-
-            if not parsed_crops:
-                log("No valid crop values found.")
-                return None
-
-            # Determine the least cropped crop (i.e., largest area)
-            least_cropped = max(parsed_crops, key=lambda dims: dims[0] * dims[1])
-            least_cropped_str = f"{least_cropped[0]}:{least_cropped[1]}:{least_cropped[2]}:{least_cropped[3]}"
-
-            return least_cropped_str
-
-        return None
-    
-    def getBorders(self):
-        output = self.processBorders()
-        output = self.processOutput(output)
-        width, height, borderX, borderY = map(int, output.split(':'))
-        return width, height, borderX, borderY
-   
-@dataclass
-class Encoder(ABC):
-    preset_tag: str
-    preInputsettings: str
-    postInputSettings: str
-    qualityControlMode: str = "-crf"
-
-class copyAudio(Encoder):
-    preset_tag = "copy_audio"
-    preInputsettings = None
-    postInputSettings = "-c:a copy"
 
 
-class aac(Encoder):
-    preset_tag = "aac"
-    preInputsettings = None
-    postInputSettings = "-c:a aac"
-
-
-class libmp3lame(Encoder):
-    preset_tag = "libmp3lame"
-    preInputsettings = None
-    postInputSettings = "-c:a libmp3lame"
-
-
-class libx264(Encoder):
-    preset_tag="libx264"
-    preInputsettings = None
-    postInputSettings = "-c:v libx264"
-
-class libx265(Encoder):
-    preset_tag="libx265"
-    preInputsettings = None
-    postInputSettings = "-c:v libx265"
-
-class vp9(Encoder):
-    preset_tag="vp9"
-    preInputsettings = None
-    postInputSettings = "-c:v libvpx-vp9"
-    qualityControlMode: str = "-cq:v"
-
-class av1(Encoder):
-    preset_tag="av1"
-    preInputsettings = None
-    postInputSettings = "-c:v libsvtav1"
-
-class x264_vulkan(Encoder):
-    preset_tag="x264_vulkan"
-    preInputsettings = "-init_hw_device vulkan=vkdev:0 -filter_hw_device vkdev"
-    postInputSettings = '-filter:v format=nv12,hwupload -c:v h264_vulkan'
-    # qualityControlMode: str = "-quality" # this is not implemented very well, quality ranges from 0-4 with little difference, so quality changing is disabled.
-
-class x264_nvenc(Encoder):
-    preset_tag="x264_nvenc"
-    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
-    postInputSettings = "-c:v h264_nvenc -preset slow"
-    qualityControlMode: str = "-cq:v"
-
-class x265_nvenc(Encoder):
-    preset_tag="x265_nvenc"
-    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
-    postInputSettings = "-c:v hevc_nvenc -preset slow"
-    qualityControlMode: str = "-cq:v"
-
-class av1_nvenc(Encoder):
-    preset_tag="av1_nvenc"
-    preInputsettings = "-hwaccel cuda -hwaccel_output_format cuda"
-    postInputSettings = "-c:v av1_nvenc -preset slow"
-    qualityControlMode: str = "-cq:v"
-
-class h264_vaapi(Encoder):
-    preset_tag = "x264_vaapi"
-    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
-    postInputSettings = "-rc_mode CQP -c:v h264_vaapi"
-    qualityControlMode: str = "-qp"
-
-
-class h265_vaapi(Encoder):
-    preset_tag = "x265_vaapi"
-    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
-    postInputSettings = "-rc_mode CQP -c:v hevc_vaapi"
-    qualityControlMode: str = "-qp"
-
-
-class av1_vaapi(Encoder):
-    preset_tag = "av1_vaapi"
-    preInputsettings = "-hwaccel vaapi -hwaccel_output_format vaapi"
-    postInputSettings = "-rc_mode CQP -c:v av1_vaapi"
-    qualityControlMode: str = "-qp"
-
-
-class EncoderSettings:
-    def __init__(self, encoder_preset):
-        self.encoder_preset = encoder_preset
-        self.encoder:Encoder = self.getEncoder()
-    
-    def getEncoder(self) -> Encoder:
-        for encoder in Encoder.__subclasses__():
-            if encoder.preset_tag == self.encoder_preset:
-                return encoder
-
-    def getPreInputSettings(self) -> str:
-        return self.encoder.preInputsettings
-
-    def getPostInputSettings(self) -> str:
-        return self.encoder.postInputSettings
-    
-    def getQualityControlMode(self) -> str:
-        return self.encoder.qualityControlMode
-
-    def getPresetTag(self) -> str:
-        return self.encoder.preset_tag
-
-
-   
 class FFMpegRender:
     """Args:
         inputFile (str): The path to the input file.
@@ -328,7 +149,19 @@ class FFMpegRender:
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
         )
-        
+        sharedMemoryChunkSize = (
+            self.originalHeight
+            * self.originalWidth
+            * channels
+            * self.upscaleTimes
+            * self.upscaleTimes
+        )
+        self.sharedMemoryThread = Thread(
+            target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
+        )
+        self.shm = shared_memory.SharedMemory(
+            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
+        )
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
         self.writeOutPipe = self.outputFile == "PIPE"
@@ -354,6 +187,7 @@ class FFMpegRender:
         self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
         self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
 
         self.outputFrameChunkSize = None
 
@@ -485,19 +319,12 @@ class FFMpegRender:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
-        #import numpy as np
-        #import cv2
-        #frame_count = 0
         while True:
             chunk = self.readProcess.stdout.read(self.inputFrameChunkSize)
             if len(chunk) < self.inputFrameChunkSize:
                 break
             self.readQueue.put(chunk)
-            
-            #np_array = np.frombuffer(chunk, np.uint8)
-            #image = np_array.reshape((self.height, self.width, 3))
-            #cv2.imwrite(f'frames/frame_{frame_count}.png', image)
-            #frame_count += 1
+
         log("Ending Video Read")
         self.readQueue.put(None)
         self.readingDone = True
@@ -539,7 +366,41 @@ class FFMpegRender:
         # convert to hours, minutes, and seconds
         hours, minutes, seconds = convertTime(remaining_time)
         return f"{hours}:{minutes}:{seconds}"
-    
+
+    def writeOutInformation(self, fcs):
+        """
+        fcs = framechunksize
+        """
+        # Create a shared memory block
+
+        buffer = self.shm.buf
+
+        log(f"Shared memory name: {self.shm.name}")
+        while True:
+            if self.writingDone:
+                self.shm.close()
+                self.shm.unlink()
+                break
+            if self.previewFrame is not None:
+                # print out data to stdout
+                fps = round(self.framesRendered / (time.time() - self.startTime))
+                eta = self.calculateETA()
+                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
+                self.realTimePrint(message)
+                if self.sharedMemoryID is not None and self.previewFrame is not None:
+                    # Update the shared array
+                    if self.border_detect:
+                        padded_frame = self.padFrame(
+                            self.previewFrame,
+                            self.originalWidth * self.upscaleTimes,
+                            self.originalHeight * self.upscaleTimes,
+                        )
+                        buffer[:fcs] = bytes(padded_frame)
+                    else:
+                        buffer[:fcs] = bytes(self.previewFrame)
+
+            time.sleep(0.1)
+
     def onErroredExit(self):
         self.writingDone = True
         print("FFmpeg failed to render the video.",file=sys.stderr)
