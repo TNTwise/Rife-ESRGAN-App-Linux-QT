@@ -15,7 +15,6 @@ from .utils.Util import (
 from threading import Thread
 import numpy as np
 from .utils.Encoders import EncoderSettings
-from .utils.BorderDetect import BorderDetect
 
 
 def convertTime(remaining_time):
@@ -126,7 +125,6 @@ class FFMpegRender:
         if custom_encoder is None: # custom_encoder overrides these presets
             self.video_encoder = EncoderSettings(video_encoder_preset)
             self.audio_encoder = EncoderSettings(audio_encoder_preset)
-            
 
         self.custom_encoder = custom_encoder
         self.pixelFormat = pixelFormat

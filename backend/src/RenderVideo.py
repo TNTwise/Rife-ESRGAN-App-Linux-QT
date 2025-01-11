@@ -5,9 +5,10 @@ from time import sleep, time
 import sys
 from multiprocessing import shared_memory
 
-from .FFmpeg import FFMpegRender, BorderDetect
+from .FFmpeg import FFMpegRender
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log
+from .utils.BorderDetect import BorderDetect
 
 
 class Render(FFMpegRender):
@@ -173,8 +174,6 @@ class Render(FFMpegRender):
             target=lambda: self.writeOutInformation(sharedMemoryChunkSize, pause_shared_memory_id=pause_shared_memory_id) 
         )
         self.sharedMemoryThread.start()
-        
-
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
