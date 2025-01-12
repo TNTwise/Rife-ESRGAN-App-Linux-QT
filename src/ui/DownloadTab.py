@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QMainWindow
-from .QTcustom import RegularQTPopup, NetworkCheckPopup
+from .QTcustom import RegularQTPopup, NetworkCheckPopup, addNotificationToButton
 from ..DownloadDeps import DownloadDependencies
 from ..DownloadModels import DownloadModel
 from ..ModelHandler import (
@@ -41,6 +41,9 @@ class DownloadTab:
         self.downloadDeps = DownloadDependencies()
         self.backends = backends
         self.applicationUpdater = ApplicationUpdater()
+        if self.applicationUpdater.check_for_updates():
+            addNotificationToButton(button=self.parent.UpdateApplicationButton)
+            addNotificationToButton(button=self.parent.downloadBtn)
         self.QButtonConnect()
 
     def QButtonConnect(self):

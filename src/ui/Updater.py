@@ -13,7 +13,7 @@ from ..constants import (
     LIBS_NAME,
 )
 from ..version import version
-from ..Util import FileHandler
+from ..Util import FileHandler, networkCheck
 
 
 class ApplicationUpdater:
@@ -31,10 +31,12 @@ class ApplicationUpdater:
         self.download_url = self.build_download_url()
 
     def check_for_updates(self):
-        tag = self.get_latest_version_tag(clean_tag=True)
-        return not tag == version and int(tag.replace(".", "")) > int(
-            version.replace(".", "")
-        )  # returns true if there is a new version
+        if networkCheck():
+            tag = self.get_latest_version_tag(clean_tag=True)
+            return not tag == version and int(tag.replace(".", "")) > int(
+                version.replace(".", "")
+            )  # returns true if there is a new version
+        return False
 
     def download_new_version(self):
         FileHandler.createDirectory(TEMP_DOWNLOAD_PATH)

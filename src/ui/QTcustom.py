@@ -743,6 +743,13 @@ def NetworkCheckPopup(hostname="https://raw.githubusercontent.com") -> bool:
     # return true if network connection
     return True
 
+def addNotificationToButton(button: QPushButton):
+    notification = QLabel(button)
+    notification.setFixedSize(10, 10)
+    notification.setStyleSheet("background-color: red; border-radius: 5px;")
+    notification.move(button.width() - 15, 5)
+    notification.show()
+
 
 if __name__ == "__main__":
     DownloadProgressPopup(
@@ -750,3 +757,4 @@ if __name__ == "__main__":
         downloadLocation="ffmpeg",
         title="Downloading Python",
     )
+
