@@ -50,6 +50,9 @@ class ApplicationUpdater:
             downloadLocation=full_download_path,
             title=f"Downloading {self.tag}",
         )
+        FileHandler.unzipFile(
+            os.path.join(TEMP_DOWNLOAD_PATH, self.file_name), TEMP_DOWNLOAD_PATH
+        )
 
     def remove_old_files(self):
         FileHandler.removeFolder(BACKEND_PATH)
@@ -63,9 +66,7 @@ class ApplicationUpdater:
             folder_to_copy_from = "REAL-Video-Enhancer"
         else:
             folder_to_copy_from = "REAL-Video-Enhancer"
-        FileHandler.unzipFile(
-            os.path.join(TEMP_DOWNLOAD_PATH, self.file_name), TEMP_DOWNLOAD_PATH
-        )
+
         FileHandler.moveFolder(
             os.path.join(TEMP_DOWNLOAD_PATH, folder_to_copy_from, "backend"),
             os.path.join(BACKEND_PATH),
@@ -105,6 +106,7 @@ class ApplicationUpdater:
                 self.download_new_version()
                 self.remove_old_files()
                 self.move_new_files()
+                print("Update complete")
 
 
 if __name__ == "__main__":
