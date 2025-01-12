@@ -3,7 +3,16 @@ import re
 import os
 
 from .QTcustom import DownloadProgressPopup
-from ..constants import BACKEND_PATH, LIBS_PATH, EXE_PATH, PLATFORM, TEMP_DOWNLOAD_PATH
+from ..constants import (
+    BACKEND_PATH,
+    EXE_NAME,
+    LIBS_PATH,
+    EXE_PATH,
+    PLATFORM,
+    TEMP_DOWNLOAD_PATH,
+    LIBS_NAME,
+    CWD,
+)
 from ..version import version
 from ..Util import FileHandler, networkCheck
 
@@ -48,7 +57,27 @@ class ApplicationUpdater:
         FileHandler.removeFile(EXE_PATH)
 
     def move_new_files(self):
-        pass
+        if PLATFORM == "linux":
+            folder_to_copy_from = "bin"
+        elif PLATFORM == "win32":
+            folder_to_copy_from = "REAL-Video-Enhancer"
+        else:
+            folder_to_copy_from = "REAL-Video-Enhancer"
+        FileHandler.unzipFile(
+            os.path.join(TEMP_DOWNLOAD_PATH, self.file_name), TEMP_DOWNLOAD_PATH
+        )
+        FileHandler.moveFolder(
+            os.path.join(TEMP_DOWNLOAD_PATH, folder_to_copy_from, "backend"),
+            os.path.join(BACKEND_PATH),
+        )
+        FileHandler.moveFolder(
+            os.path.join(TEMP_DOWNLOAD_PATH, folder_to_copy_from, EXE_NAME),
+            os.path.join(EXE_PATH),
+        )
+        FileHandler.moveFolder(
+            os.path.join(TEMP_DOWNLOAD_PATH, folder_to_copy_from, LIBS_NAME),
+            os.path.join(LIBS_PATH),
+        )
 
     def build_download_url(self):
         url = f"https://github.com/tntwise/real-video-enhancer/releases/download/{self.tag}/{self.file_name}"

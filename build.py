@@ -128,9 +128,11 @@ def install_requirements_in_venv():
     subprocess.run(command)
 
 
-def build_executable():
+def build_executable(dist_dir=None):
     print("Building executable")
     if getPlatform() == "win32" or getPlatform() == "darwin":
+        if dist_dir is None:
+            dist_dir = "dist"
         command = [
             python_path(),
             "-m",
@@ -141,31 +143,39 @@ def build_executable():
             "--icon=icons/logo-v2.ico",
             "--noconfirm",
             "--noupx",
+            "--distpath",
+            dist_dir,
             # "--noconsole", this caused issues, maybe I can fix it later
         ]
     else:
+        if dist_dir is None:
+            dist_dir = "bin"
         command = [
             python_path(),
             "-m",
             "cx_Freeze",
             "REAL-Video-Enhancer.py",
             "--target-dir",
-            "bin",
+            dist_dir,
         ]
     subprocess.run(command)
 
 
-def copy_backend():
+def copy_backend(build_dir=None):
     print("Copying backend")
     if getPlatform() == "win32":
+        if build_dir is None:
+            build_dir = "dist"
         try:
-            os.system("cp -r backend dist/REAL-Video-Enhancer/")
+            os.system(f"cp -r backend {build_dir}/REAL-Video-Enhancer/")
         except Exception:
             pass
-        if not os.path.exists(r"dist\\REAL-Video-Enhancer\\backend"):
-            os.system('xcopy "./backend" "./dist/REAL-Video-Enhancer/" /E /I')
+        if not os.path.exists(rf"{build_dir}\\REAL-Video-Enhancer\\backend"):
+            os.system(f'xcopy "./backend" "./{build_dir}/REAL-Video-Enhancer/" /E /I')
     if getPlatform() == "linux":
-        os.system("cp -r backend bin/")
+        if build_dir is None:
+            build_dir = "bin"
+        os.system(f"cp -r backend {build_dir}/")
 
 
 def clean():
@@ -189,7 +199,10 @@ if not os.path.exists("venv"):
 build_gui()
 build_resources()
 
-if len(sys.argv) > 1:
-    if sys.argv[1] == "--build_exe":
-        build_executable()
-        copy_backend()
+if "--build_dir_override" in sys.argv:
+    build_dir = sys.argv[sys.argv.index("--build_dir_override") + 1]
+    build_executable(build_dir)
+    copy_backend(build_dir=build_dir)
+if "--build_exe" in sys.argv and "--build_dir_override" not in sys.argv:
+    build_executable()
+    copy_backend()

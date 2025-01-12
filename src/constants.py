@@ -4,6 +4,8 @@ import sys
 PLATFORM = sys.platform  # win32, darwin, linux
 
 IS_FLATPAK = "FLATPAK_ID" in os.environ
+if "--swap-flatpak-checks" in sys.argv:
+    IS_FLATPAK = not IS_FLATPAK
 CWD = (
     os.path.join(
         os.path.expanduser("~"), ".var", "app", "io.github.tntwise.REAL-Video-Enhancer"
@@ -12,8 +14,8 @@ CWD = (
     else os.getcwd()
 )
 
-exe = "REAL-Video-Enhancer.exe" if PLATFORM == "win32" else "REAL-Video-Enhancer"
-libs = "_internal" if PLATFORM == "win32" else "lib"
+EXE_NAME = "REAL-Video-Enhancer.exe" if PLATFORM == "win32" else "REAL-Video-Enhancer"
+LIBS_NAME = "_internal" if PLATFORM == "win32" else "lib"
 # dirs
 HOME_PATH = os.path.expanduser("~")
 MODELS_PATH = os.path.join(CWD, "models")
@@ -38,11 +40,11 @@ PYTHON_PATH = (
 )
 EXE_PATH = os.path.join(
     CWD,
-    exe,
+    EXE_NAME,
 )
 LIBS_PATH = os.path.join(
     CWD,
-    libs,
+    LIBS_NAME,
 )
 
 # is installed

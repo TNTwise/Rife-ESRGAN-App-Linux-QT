@@ -10,10 +10,38 @@ import psutil
 import cpuinfo
 import distro
 import webbrowser
+import zipfile
 from .constants import CWD, IS_FLATPAK, PLATFORM, HOME_PATH
 
 
 class FileHandler:
+    @staticmethod
+    def moveFolder(prev: str, new: str):
+        """
+        moves a folder from prev to new
+        """
+        if not os.path.exists(new):
+            if not os.path.isfile(new):
+                shutil.move(prev, new)
+            else:
+                print("WARN tried to rename a file to a file that already exists")
+        else:
+            print("WARN tried to rename a folder to a folder that already exists")
+
+    @staticmethod
+    def unzipFile(file, outputDirectory):
+        """
+        Extracts a zip file in the same directory as the zip file and deletes it after extraction.
+        """
+        origCWD = os.getcwd()
+        dir_path = os.path.dirname(os.path.realpath(file))
+        os.chdir(dir_path)
+        printAndLog("Extracting: " + file)
+        with zipfile.ZipFile(file, "r") as f:
+            f.extractall(outputDirectory)
+        removeFile(file)
+        os.chdir(origCWD)
+
     @staticmethod
     def removeFolder(folder):
         """

@@ -566,15 +566,21 @@ def main():
 
     app.setPalette(Palette())
     window = MainWindow()
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "--fullscreen":
-            window.showFullScreen()
+    if "--fullscreen" in sys.argv:
+        window.showFullScreen()
     window.show()
     sys.exit(app.exec())
 
 
+"""
+custom command args
+--debug: runs the app in debug mode
+--fullscreen: runs the app in fullscreen
+--swap-flatpak-checks: swaps the flatpak checks, ex if the app is running in flatpak, it will run as if it is not
+"""
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--debug":
+    if "--debug" in sys.argv:
         import trace
 
         tracer = trace.Trace(
