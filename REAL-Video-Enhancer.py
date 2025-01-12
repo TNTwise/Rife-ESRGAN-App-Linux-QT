@@ -379,6 +379,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             RegularQTPopup("Video is not loaded!")
 
     def startRender(self):
+        if len(self.renderQueue.queue) == 0:
+            RegularQTPopup("Render queue is empty!")
+            return
         self.startRenderButton.setEnabled(False)
         
         self.disableProcessPage()
