@@ -2,7 +2,7 @@ import requests
 import re
 import os
 
-from .QTcustom import DownloadProgressPopup
+from .QTcustom import DownloadProgressPopup, NetworkCheckPopup, RegularQTPopup
 from ..constants import (
     BACKEND_PATH,
     EXE_NAME,
@@ -11,19 +11,13 @@ from ..constants import (
     PLATFORM,
     TEMP_DOWNLOAD_PATH,
     LIBS_NAME,
-    CWD,
 )
 from ..version import version
-from ..Util import FileHandler, networkCheck
-
-def setVersion(version):
-    version = version
+from ..Util import FileHandler
 
 
 class ApplicationUpdater:
-    def __init__(self, test=False):
-        if test:
-            setVersion("2.1.0")  # for testing purposes
+    def __init__(self):
         self.tag = self.get_latest_version_tag()
         self.clean_tag = self.get_latest_version_tag(clean_tag=True)
         if PLATFORM == "win32":
@@ -80,6 +74,9 @@ class ApplicationUpdater:
             os.path.join(LIBS_PATH),
         )
 
+    def make_exe_executable(self):
+        FileHandler.makeExecutable(EXE_PATH)
+
     def build_download_url(self):
         url = f"https://github.com/tntwise/real-video-enhancer/releases/download/{self.tag}/{self.file_name}"
         return url
@@ -101,12 +98,15 @@ class ApplicationUpdater:
         return tag_name
 
     def install_new_update(self):
-        if networkCheck():
+        if NetworkCheckPopup():
             if self.check_for_updates():
                 self.download_new_version()
                 self.remove_old_files()
                 self.move_new_files()
-                print("Update complete")
+                self.make_exe_executable()
+                RegularQTPopup("Update complete! Please restart the app.")
+            else:
+                RegularQTPopup("No update available!")
 
 
 if __name__ == "__main__":

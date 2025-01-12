@@ -87,7 +87,7 @@ class DownloadTab:
             lambda: self.parent.importCustomModel("ncnn")
         )
         self.parent.UpdateApplicationButton.clicked.connect(
-            self.applicationUpdater.download_new_version
+            self.applicationUpdater.install_new_update
         )
 
     def download(self, dep, install: bool = True):
