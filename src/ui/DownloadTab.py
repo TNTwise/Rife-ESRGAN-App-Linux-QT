@@ -9,7 +9,7 @@ from ..ModelHandler import (
     pytorchUpscaleModels,
 )
 from .Updater import ApplicationUpdater
-from ..constants import MODELS_PATH
+from ..constants import IS_FLATPAK, MODELS_PATH
 
 
 def downloadModelsBasedOnInstalledBackend(installed_backends: list):
@@ -41,7 +41,9 @@ class DownloadTab:
         self.downloadDeps = DownloadDependencies()
         self.backends = backends
         self.applicationUpdater = ApplicationUpdater()
-        if self.applicationUpdater.check_for_updates():
+        if IS_FLATPAK:
+            self.parent.ApplicationUpdateContainer.setVisible(False)
+        elif self.applicationUpdater.check_for_updates():
             addNotificationToButton(button=self.parent.UpdateApplicationButton)
             addNotificationToButton(button=self.parent.downloadBtn)
         self.QButtonConnect()

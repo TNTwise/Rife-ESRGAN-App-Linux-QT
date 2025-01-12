@@ -4,8 +4,7 @@ import sys
 PLATFORM = sys.platform  # win32, darwin, linux
 
 IS_FLATPAK = "FLATPAK_ID" in os.environ
-if "--swap-flatpak-checks" in sys.argv:
-    IS_FLATPAK = not IS_FLATPAK
+
 CWD = (
     os.path.join(
         os.path.expanduser("~"), ".var", "app", "io.github.tntwise.REAL-Video-Enhancer"
@@ -53,3 +52,5 @@ IS_INSTALLED = os.path.isfile(FFMPEG_PATH) and os.path.isfile(PYTHON_PATH)
 IMAGE_SHARED_MEMORY_ID = "/image_preview" + str(os.getpid())
 PAUSED_STATE_SHARED_MEMORY_ID = "/paused_state" + str(os.getpid())
 INPUT_TEXT_FILE = os.path.join(CWD, f"INPUT{os.getpid()}.txt")
+if "--swap-flatpak-checks" in sys.argv:
+    IS_FLATPAK = not IS_FLATPAK

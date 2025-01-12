@@ -4619,7 +4619,7 @@ QScrollBar:horizontal{
                </widget>
               </item>
               <item row="0" column="0">
-               <widget class="QWidget" name="widget_26" native="true">
+               <widget class="QWidget" name="ApplicationUpdateContainer" native="true">
                 <layout class="QVBoxLayout" name="verticalLayout_30">
                  <property name="leftMargin">
                   <number>9</number>

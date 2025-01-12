@@ -4,6 +4,7 @@ import os
 
 from .QTcustom import DownloadProgressPopup, NetworkCheckPopup, RegularQTPopup
 from ..constants import (
+    PYTHON_PATH,
     BACKEND_PATH,
     EXE_NAME,
     LIBS_PATH,
@@ -114,6 +115,10 @@ class ApplicationUpdater:
                 RegularQTPopup("Update complete! Please restart the app.")
             else:
                 RegularQTPopup("No update available!")
+
+
+class DependencyUpdateChecker:
+    pass
 
 
 if __name__ == "__main__":
