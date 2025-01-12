@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 from PySide6.QtGui import QIcon
-from src.Util import log
 from mainwindow import Ui_MainWindow
 from PySide6 import QtSvg  # Import the QtSvg module so svg icons can be used on windows
 from src.version import version
@@ -28,6 +27,7 @@ from src.Util import (
     checkForWritePermissions,
     getAvailableDiskSpace,
     FileHandler,
+    log,
 )
 from src.DownloadModels import DownloadModel
 from src.constants import CUSTOM_MODELS_PATH

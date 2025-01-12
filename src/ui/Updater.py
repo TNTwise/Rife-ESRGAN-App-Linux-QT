@@ -15,20 +15,25 @@ from ..constants import (
 from ..version import version
 from ..Util import FileHandler, networkCheck
 
+# version = "2.1.0"
+
+HAS_NETWORK_ON_STARTUP = networkCheck()
+
 
 class ApplicationUpdater:
     def __init__(self):
-        self.tag = self.get_latest_version_tag()
-        self.clean_tag = self.get_latest_version_tag(clean_tag=True)
-        if PLATFORM == "win32":
-            platform_name = "Windows"
-        elif PLATFORM == "darwin":
-            platform_name = "MacOS"
-        else:
-            platform_name = "Linux"
+        if HAS_NETWORK_ON_STARTUP:
+            self.tag = self.get_latest_version_tag()
+            self.clean_tag = self.get_latest_version_tag(clean_tag=True)
+            if PLATFORM == "win32":
+                platform_name = "Windows"
+            elif PLATFORM == "darwin":
+                platform_name = "MacOS"
+            else:
+                platform_name = "Linux"
 
-        self.file_name = f"REAL-Video-Enhancer-{self.clean_tag}-{platform_name}.zip"
-        self.download_url = self.build_download_url()
+            self.file_name = f"REAL-Video-Enhancer-{self.clean_tag}-{platform_name}.zip"
+            self.download_url = self.build_download_url()
 
     def check_for_updates(self):
         if networkCheck():

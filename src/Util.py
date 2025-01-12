@@ -159,8 +159,8 @@ def networkCheck(hostname="https://raw.githubusercontent.com") -> bool:
         _ = requests.head(hostname, timeout=1)
         return True
     except Exception as e:
-        print(str(e))
-        print("No internet connection available.")
+        log(str(e))
+        log("No internet connection available.")
     return False
 
 
