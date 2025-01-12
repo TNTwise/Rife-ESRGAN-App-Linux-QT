@@ -1,7 +1,7 @@
 import os
 import sys
 
-PLATFORM = sys.platform
+PLATFORM = sys.platform  # win32, darwin, linux
 
 IS_FLATPAK = "FLATPAK_ID" in os.environ
 CWD = (
@@ -11,6 +11,9 @@ CWD = (
     if IS_FLATPAK
     else os.getcwd()
 )
+
+exe = "REAL-Video-Enhancer.exe" if PLATFORM == "win32" else "REAL-Video-Enhancer"
+libs = "_internal" if PLATFORM == "win32" else "lib"
 # dirs
 HOME_PATH = os.path.expanduser("~")
 MODELS_PATH = os.path.join(CWD, "models")
@@ -33,6 +36,15 @@ PYTHON_PATH = (
     if PLATFORM == "win32"
     else os.path.join(CWD, "python", "python", "bin", "python3")
 )
+EXE_PATH = os.path.join(
+    CWD,
+    exe,
+)
+LIBS_PATH = os.path.join(
+    CWD,
+    libs,
+)
+
 # is installed
 IS_INSTALLED = os.path.isfile(FFMPEG_PATH) and os.path.isfile(PYTHON_PATH)
 

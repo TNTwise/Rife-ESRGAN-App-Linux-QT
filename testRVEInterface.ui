@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -123,10 +122,10 @@ background-color:#fff;
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="styleSheet">
-             <string notr="true"/>
+             <string notr="true" />
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>4</number>
             </property>
             <widget class="QWidget" name="homePage">
              <property name="styleSheet">
@@ -256,10 +255,10 @@ QScrollBar:horizontal{
                       <string>Support Me!</string>
                      </property>
                      <property name="statusTip">
-                      <string>&quot;Support Me!&quot;</string>
+                      <string>"Support Me!"</string>
                      </property>
                      <property name="text">
-                      <string/>
+                      <string />
                      </property>
                      <property name="icon">
                       <iconset resource="resources.qrc">
@@ -292,7 +291,7 @@ QScrollBar:horizontal{
                       </size>
                      </property>
                      <property name="text">
-                      <string/>
+                      <string />
                      </property>
                      <property name="icon">
                       <iconset resource="resources.qrc">
@@ -320,7 +319,7 @@ QScrollBar:horizontal{
                  <item row="0" column="0">
                   <widget class="QLabel" name="label_2">
                    <property name="text">
-                    <string/>
+                    <string />
                    </property>
                    <property name="pixmap">
                     <pixmap resource="resources.qrc">:/icons/icons/logo-v2.svg</pixmap>
@@ -360,14 +359,14 @@ QScrollBar:horizontal{
                    <bool>true</bool>
                   </property>
                   <property name="html">
-                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+                   <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                  </widget>
                 </item>
@@ -394,7 +393,7 @@ background-color:#16191d
 
 }</string>
              </property>
-             <layout class="QGridLayout" name="gridLayout_6"/>
+             <layout class="QGridLayout" name="gridLayout_6" />
             </widget>
             <widget class="QWidget" name="procPage">
              <property name="styleSheet">
@@ -719,7 +718,7 @@ background-color:#16191d
                            </font>
                           </property>
                           <property name="styleSheet">
-                           <string notr="true"/>
+                           <string notr="true" />
                           </property>
                           <property name="text">
                            <string>Select Input File</string>
@@ -786,7 +785,7 @@ background-color:#16191d
                            </font>
                           </property>
                           <property name="styleSheet">
-                           <string notr="true"/>
+                           <string notr="true" />
                           </property>
                           <property name="text">
                            <string>Select Output Folder</string>
@@ -1139,10 +1138,10 @@ text-align: center;
                            </font>
                           </property>
                           <property name="toolTip">
-                           <string/>
+                           <string />
                           </property>
                           <property name="statusTip">
-                           <string/>
+                           <string />
                           </property>
                           <property name="text">
                            <string>Benchmark Mode</string>
@@ -1174,7 +1173,7 @@ text-align: center;
                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Perform processing without outputing new video. This tests the raw performance of the inference.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="pixmap">
                            <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -1187,10 +1186,10 @@ text-align: center;
                         <item>
                          <widget class="QCheckBox" name="benchmarkModeCheckBox">
                           <property name="styleSheet">
-                           <string notr="true"/>
+                           <string notr="true" />
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                          </widget>
                         </item>
@@ -1289,7 +1288,7 @@ text-align: center;
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Split up processing upscaled frames into chunks.&lt;/p&gt;&lt;p&gt;Lowers VRAM usage, but also slows down render. &lt;/p&gt;&lt;p&gt;Only use when render failes due to VRAM limits.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -1302,7 +1301,7 @@ text-align: center;
                            <item>
                             <widget class="QCheckBox" name="tilingCheckBox">
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                             </widget>
                            </item>
@@ -1458,7 +1457,7 @@ text-align: center;
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scales optical flow based on the difference between frames.&lt;/p&gt;&lt;p&gt;Helps with anime interpolation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -1471,7 +1470,7 @@ text-align: center;
                            <item>
                             <widget class="QCheckBox" name="dynamicScaledOpticalFlowCheckBox">
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                             </widget>
                            </item>
@@ -1518,7 +1517,7 @@ text-align: center;
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ensembles flow, can produce better results.&lt;/p&gt;&lt;p&gt;Only compadible with older RIFE models and GMFSS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -1531,7 +1530,7 @@ text-align: center;
                            <item>
                             <widget class="QCheckBox" name="ensembleCheckBox">
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                             </widget>
                            </item>
@@ -1578,7 +1577,7 @@ text-align: center;
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Increase video length instead of framerate when interpolating.&lt;/p&gt;&lt;p&gt;Audio and Subtitles will not be transfered to output video.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -1591,7 +1590,7 @@ text-align: center;
                            <item>
                             <widget class="QCheckBox" name="sloMoModeCheckBox">
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                             </widget>
                            </item>
@@ -1830,7 +1829,7 @@ border-radius:10px;
                              </size>
                             </property>
                             <property name="accessibleDescription">
-                             <string notr="true"/>
+                             <string notr="true" />
                             </property>
                             <property name="styleSheet">
                              <string notr="true">QTextEdit{
@@ -1855,19 +1854,19 @@ QTextEdit:disabled{color:white;}</string>
                              <bool>true</bool>
                             </property>
                             <property name="html">
-                             <string notr="true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+                             <string notr="true">&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;FPS:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;Resolution:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;Frame Count:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;Bitrate:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;Encoder:&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Sans Serif'; font-size:10pt;&quot;&gt;Container:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Cantarell'; font-size:11pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;FPS:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;Resolution:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;Frame Count:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;Bitrate:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;Encoder:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;span style=" font-family:'Sans Serif'; font-size:10pt;"&gt;Container:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                             </property>
                            </widget>
                           </item>
@@ -1880,7 +1879,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                     <item>
                      <widget class="QWidget" name="widget_13" native="true">
                       <property name="styleSheet">
-                       <string notr="true"/>
+                       <string notr="true" />
                       </property>
                       <layout class="QHBoxLayout" name="horizontalLayout_32">
                        <property name="spacing">
@@ -1928,10 +1927,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
                              </size>
                             </property>
                             <property name="styleSheet">
-                             <string notr="true"/>
+                             <string notr="true" />
                             </property>
                             <property name="text">
-                             <string/>
+                             <string />
                             </property>
                             <property name="icon">
                              <iconset resource="resources.qrc">
@@ -1974,10 +1973,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
                             </size>
                            </property>
                            <property name="styleSheet">
-                            <string notr="true"/>
+                            <string notr="true" />
                            </property>
                            <property name="text">
-                            <string/>
+                            <string />
                            </property>
                            <property name="icon">
                             <iconset resource="resources.qrc">
@@ -2012,7 +2011,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                             </size>
                            </property>
                            <property name="text">
-                            <string/>
+                            <string />
                            </property>
                            <property name="icon">
                             <iconset resource="resources.qrc">
@@ -2136,7 +2135,7 @@ QLabel{
 </string>
                       </property>
                       <property name="text">
-                       <string/>
+                       <string />
                       </property>
                       <property name="scaledContents">
                        <bool>false</bool>
@@ -2196,14 +2195,14 @@ QLabel{
                        <bool>true</bool>
                       </property>
                       <property name="html">
-                       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+                       <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Cantarell'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans';&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Cantarell'; font-size:13pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans';"&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                      </widget>
                     </item>
@@ -2567,7 +2566,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Changes the default container.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                   <property name="pixmap">
                                    <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -2654,7 +2653,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scene Change Detection:&lt;/p&gt;&lt;p&gt; - Enabled: Attempts to detect when scenes change in a video. When running an interpolation, it will avoide interpolating over these scene changes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                   <property name="pixmap">
                                    <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -2667,7 +2666,7 @@ QTabWidget::pane { /* The tab widget frame */
                                 <item>
                                  <widget class="QCheckBox" name="scene_change_detection_enabled">
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                  </widget>
                                 </item>
@@ -2729,7 +2728,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scene detection methods:&lt;/p&gt;&lt;p&gt;- mean: fastest, least accurate&lt;/p&gt;&lt;p&gt;- mean (segmented): fast, prone to overdetection&lt;/p&gt;&lt;p&gt;- pyscenedetect: slow, accuate&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                   <property name="pixmap">
                                    <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -2816,7 +2815,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scene change detection sensitivity, lower number means it has a higher chance of detecting scene changes, with risk of overdetection.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                   <property name="pixmap">
                                    <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -2903,7 +2902,7 @@ QTabWidget::pane { /* The tab widget frame */
                                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Audo Border Cropping:&lt;/p&gt;&lt;p&gt;- Will automatically remove black bars if they are present throughout a video, can increase performance.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                                   </property>
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                   <property name="pixmap">
                                    <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -2916,7 +2915,7 @@ QTabWidget::pane { /* The tab widget frame */
                                 <item>
                                  <widget class="QCheckBox" name="auto_border_cropping">
                                   <property name="text">
-                                   <string/>
+                                   <string />
                                   </property>
                                  </widget>
                                 </item>
@@ -3387,7 +3386,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Precision:&lt;/p&gt;&lt;p&gt; - Auto: Defaults to float16 if the GPU is supported (RTX 20 series and up)&lt;/p&gt;&lt;p&gt; - Float16: Faster inference and less VRAM usage.&lt;/p&gt;&lt;p&gt; - Float32: Slower inference and more VRAM usage, supported on more GPUS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3447,7 +3446,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TensorRT Optimization Level:&lt;/p&gt;&lt;p&gt; - Lower means less optimization, but faster engine generation time.&lt;/p&gt;&lt;p&gt; - Higher means more optimization, but slowe engine generation time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3533,7 +3532,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Saves VRAM and speeds up inference at resolutions above 1080p by calculating flow at a lower resolution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3546,7 +3545,7 @@ QTabWidget::pane { /* The tab widget frame */
                            <item>
                             <widget class="QCheckBox" name="uhd_mode">
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                             </widget>
                            </item>
@@ -3581,7 +3580,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;NCNN GPU ID -&lt;/p&gt;&lt;p&gt;Sets what GPU is used for NCNN&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3632,7 +3631,7 @@ QTabWidget::pane { /* The tab widget frame */
                               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PyTorch GPU ID -&lt;/p&gt;&lt;p&gt;Sets what GPU is used for PyTorch&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                              </property>
                              <property name="text">
-                              <string/>
+                              <string />
                              </property>
                              <property name="pixmap">
                               <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3716,7 +3715,7 @@ QTabWidget::pane { /* The tab widget frame */
                             <item>
                              <widget class="QCheckBox" name="preview_enabled">
                               <property name="text">
-                               <string/>
+                               <string />
                               </property>
                              </widget>
                             </item>
@@ -3778,7 +3777,7 @@ QTabWidget::pane { /* The tab widget frame */
                                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show REAL Video Enhancer in discord.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                               </property>
                               <property name="text">
-                               <string/>
+                               <string />
                               </property>
                               <property name="pixmap">
                                <pixmap resource="resources.qrc">:/icons/icons/info.svg</pixmap>
@@ -3791,7 +3790,7 @@ QTabWidget::pane { /* The tab widget frame */
                             <item>
                              <widget class="QCheckBox" name="discord_rich_presence">
                               <property name="text">
-                               <string/>
+                               <string />
                               </property>
                              </widget>
                             </item>
@@ -3942,10 +3941,140 @@ QScrollBar:horizontal{
 }</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
-              <item row="0" column="0">
+              <item row="2" column="0">
+               <widget class="QWidget" name="modelSelectContainer" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_15">
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_25">
+                   <property name="font">
+                    <font>
+                     <pointsize>25</pointsize>
+                     <underline>true</underline>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Models</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="pytorchBackendInstallerContainer_5" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_22">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="downloadAllModelsBtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>45</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string />
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_26">
+                      <property name="text">
+                       <string>All Models for all Backends</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="pytorchBackendInstallerContainer_6" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_23">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="downloadSomeModelsBasedOnInstalledBackendbtn">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>50</width>
+                        <height>45</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string />
+                      </property>
+                      <property name="icon">
+                       <iconset resource="resources.qrc">
+                        <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="label_27">
+                      <property name="text">
+                       <string>All models for Installed Backends</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="1" column="0">
                <widget class="QWidget" name="backendSelectContainer" native="true">
                 <property name="styleSheet">
-                 <string notr="true"/>
+                 <string notr="true" />
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_11">
                  <item>
@@ -3976,7 +4105,7 @@ QScrollBar:horizontal{
                     </size>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true"/>
+                    <string notr="true" />
                    </property>
                    <property name="widgetResizable">
                     <bool>true</bool>
@@ -3986,14 +4115,38 @@ QScrollBar:horizontal{
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>757</width>
-                      <height>332</height>
+                      <width>766</width>
+                      <height>327</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_13">
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
                      <item>
                       <widget class="QWidget" name="pytorchBackendInstallerContainer" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_6">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="downloadTorchCUDABtn">
                           <property name="sizePolicy">
@@ -4009,7 +4162,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4038,7 +4191,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4065,6 +4218,18 @@ QScrollBar:horizontal{
                      <item>
                       <widget class="QWidget" name="pytorchBackendInstallerContainer_3" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_10">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="downloadTorchROCmBtn">
                           <property name="sizePolicy">
@@ -4080,7 +4245,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4109,7 +4274,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4136,6 +4301,18 @@ QScrollBar:horizontal{
                      <item>
                       <widget class="QWidget" name="pytorchBackendInstallerContainer_2" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_24">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="downloadTensorRTBtn">
                           <property name="sizePolicy">
@@ -4151,7 +4328,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4180,7 +4357,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4207,6 +4384,18 @@ QScrollBar:horizontal{
                      <item>
                       <widget class="QWidget" name="pytorchBackendInstallerContainer_4" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_9">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="downloadNCNNBtn">
                           <property name="sizePolicy">
@@ -4222,7 +4411,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4251,7 +4440,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4278,6 +4467,18 @@ QScrollBar:horizontal{
                      <item>
                       <widget class="QWidget" name="pytorchBackendInstallerContainer_7" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_8">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
                         <item>
                          <widget class="QPushButton" name="downloadDirectMLBtn">
                           <property name="sizePolicy">
@@ -4293,7 +4494,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4322,7 +4523,7 @@ QScrollBar:horizontal{
                            </size>
                           </property>
                           <property name="text">
-                           <string/>
+                           <string />
                           </property>
                           <property name="icon">
                            <iconset resource="resources.qrc">
@@ -4353,7 +4554,7 @@ QScrollBar:horizontal{
                 </layout>
                </widget>
               </item>
-              <item row="4" column="0">
+              <item row="5" column="0">
                <widget class="QWidget" name="widget_10" native="true">
                 <property name="minimumSize">
                  <size>
@@ -4417,11 +4618,23 @@ QScrollBar:horizontal{
                 </layout>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QWidget" name="modelSelectContainer" native="true">
-                <layout class="QVBoxLayout" name="verticalLayout_15">
+              <item row="0" column="0">
+               <widget class="QWidget" name="widget_26" native="true">
+                <layout class="QVBoxLayout" name="verticalLayout_30">
+                 <property name="leftMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>9</number>
+                 </property>
                  <item>
-                  <widget class="QLabel" name="label_25">
+                  <widget class="QLabel" name="label_53">
                    <property name="font">
                     <font>
                      <pointsize>25</pointsize>
@@ -4429,15 +4642,27 @@ QScrollBar:horizontal{
                     </font>
                    </property>
                    <property name="text">
-                    <string>Models</string>
+                    <string>Application</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QWidget" name="pytorchBackendInstallerContainer_5" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_22">
+                  <widget class="QWidget" name="pytorchBackendInstallerContainer_8" native="true">
+                   <layout class="QHBoxLayout" name="horizontalLayout_41">
+                    <property name="leftMargin">
+                     <number>4</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>9</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>9</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>9</number>
+                    </property>
                     <item>
-                     <widget class="QPushButton" name="downloadAllModelsBtn">
+                     <widget class="QPushButton" name="UpdateApplicationButton">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                         <horstretch>0</horstretch>
@@ -4451,7 +4676,7 @@ QScrollBar:horizontal{
                        </size>
                       </property>
                       <property name="text">
-                       <string/>
+                       <string />
                       </property>
                       <property name="icon">
                        <iconset resource="resources.qrc">
@@ -4466,51 +4691,9 @@ QScrollBar:horizontal{
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="label_26">
+                     <widget class="QLabel" name="label_52">
                       <property name="text">
-                       <string>All Models for all Backends</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="pytorchBackendInstallerContainer_6" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_23">
-                    <item>
-                     <widget class="QPushButton" name="downloadSomeModelsBasedOnInstalledBackendbtn">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="maximumSize">
-                       <size>
-                        <width>50</width>
-                        <height>45</height>
-                       </size>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="icon">
-                       <iconset resource="resources.qrc">
-                        <normaloff>:/icons/icons/download.svg</normaloff>:/icons/icons/download.svg</iconset>
-                      </property>
-                      <property name="iconSize">
-                       <size>
-                        <width>30</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="label_27">
-                      <property name="text">
-                       <string>All models for Installed Backends</string>
+                       <string>Update Application</string>
                       </property>
                      </widget>
                     </item>
@@ -4533,7 +4716,7 @@ QScrollBar:horizontal{
     <item row="0" column="0">
      <widget class="QWidget" name="leftMenuContainer" native="true">
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true" />
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="leftMargin">
@@ -4581,7 +4764,7 @@ QScrollBar:horizontal{
                 </size>
                </property>
                <property name="text">
-                <string/>
+                <string />
                </property>
                <property name="icon">
                 <iconset resource="resources.qrc">
@@ -4610,7 +4793,7 @@ QScrollBar:horizontal{
                 </size>
                </property>
                <property name="text">
-                <string/>
+                <string />
                </property>
                <property name="icon">
                 <iconset resource="resources.qrc">
@@ -4678,7 +4861,7 @@ QScrollBar:horizontal{
 </string>
                </property>
                <property name="text">
-                <string/>
+                <string />
                </property>
                <property name="icon">
                 <iconset resource="resources.qrc">
@@ -4704,7 +4887,7 @@ QScrollBar:horizontal{
                 </size>
                </property>
                <property name="text">
-                <string/>
+                <string />
                </property>
                <property name="icon">
                 <iconset resource="resources.qrc">
@@ -4734,7 +4917,7 @@ QScrollBar:horizontal{
   </widget>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="resources.qrc" />
  </resources>
- <connections/>
+ <connections />
 </ui>

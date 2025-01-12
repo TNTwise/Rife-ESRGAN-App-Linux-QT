@@ -49,9 +49,29 @@ def download_file(url, destination):
     urllib.request.urlretrieve(url, destination)
     print("File downloaded successfully")
 
+def zero_mainwindow_size():
+    import xml.etree.ElementTree as ET
+
+    def set_mainwindow_size_zero(path="testRVEInterface.ui"):
+        tree = ET.parse(path)
+        root = tree.getroot()
+
+        geometry = root.find('.//property[@name="geometry"]/rect')
+        if geometry is not None:
+            width = geometry.find("width")
+            height = geometry.find("height")
+            if width is not None:
+                width.text = "0"
+            if height is not None:
+                height.text = "0"
+            tree.write(path)
+
+    set_mainwindow_size_zero()
+
 
 def build_gui():
     print("Building GUI")
+    zero_mainwindow_size()
     if getPlatform() == "darwin" or getPlatform() == "linux":
         os.system(
             f"{get_site_packages()}/PySide6/Qt/libexec/uic -g python testRVEInterface.ui > mainwindow.py"

@@ -22,6 +22,13 @@ class FileHandler:
         shutil.rmtree(folder)
 
     @staticmethod
+    def removeFile(file):
+        """
+        Removes the file of the current working directory
+        """
+        os.remove(file)
+
+    @staticmethod
     def copy(prev: str, new: str):
         """
         moves a folder from prev to new

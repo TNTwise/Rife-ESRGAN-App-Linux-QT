@@ -8,6 +8,7 @@ from ..ModelHandler import (
     ncnnUpscaleModels,
     pytorchUpscaleModels,
 )
+from .Updater import ApplicationUpdater
 from ..constants import MODELS_PATH
 
 
@@ -39,6 +40,7 @@ class DownloadTab:
         self.parent = parent
         self.downloadDeps = DownloadDependencies()
         self.backends = backends
+        self.applicationUpdater = ApplicationUpdater()
         self.QButtonConnect()
 
     def QButtonConnect(self):
@@ -83,6 +85,9 @@ class DownloadTab:
         )
         self.parent.selectNCNNCustomModel.clicked.connect(
             lambda: self.parent.importCustomModel("ncnn")
+        )
+        self.parent.UpdateApplicationButton.clicked.connect(
+            self.applicationUpdater.download_new_version
         )
 
     def download(self, dep, install: bool = True):
