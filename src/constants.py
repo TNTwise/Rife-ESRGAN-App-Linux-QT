@@ -52,5 +52,7 @@ IS_INSTALLED = os.path.isfile(FFMPEG_PATH) and os.path.isfile(PYTHON_PATH)
 IMAGE_SHARED_MEMORY_ID = "/image_preview" + str(os.getpid())
 PAUSED_STATE_SHARED_MEMORY_ID = "/paused_state" + str(os.getpid())
 INPUT_TEXT_FILE = os.path.join(CWD, f"INPUT{os.getpid()}.txt")
-if "--swap-flatpak-checks" in sys.argv:
+if (
+    "--swap-flatpak-checks" in sys.argv
+):  # swap check down here as to not interfere with directories
     IS_FLATPAK = not IS_FLATPAK

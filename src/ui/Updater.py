@@ -118,7 +118,18 @@ class ApplicationUpdater:
 
 
 class DependencyUpdateChecker:
-    pass
+    def __init__(self, installed_dependencies: list[str]):
+        self.installed_dependencies = installed_dependencies
+
+    def getPipVersion(self, dependency):
+        command = [
+            PYTHON_PATH,
+        ]
+
+    def getDepVers(self):
+        for dependency in self.installed_dependencies:
+            if "pytorch (rocm)" in dependency:
+                pass
 
 
 if __name__ == "__main__":

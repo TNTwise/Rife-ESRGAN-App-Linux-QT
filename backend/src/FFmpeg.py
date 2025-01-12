@@ -157,9 +157,7 @@ class FFMpegRender:
         self.sharedMemoryThread = Thread(
             target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
         )
-        self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
-        )
+
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
         self.writeOutPipe = self.outputFile == "PIPE"
