@@ -459,7 +459,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
 
         if format == "pytorch":
-            fileFilter = "PyTorch Model (*.pth)"
+            fileFilter = "PyTorch Model (*.pth *.safetensors)"
 
             modelFile, _ = QFileDialog.getOpenFileName(
                 parent=self,
