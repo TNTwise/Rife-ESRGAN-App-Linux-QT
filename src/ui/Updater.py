@@ -16,7 +16,7 @@ from ..constants import (
 from ..version import version
 from ..Util import FileHandler, networkCheck
 
-# version = "2.1.0"
+version = "2.1.0" # for debugging
 
 HAS_NETWORK_ON_STARTUP = networkCheck()
 

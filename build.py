@@ -167,11 +167,11 @@ def copy_backend(build_dir=None):
         if build_dir is None:
             build_dir = "dist"
         try:
-            os.system(f"cp -r backend {build_dir}/REAL-Video-Enhancer/")
+            os.system(f"cp -r backend {build_dir}/REAL-Video-Enhancer/backend")
         except Exception:
             pass
         if not os.path.exists(rf"{build_dir}\\REAL-Video-Enhancer\\backend"):
-            os.system(f'xcopy "./backend" "./{build_dir}/REAL-Video-Enhancer/" /E /I')
+            os.system(f'xcopy "./backend" "./{build_dir}/REAL-Video-Enhancer/backend" /E /I')
     if getPlatform() == "linux":
         if build_dir is None:
             build_dir = "bin"
