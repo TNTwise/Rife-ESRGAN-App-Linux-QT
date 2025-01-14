@@ -293,6 +293,7 @@ class ProcessTab:
             )  # add the file to the list widget
 
             self.pausedSharedMemory.close()
+            self.workerThread.unlink_shared_memory()
 
         renderQueue.clear()
         self.onRenderCompletion()

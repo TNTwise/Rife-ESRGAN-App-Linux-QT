@@ -101,6 +101,13 @@ class UpdateGUIThread(QThread):
         self.outputVideoHeight = height
         self.outputVideoWidth = width
     
+    def unlink_shared_memory(self):
+        try:
+            self.shm.close()
+            self.shm.unlink()
+            print("Closed Read Memory")
+        except AttributeError as e:
+            log("No read memory", str(e))
 
     def run(self):
         while True:
@@ -148,6 +155,7 @@ class UpdateGUIThread(QThread):
             self._stop_flag = True
         try:
             self.shm.close()
+            self.shm.unlink()
             print("Closed Read Memory")
         except AttributeError as e:
             log("No read memory", str(e))  # type: ignore

@@ -9,7 +9,16 @@ from .FFmpeg import FFMpegRender
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log
 from .utils.BorderDetect import BorderDetect
-
+def remove_shared_memory_block(name):
+    try:
+        existing_shm = shared_memory.SharedMemory(name=name)
+        existing_shm.close()
+        existing_shm.unlink()
+        print(f"Shared memory block '{name}' removed.")
+    except FileNotFoundError:
+        print(f"Shared memory block '{name}' does not exist.")
+    except Exception as e:
+        print(f"Error removing shared memory block '{name}': {e}")
 
 class Render(FFMpegRender):
     """
@@ -140,11 +149,15 @@ class Render(FFMpegRender):
             * self.upscaleTimes
             * self.upscaleTimes
         )
-
-        self.shm = shared_memory.SharedMemory(
-            name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
-        )
-
+        try:
+            self.shm = shared_memory.SharedMemory(
+                name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
+            )
+        except FileExistsError:
+            self.shm = shared_memory.SharedMemory(
+                name=self.sharedMemoryID, size=sharedMemoryChunkSize
+            )
+        
         super().__init__(
             inputFile=inputFile,
             outputFile=outputFile,
@@ -202,6 +215,7 @@ class Render(FFMpegRender):
             if self.writingDone:
                 self.shm.close()
                 self.shm.unlink()
+                self.shm.__del__()
                 break
 
             if self.previewFrame is not None:
