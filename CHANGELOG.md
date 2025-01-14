@@ -7,7 +7,6 @@
  - GPU ID selection
  - Default video container setting
  - Batch input support
- - Update button
 ### Changed
  - Adjusted dynamic scale.
  - Transcodes audio by default, to fix potential audio copying issues.

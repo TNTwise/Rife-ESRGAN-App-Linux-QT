@@ -41,11 +41,13 @@ class DownloadTab:
         self.downloadDeps = DownloadDependencies()
         self.backends = backends
         self.applicationUpdater = ApplicationUpdater()
-        if IS_FLATPAK:
-            self.parent.ApplicationUpdateContainer.setVisible(False)
-        elif self.applicationUpdater.check_for_updates():
-            addNotificationToButton(button=self.parent.UpdateApplicationButton)
-            addNotificationToButton(button=self.parent.downloadBtn)
+        
+        # set this all to not visible, as scrapping the idea for now.
+        
+        self.parent.ApplicationUpdateContainer.setVisible(False)
+        #elif self.applicationUpdater.check_for_updates():
+        #    addNotificationToButton(button=self.parent.UpdateApplicationButton)
+        #    addNotificationToButton(button=self.parent.downloadBtn)
         self.QButtonConnect()
 
     def QButtonConnect(self):
