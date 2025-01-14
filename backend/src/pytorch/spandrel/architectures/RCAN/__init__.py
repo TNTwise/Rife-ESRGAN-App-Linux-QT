@@ -1,6 +1,6 @@
 import math
 
-from spandrel.util import KeyCondition, get_pixelshuffle_params, get_seq_len
+from ...util import KeyCondition, get_pixelshuffle_params, get_seq_len
 
 from ...__helpers.model_descriptor import Architecture, ImageModelDescriptor, StateDict
 from .__arch.rcan_arch import RCAN

@@ -6,8 +6,8 @@ from collections.abc import Callable
 import torch
 from torch import Tensor, nn
 
-from spandrel.architectures.__arch_helpers.padding import pad_to_multiple
-from spandrel.util import store_hyperparameters
+from ....architectures.__arch_helpers.padding import pad_to_multiple
+from ....util import store_hyperparameters
 
 
 def get_activation(activation: str = "relu") -> nn.Module:

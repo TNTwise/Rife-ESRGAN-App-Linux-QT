@@ -328,7 +328,7 @@ for model in os.listdir(CUSTOM_MODELS_PATH):
         if os.path.exists(model_path):
             if not os.path.isfile(model_path):
                 customNCNNUpscaleModels[model] = (model, model, upscaleFactor, "custom")
-        if model.endswith(".pth"):
+        if model.endswith(".pth") or model.endswith(".safetensors"):
             customPytorchUpscaleModels[model] = (model, model, upscaleFactor, "custom")
     else:
         log(
