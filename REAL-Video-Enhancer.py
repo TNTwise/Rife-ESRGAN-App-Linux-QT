@@ -333,7 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for renderOptions in self.renderQueue.getQueue():
             if output_path == renderOptions.outputPath:
                 RegularQTPopup("Output file already in queue!")
-            return
+                return
 
 
         backend = self.backendComboBox.currentText()
