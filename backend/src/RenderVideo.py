@@ -154,8 +154,9 @@ class Render(FFMpegRender):
                 name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
             )
         except FileExistsError:
+            log("error creating shared memory block")
             self.shm = shared_memory.SharedMemory(
-                name=self.sharedMemoryID, size=sharedMemoryChunkSize
+                name=self.sharedMemoryID
             )
         
         super().__init__(
