@@ -316,68 +316,76 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings.readSettings()
         interpolate = self.interpolateModelComboBox.currentText()
         upscale = self.upscaleModelComboBox.currentText()
+        output_path = self.outputFileText.text()
         if interpolate == "None":
             interpolate = None
         if upscale == "None":
             upscale = None
 
-        if self.isVideoLoaded:
-            if interpolate or upscale:
-                backend = self.backendComboBox.currentText()
-                upscaleTimes = 1
-                upscaleModelArch = "custom"
-                interpolateModels, upscaleModels = getModels(backend)
+        if not self.isVideoLoaded:
+            RegularQTPopup("Video is not loaded!")
+            return
+        
+        if not interpolate and not upscale:
+            RegularQTPopup("Please select at least one model!")
+            return
+        
+        for renderOptions in self.renderQueue.getQueue():
+            if output_path == renderOptions.outputPath:
+                RegularQTPopup("Output file already in queue!")
+            return
 
-                if interpolate:
-                    interpolateDownloadFile = interpolateModels[interpolate][1]
-                    interpolateModelFile = interpolateModels[interpolate][0]
-                    DownloadModel(
-                        modelFile=interpolateModelFile,
-                        downloadModelFile=interpolateDownloadFile,
-                    )
 
-                if upscale:
-                    upscaleModelFile = upscaleModels[upscale][0]
-                    upscaleDownloadFile = upscaleModels[upscale][1]
-                    upscaleTimes = upscaleModels[upscale][2]
-                    upscaleModelArch = upscaleModels[upscale][3]
-                    if upscaleModelArch != "custom":
-                        DownloadModel(
-                            modelFile=upscaleModelFile,
-                            downloadModelFile=upscaleDownloadFile,
-                        )
+        backend = self.backendComboBox.currentText()
+        upscaleTimes = 1
+        upscaleModelArch = "custom"
+        interpolateModels, upscaleModels = getModels(backend)
 
-                renderOptions = RenderOptions(
-                    inputFile=self.inputFileText.text(),
-                    outputPath=self.outputFileText.text(),
-                    videoWidth=self.videoWidth,
-                    videoHeight=self.videoHeight,
-                    videoFps=self.videoFps,
-                    tilingEnabled=self.tilingCheckBox.isChecked(),
-                    tilesize=self.tileSizeComboBox.currentText(),
-                    videoFrameCount=self.videoFrameCount,
-                    backend=self.backendComboBox.currentText(),
-                    interpolateModel=interpolate,
-                    upscaleModel=upscale,
-                    interpolateTimes=self.getInterpolationMultiplier(
-                        self.interpolateModelComboBox.currentText()
-                    ),
-                    benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
-                    sloMoMode=self.sloMoModeCheckBox.isChecked(),
-                    dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
-                    ensemble=self.ensembleCheckBox.isChecked(),
-                    upscaleModelArch=upscaleModelArch,
-                    upscaleTimes=upscaleTimes,
-                    upscaleModelFile=upscaleModelFile if upscale else None,
-                    interpolateModelFile=interpolateModelFile if interpolate else None,
+        if interpolate:
+            interpolateDownloadFile = interpolateModels[interpolate][1]
+            interpolateModelFile = interpolateModels[interpolate][0]
+            DownloadModel(
+                modelFile=interpolateModelFile,
+                downloadModelFile=interpolateDownloadFile,
+            )
+
+        if upscale:
+            upscaleModelFile = upscaleModels[upscale][0]
+            upscaleDownloadFile = upscaleModels[upscale][1]
+            upscaleTimes = upscaleModels[upscale][2]
+            upscaleModelArch = upscaleModels[upscale][3]
+            if upscaleModelArch != "custom":
+                DownloadModel(
+                    modelFile=upscaleModelFile,
+                    downloadModelFile=upscaleDownloadFile,
                 )
 
-                self.renderQueue.add(renderOptions)
-            else:
-                RegularQTPopup("Please select at least one model!")
-        else:
-            RegularQTPopup("Video is not loaded!")
+        renderOptions = RenderOptions(
+            inputFile=self.inputFileText.text(),
+            outputPath=output_path,
+            videoWidth=self.videoWidth,
+            videoHeight=self.videoHeight,
+            videoFps=self.videoFps,
+            tilingEnabled=self.tilingCheckBox.isChecked(),
+            tilesize=self.tileSizeComboBox.currentText(),
+            videoFrameCount=self.videoFrameCount,
+            backend=self.backendComboBox.currentText(),
+            interpolateModel=interpolate,
+            upscaleModel=upscale,
+            interpolateTimes=self.getInterpolationMultiplier(
+                self.interpolateModelComboBox.currentText()
+            ),
+            benchmarkMode=self.benchmarkModeCheckBox.isChecked(),
+            sloMoMode=self.sloMoModeCheckBox.isChecked(),
+            dyanmicScaleOpticalFlow=self.dynamicScaledOpticalFlowCheckBox.isChecked(),
+            ensemble=self.ensembleCheckBox.isChecked(),
+            upscaleModelArch=upscaleModelArch,
+            upscaleTimes=upscaleTimes,
+            upscaleModelFile=upscaleModelFile if upscale else None,
+            interpolateModelFile=interpolateModelFile if interpolate else None,
+        )
 
+        self.renderQueue.add(renderOptions)
     def startRender(self):
         if len(self.renderQueue.queue) == 0:
             RegularQTPopup("Render queue is empty!")
