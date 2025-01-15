@@ -7,6 +7,8 @@ import torch.nn.functional as F
 import sys
 from time import sleep
 
+from backend.src.pytorch.TensorRTHandler import TorchTensorRTHandler
+
 from ..utils.Util import (
     check_bfloat16_support,
     get_gpus_torch,
@@ -103,11 +105,19 @@ class UpscalePytorch:
         self._load()
 
     @torch.inference_mode()
+    def set_self_model(self):
+        if self.backend == "tensorrt":
+            trtHandler = TorchTensorRTHandler()
+            trtHandler.load_engine(self.trt_engine_path)
+        else:
+            self.model = self.loadModel(
+                    modelPath=self.modelPath, device=self.device, dtype=self.dtype
+            )
+
+    @torch.inference_mode()
     def _load(self):
         with torch.cuda.stream(self.prepareStream):
-            self.model = self.loadModel(
-                modelPath=self.modelPath, device=self.device, dtype=self.dtype
-            )
+            
 
             match self.scale:
                 case 1:
@@ -134,10 +144,11 @@ class UpscalePytorch:
                 self.pad_h = self.videoHeight
 
             if self.backend == "tensorrt":
+                self.set_self_model()
                 from .TensorRTHandler import TorchTensorRTHandler
                 trtHandler = TorchTensorRTHandler(export_format="dynamo",dynamo_export_format="fallback",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
 
-                trt_engine_path = os.path.join(
+                self.trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
                     (
                         f"{os.path.basename(self.modelPath)}"
@@ -156,7 +167,7 @@ class UpscalePytorch:
                     ),
                 )
 
-                if not os.path.isfile(trt_engine_path):
+                if not os.path.isfile(self.trt_engine_path):
                     inputs = [
                         torch.zeros(
                             (1, 3, self.pad_h, self.pad_w),
@@ -169,10 +180,9 @@ class UpscalePytorch:
                         self.dtype,
                         self.device,
                         example_inputs=inputs,
-                        trt_engine_path=trt_engine_path,
+                        trt_engine_path=self.trt_engine_path,
                     )
-
-                self.model = trtHandler.load_engine(trt_engine_path=trt_engine_path)
+                del self.model
         torch.cuda.empty_cache()
         self.prepareStream.synchronize()
 

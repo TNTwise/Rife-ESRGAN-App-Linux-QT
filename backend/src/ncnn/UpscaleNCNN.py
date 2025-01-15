@@ -154,6 +154,9 @@ class UpscaleNCNN:
         nparray = np.clip(nparray, 0, 255)
         return nparray
 
+    def set_self_model(self):
+        pass
+
     def procNCNNVk(self, frame: np.array) -> np.ascontiguousarray:
         ex = self.net.create_extractor()
         frame = self.ClampNPArray(frame)

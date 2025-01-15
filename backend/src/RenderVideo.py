@@ -131,16 +131,19 @@ class Render(FFMpegRender):
         # upscale has to be called first to get the scale of the upscale model
         if upscaleModel:
             self.setupUpscale()
-
+            self.upscaleOption.hotUnload() # unload model to free up memory for trt enging building
             printAndLog("Using Upscaling Model: " + self.upscaleModel)
         else:
             self.upscaleTimes = 1  # if no upscaling, it will default to 1
-        if interpolateModel:
-            self.setupInterpolate()
-
-            printAndLog("Using Interpolation Model: " + self.interpolateModel)
 
         
+        if interpolateModel:
+            self.setupInterpolate()
+            printAndLog("Using Interpolation Model: " + self.interpolateModel)
+        
+        
+        if upscaleModel:
+            self.upscaleOption.hotReload()
         # has to be after to detect upscale times
         sharedMemoryChunkSize = (
             self.originalHeight
