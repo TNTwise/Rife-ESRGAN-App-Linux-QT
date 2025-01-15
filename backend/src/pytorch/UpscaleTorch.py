@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import sys
 from time import sleep
 
-from backend.src.pytorch.TensorRTHandler import TorchTensorRTHandler
+from .TensorRTHandler import TorchTensorRTHandler
 
 from ..utils.Util import (
     check_bfloat16_support,
@@ -117,7 +117,7 @@ class UpscalePytorch:
     @torch.inference_mode()
     def _load(self):
         with torch.cuda.stream(self.prepareStream):
-            
+            self.set_self_model()
 
             match self.scale:
                 case 1:
@@ -144,7 +144,7 @@ class UpscalePytorch:
                 self.pad_h = self.videoHeight
 
             if self.backend == "tensorrt":
-                self.set_self_model()
+                
                 from .TensorRTHandler import TorchTensorRTHandler
                 trtHandler = TorchTensorRTHandler(export_format="dynamo",dynamo_export_format="fallback",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
 
@@ -182,7 +182,7 @@ class UpscalePytorch:
                         example_inputs=inputs,
                         trt_engine_path=self.trt_engine_path,
                     )
-                del self.model
+        
         torch.cuda.empty_cache()
         self.prepareStream.synchronize()
 
