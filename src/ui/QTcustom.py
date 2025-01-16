@@ -106,7 +106,7 @@ class UpdateGUIThread(QThread):
             self.shm.close()
             self.shm.unlink()
             print("Closed Read Memory")
-        except AttributeError as e:
+        except Exception as e:
             log("No read memory", str(e))
 
     def run(self):
@@ -153,12 +153,7 @@ class UpdateGUIThread(QThread):
     def stop(self):
         with QMutexLocker(self._mutex):
             self._stop_flag = True
-        try:
-            self.shm.close()
-            self.shm.unlink()
-            print("Closed Read Memory")
-        except AttributeError as e:
-            log("No read memory", str(e))  # type: ignore
+        self.unlink_shared_memory()
 
 
 # custom threads

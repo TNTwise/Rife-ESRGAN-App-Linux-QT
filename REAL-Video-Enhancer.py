@@ -1,5 +1,6 @@
 import sys
 import os
+
 # patch for macos
 if sys.platform == "darwin":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +46,6 @@ from src.ui.RenderQueue import RenderQueue, RenderOptions
 svg = (
     QtSvg.QSvgRenderer()
 )  # utilize the imported QtSvg module to render svg icons on windows
-
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """Main window class for the REAL Video Enhancer application.
@@ -151,13 +151,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for line in self.fullOutput.lower().split("\n"):
             if "half precision support:" in line:
                 halfPrecisionSupport = "true" in line
-            if "ncnn gpu " in line: # this is to grab every line with "GPU "
+            if "ncnn gpu " in line:  # this is to grab every line with "GPU "
                 total_ncnn_gpus += 1
             if "pytorch gpu " in line:
                 total_pytorch_gpus += 1
-        
-        total_pytorch_gpus = max(0,total_pytorch_gpus) # minimum gpu id is 0
-        total_ncnn_gpus = max(0,total_ncnn_gpus) 
+
+        total_pytorch_gpus = max(0, total_pytorch_gpus)  # minimum gpu id is 0
+        total_ncnn_gpus = max(0, total_ncnn_gpus)
 
         settings = Settings()
         settings.readSettings()
@@ -169,11 +169,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.homeTab = HomeTab(parent=self)
         self.downloadTab = DownloadTab(parent=self, backends=self.backends)
         self.settingsTab = SettingsTab(
-            parent=self, halfPrecisionSupport=halfPrecisionSupport,
+            parent=self,
+            halfPrecisionSupport=halfPrecisionSupport,
             total_ncnn_gpus=total_ncnn_gpus,
             total_pytorch_gpus=total_pytorch_gpus,
         )
-        
 
         # Startup Animation
         self.animationHandler = AnimationHandler()
@@ -298,16 +298,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         isInterpolate = self.interpolateModelComboBox.currentText() != "None"
         isUpscale = self.upscaleModelComboBox.currentText() != "None"
 
-        self.interpolationContainer.setVisible(
-            isInterpolate
-        )
-        self.interpolateContainer_2.setVisible(
-            isInterpolate
-        )
-          # set interpolation container visible if interpolate model is not none
-        self.upscaleContainer.setVisible(
-            isUpscale
-        )
+        self.interpolationContainer.setVisible(isInterpolate)
+        self.interpolateContainer_2.setVisible(isInterpolate)
+        # set interpolation container visible if interpolate model is not none
+        self.upscaleContainer.setVisible(isUpscale)
         self.settings.readSettings()
         self.setDefaultOutputFile(self.settings.settings["output_folder_location"])
         self.updateVideoGUIText()
@@ -325,16 +319,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.isVideoLoaded:
             RegularQTPopup("Video is not loaded!")
             return
-        
+
         if not interpolate and not upscale:
             RegularQTPopup("Please select at least one model!")
             return
-        
+
         for renderOptions in self.renderQueue.getQueue():
             if output_path == renderOptions.outputPath:
                 RegularQTPopup("Output file already in queue!")
                 return
-
 
         backend = self.backendComboBox.currentText()
         upscaleTimes = 1
@@ -386,12 +379,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.renderQueue.add(renderOptions)
+
     def startRender(self):
         if len(self.renderQueue.queue) == 0:
             RegularQTPopup("Render queue is empty!")
             return
         self.startRenderButton.setEnabled(False)
-        
+
         self.disableProcessPage()
         self.processTab.run(self.renderQueue)
 
