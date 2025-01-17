@@ -91,7 +91,7 @@ class InformationWriteOut:
         self.border_detect = border_detect
         self.previewFrame = None
         self.last_length = 0
-        self.framesRendered = 0
+        self.framesRendered = 1
 
         if self.sharedMemoryID is not None:
             self.shm = shared_memory.SharedMemory(
@@ -154,7 +154,7 @@ class InformationWriteOut:
 
         log(f"Shared memory name: {self.shm.name}")
         while not self.stop:
-            if self.previewFrame is not None:
+            if self.previewFrame is not None and self.framesRendered > 0:
                 # print out data to stdout
                 fps = round(self.framesRendered / (time.time() - self.startTime))
                 eta = self.calculateETA(framesRendered=self.framesRendered)
