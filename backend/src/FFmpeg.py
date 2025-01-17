@@ -7,6 +7,8 @@ import queue
 import sys
 import time
 import math
+
+from sympy import preview
 from .constants import FFMPEG_PATH, FFMPEG_LOG_FILE
 from .utils.Util import log, printAndLog, padFrame
 import numpy as np
@@ -29,10 +31,47 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+
+"""
+print("\nResuming Render")
+if self.upscaleOption:
+    self.upscaleOption.hotReload()
+if self.interpolateOption:
+    self.interpolateOption.hotReload()
+"""
+
+"""
+if self.interpolateOption:
+    self.interpolateOption.hotUnload()
+if self.upscaleOption:
+    self.upscaleOption.hotUnload()
+print("\nRender Paused")
+"""
+
+
+class PauseManager:
+    def __init__(self, paused_shared_memory_id):
+        self.isPaused = False
+        self.prevState = None
+        self.paused_shared_memory_id = paused_shared_memory_id
+        if self.paused_shared_memory_id is not None:
+            self.pausedSharedMemory = shared_memory.SharedMemory(
+                name=self.paused_shared_memory_id
+            )
+
+    def pause_manager(self):
+        if self.paused_shared_memory_id is not None:
+            self.isPaused = self.pausedSharedMemory.buf[0] == 1
+            activate = self.prevState != self.isPaused
+            self.prevState = self.isPaused
+            return activate and self.isPaused
+
+
 class InformationWriteOut:
     def __init__(
         self,
-        sharedMemoryID,
+        sharedMemoryID,  # image memory id
+        paused_shared_memory_id,
         outputWidth,
         outputHeight,
         targetOutputWidth,
@@ -43,17 +82,23 @@ class InformationWriteOut:
         self.startTime = time.time()
         self.frameChunkSize = targetOutputHeight * targetOutputWidth * 3
         self.sharedMemoryID = sharedMemoryID
+        self.paused_shared_memory_id = paused_shared_memory_id
         self.width = outputWidth
         self.height = outputHeight
         self.targetOutputWidth = targetOutputWidth
         self.targetOututHeight = targetOutputHeight
         self.totalOutputFrames = totalOutputFrames
         self.border_detect = border_detect
+        self.previewFrame = None
+        self.framesRendered = 0
 
         if self.sharedMemoryID is not None:
             self.shm = shared_memory.SharedMemory(
                 name=self.sharedMemoryID, create=True, size=self.frameChunkSize
             )
+        self.pausedManager = PauseManager(paused_shared_memory_id)
+        self.isPaused = False
+        self.stop = False
 
     def realTimePrint(self, data):
         data = str(data)
@@ -67,6 +112,9 @@ class InformationWriteOut:
 
         # Update the length of the last printed line
         self.last_length = len(data)
+
+    def get_is_paused(self):
+        return self.isPaused
 
     def calculateETA(self, framesRendered):
         """
@@ -88,25 +136,34 @@ class InformationWriteOut:
         hours, minutes, seconds = convertTime(remaining_time)
         return f"{hours}:{minutes}:{seconds}"
 
-    def writeOutInformation(self, fcs, previewFrame, framesRendered):
+    def setPreviewFrame(self, frame):
+        self.previewFrame = frame
+
+    def setFramesRendered(self, framesRendered: int):
+        self.framesRendered = framesRendered
+
+    def stopWriting(self):
+        self.stop = True
+
+    def writeOutInformation(self, fcs):
         """
         fcs = framechunksize
         """
         # Create a shared memory block
 
         log(f"Shared memory name: {self.shm.name}")
-        while True:
-            if previewFrame is not None:
+        while not self.stop:
+            if self.previewFrame is not None:
                 # print out data to stdout
-                fps = round(framesRendered / (time.time() - self.startTime))
-                eta = self.calculateETA(framesRendered=framesRendered)
-                message = f"FPS: {fps} Current Frame: {framesRendered} ETA: {eta}"
+                fps = round(self.framesRendered / (time.time() - self.startTime))
+                eta = self.calculateETA(framesRendered=self.framesRendered)
+                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
                 self.realTimePrint(message)
-                if self.sharedMemoryID is not None and previewFrame is not None:
+                if self.sharedMemoryID is not None and self.previewFrame is not None:
                     # Update the shared array
                     if self.border_detect:
                         padded_frame = padFrame(
-                            previewFrame,
+                            self.previewFrame,
                             self.width,
                             self.height,
                             self.targetOutputWidth,
@@ -114,8 +171,8 @@ class InformationWriteOut:
                         )
                         self.shm.buf[:fcs] = bytes(padded_frame)
                     else:
-                        self.shm.buf[:fcs] = bytes(previewFrame)
-
+                        self.shm.buf[:fcs] = bytes(self.previewFrame)
+                self.isPaused = self.pausedManager.pause_manager()
             time.sleep(0.1)
 
 

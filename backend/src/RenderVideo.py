@@ -4,8 +4,11 @@ import math
 from time import sleep, time
 import sys
 from multiprocessing import shared_memory
+import cv2
 
 from .FFmpegBuffers import FFmpegRead, FFmpegWrite
+from .FFmpeg import InformationWriteOut
+from .utils.Encoders import EncoderSettings
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log
 from .utils.BorderDetect import BorderDetect
@@ -98,7 +101,7 @@ class Render:
         self.maxTimestep = (interpolateFactor - 1) / interpolateFactor
         self.ncnn = self.backend == "ncnn"
         self.ceilInterpolateFactor = math.ceil(self.interpolateFactor)
-        self.setupRender = self.returnFrame  # set it to not convert the bytes to array by default, and just pass chunk through
+        # self.setupRender = self.returnFrame  # set it to not convert the bytes to array by default, and just pass chunk through
         self.setupFrame0 = None
         self.interpolateOption = None
         self.upscaleOption = None
@@ -113,6 +116,30 @@ class Render:
         self.ensemble = ensemble
         self.pytorch_gpu_id = pytorch_gpu_id
         self.ncnn_gpu_id = ncnn_gpu_id
+        self.outputFrameChunkSize = None
+
+        log("Getting Video Properties...")
+        cap = cv2.VideoCapture(inputFile)
+        if not cap.isOpened():
+            print("Error: Could not open video.")
+            exit()
+
+        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.originalWidth = self.width
+        self.originalHeight = self.height
+        self.borderX = 0
+        self.borderY = 0  # set borders for cropping automatically to 0, will be overwritten if borders are detected
+        self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.totalOutputFrames = int(
+            cap.get(cv2.CAP_PROP_FRAME_COUNT) * self.interpolateFactor
+        )
+        self.fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+
+        video_encoder = EncoderSettings(video_encoder_preset)
+        audio_encoder = EncoderSettings(audio_encoder_preset)
+
         self.readBuffer = FFmpegRead(  # input width
             inputFile=inputFile,
             width=self.width,
@@ -127,30 +154,18 @@ class Render:
             width=self.width,  # output width
             height=self.height,
             fps=self.fps,
-            crf=self.crf,
-            audio_bitrate=self.audio_bitrate,
-            pixelFormat=self.pixelFormat,
-            overwrite=self.overwrite,
-            custom_encoder=self.custom_encoder,
-            benchmark=self.benchmark,
-            slowmo_mode=self.slowmo_mode,
+            crf=crf,
+            audio_bitrate=audio_bitrate,
+            pixelFormat=pixelFormat,
+            overwrite=overwrite,
+            custom_encoder=custom_encoder,
+            benchmark=benchmark,
+            slowmo_mode=slomo_mode,
             upscaleTimes=self.upscaleTimes,
             ceilInterpolateFactor=self.ceilInterpolateFactor,
-            video_encoder=self.video_encoder,
-            audio_encoder=self.audio_encoder,
+            video_encoder=video_encoder,
+            audio_encoder=audio_encoder,
         )
-
-        # get video properties early
-        self.getVideoProperties(inputFile)
-
-        
-
-        if border_detect:
-            print("Detecting borders", file=sys.stderr)
-            borderDetect = BorderDetect(inputFile=self.inputFile)
-            self.width, self.height, self.borderX, self.borderY = borderDetect.getBorders()
-            log(f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}")
-
 
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
@@ -165,10 +180,29 @@ class Render:
         if interpolateModel:
             self.setupInterpolate()
             printAndLog("Using Interpolation Model: " + self.interpolateModel)
-        
-        
+
         if upscaleModel:
             self.upscaleOption.hotReload()
+
+        if border_detect:
+            print("Detecting borders", file=sys.stderr)
+            borderDetect = BorderDetect(inputFile=self.inputFile)
+            self.width, self.height, self.borderX, self.borderY = (
+                borderDetect.getBorders()
+            )
+            log(
+                f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
+            )
+        self.informationHandler = InformationWriteOut(
+            sharedMemoryID=sharedMemoryID,
+            paused_shared_memory_id=pause_shared_memory_id,
+            outputWidth=self.originalWidth * self.upscaleTimes,
+            outputHeight=self.originalHeight * self.upscaleTimes,
+            targetOutputWidth=self.width * self.upscaleTimes,
+            targetOutputHeight=self.height * self.upscaleTimes,
+            totalOutputFrames=self.totalOutputFrames,
+            border_detect=border_detect,
+        )
         # has to be after to detect upscale times
         sharedMemoryChunkSize = (
             self.originalHeight
@@ -179,120 +213,30 @@ class Render:
         )
 
         self.renderThread = Thread(target=self.render)
-        self.ffmpegReadThread = Thread(target=self.readinVideoFrames)
-        self.ffmpegWriteThread = Thread(target=self.writeOutVideoFrames)
+        self.ffmpegReadThread = Thread(target=self.readBuffer.read_frames_into_queue)
+        self.ffmpegWriteThread = Thread(target=self.writeBuffer.write_out_frames)
         self.sharedMemoryThread = Thread(
-            target=lambda: self.writeOutInformation(sharedMemoryChunkSize, pause_shared_memory_id=pause_shared_memory_id) 
+            target=lambda: self.informationHandler.writeOutInformation(
+                sharedMemoryChunkSize
+            )
         )
         self.sharedMemoryThread.start()
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
 
-    def getVideoProperties(self, inputFile: str = None):
-        log("Getting Video Properties...")
-        if inputFile is None:
-            cap = cv2.VideoCapture(self.inputFile)
-        else:
-            cap = cv2.VideoCapture(inputFile)
-        if not cap.isOpened():
-            print("Error: Could not open video.")
-            exit()
-
-        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.originalWidth = self.width
-        self.originalHeight = self.height
-        self.borderX = 0
-        self.borderY = 0  # set borders for cropping automatically to 0, will be overwritten if borders are detected
-        self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.fps = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
-
-        self.outputFrameChunkSize = None
-
-    def writeOutInformation(self, fcs, pause_shared_memory_id=None):
-        """
-        fcs = framechunksize
-        """
-        # Create a shared memory block
-
-        buffer = self.shm.buf
-        activate = True
-        self.prevState = False
-
-        try:
-            self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id)
-        except Exception as e:
-            self.pausedSharedMemory = shared_memory.SharedMemory(name=pause_shared_memory_id, create=True, size=1) # create it if it doesnt exist
-            print("Error reading paused shared memory: " + str(e), sys.stderr)
-
-        log(f"Shared memory name: {self.shm.name}")
-
-        while True:
-
-            if self.writingDone:
-                self.shm.close()
-                self.shm.unlink()
-                self.shm.__del__()
-                break
-
-            if self.previewFrame is not None:
-
-                # print out data to stdout
-                fps = round(self.framesRendered / (time() - self.startTime))
-                eta = self.calculateETA()
-                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
-                self.realTimePrint(message)
-                if self.sharedMemoryID is not None and self.previewFrame is not None:
-
-                    # Update the shared array
-                    if self.border_detect:
-
-                        padded_frame = self.padFrame(
-                            self.previewFrame,
-                            self.originalWidth * self.upscaleTimes,
-                            self.originalHeight * self.upscaleTimes,
-                        )
-                        buffer[:fcs] = bytes(padded_frame)
-
-                    else:
-
-                        buffer[:fcs] = bytes(self.previewFrame)
-
-            if pause_shared_memory_id is not None:
-
-                self.isPaused = self.pausedSharedMemory.buf[0] == 1
-                activate = self.prevState != self.isPaused
-                if activate:
-                    if self.isPaused:
-                        if self.interpolateOption:
-                            self.interpolateOption.hotUnload()
-                        if self.upscaleOption:
-                            self.upscaleOption.hotUnload()
-                        print("\nRender Paused")
-                    else:
-                        print("\nResuming Render")
-                        if self.upscaleOption:
-                            self.upscaleOption.hotReload()
-                        if self.interpolateOption:
-                            self.interpolateOption.hotReload()
-                self.prevState = self.isPaused
-            sleep(0.1)
-
-    
-
     def render(self):
+        frames_rendered = 0
         while True:
             if not self.isPaused:
-                frame = self.readQueue.get()
+                frame = self.readBuffer.get()
                 if frame is None:
                     break
 
                 if self.interpolateModel:
                     self.interpolateOption(
                         img1=frame,
-                        writeQueue=self.writeQueue,
+                        writeQueue=self.writeBuffer.writeQueue,
                         transition=self.sceneDetect.detect(frame),
                         upscaleModel=self.upscaleOption,
                     )
@@ -300,11 +244,13 @@ class Render:
                     frame = self.upscaleOption(
                         self.upscaleOption.frame_to_tensor(frame)
                     )
-
-                self.writeQueue.put(frame)
+                self.informationHandler.setPreviewFrame(frame)
+                self.informationHandler.setFramesRendered(frames_rendered)
+                self.writeBuffer.writeQueue.put(frame)
+                frames_rendered += 1
             else:
                 sleep(1)
-        self.writeQueue.put(None)
+        self.writeBuffer.writeQueue.put(None)
 
     def setupUpscale(self):
         """

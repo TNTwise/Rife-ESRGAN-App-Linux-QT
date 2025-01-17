@@ -73,7 +73,7 @@ class FFmpegRead(Buffer):
             self.readQueue.put(chunk)
         self.readQueue.put(None)
 
-    def get_read_queue(self):
+    def get(self):
         return self.readQueue.get()
 
     def close(self):
@@ -89,8 +89,8 @@ class FFmpegWrite(Buffer):
         width: int,
         height: int,
         fps: float,
-        crf: int,
-        audio_bitrate: int,
+        crf: str,
+        audio_bitrate: str,
         pixelFormat: str,
         overwrite: bool,
         custom_encoder: str,
