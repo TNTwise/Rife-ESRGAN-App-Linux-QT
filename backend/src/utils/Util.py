@@ -328,6 +328,47 @@ def get_gpus_ncnn():
         return "Unable to get NCNN GPU"
 
 
+def padFrame(
+    frame_bytes: bytes,
+    target_width: int,
+    target_height: int,
+    from_width: int,
+    from_height: int,
+) -> bytes:
+    R = 52
+    G = 59
+    B = 71
+    """
+        Pads the frame to the target resolution.
+        
+        Args:
+            frame_bytes (bytes): The input frame in bytes.
+            target_width (int): The target width for padding.
+            target_height (int): The target height for padding.
+        
+        Returns:
+            bytes: The padded frame in bytes.
+        """
+    # Convert bytes to numpy array
+    frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
+    frame_array = frame_array.reshape((from_height, from_width, 3))
+
+    padded_frame = np.full((target_height, target_width, 3), (R, G, B), dtype=np.uint8)
+
+    # Calculate padding offsets
+    y_offset = (target_height - from_height) // 2
+    x_offset = (target_width - from_width) // 2
+
+    # Place the original frame in the center of the padded frame
+    padded_frame[
+        y_offset : y_offset + from_height,
+        x_offset : x_offset + from_width,
+    ] = frame_array
+
+    # Convert the padded frame back to bytes
+    return padded_frame.tobytes()
+
+
 if __name__ == "__main__":
     print(get_gpus_ncnn())
     print(get_gpus_torch())

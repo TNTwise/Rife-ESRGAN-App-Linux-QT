@@ -71,6 +71,10 @@ class FFmpegRead(Buffer):
             if chunk is None:
                 break
             self.readQueue.put(chunk)
+        self.readQueue.put(None)
+
+    def get_read_queue(self):
+        return self.readQueue.get()
 
     def close(self):
         self.readProcess.stdout.close()
@@ -80,22 +84,22 @@ class FFmpegRead(Buffer):
 class FFmpegWrite(Buffer):
     def __init__(
         self,
-        inputFile,
-        outputFile,
-        width,
-        height,
-        fps,
-        crf,
-        audio_bitrate,
-        pixelFormat,
-        overwrite,
-        custom_encoder,
-        benchmark,
-        slowmo_mode,
-        upscaleTimes,
-        ceilInterpolateFactor,
-        video_encoder: Encoder,
-        audio_encoder: Encoder,
+        inputFile: str,
+        outputFile: str,
+        width: int,
+        height: int,
+        fps: float,
+        crf: int,
+        audio_bitrate: int,
+        pixelFormat: str,
+        overwrite: bool,
+        custom_encoder: str,
+        benchmark: bool,
+        slowmo_mode: bool,
+        upscaleTimes: int,
+        ceilInterpolateFactor: int,
+        video_encoder: EncoderSettings,
+        audio_encoder: EncoderSettings,
     ):
         self.inputFile = inputFile
         self.outputFile = outputFile
@@ -227,6 +231,9 @@ class FFmpegWrite(Buffer):
     def get_num_frames_rendered(self):
         return self.framesRendered
 
+    def put_frame_in_write_queue(self, frame):
+        self.writeQueue.put(frame)
+
     def write_out_frames(self):
         """
         Writes out frames either to ffmpeg or to pipe
@@ -270,3 +277,18 @@ class FFmpegWrite(Buffer):
             self.onErroredExit()
         if exit_code != 0:
             self.onErroredExit()
+
+    def onErroredExit(self):
+        self.writingDone = True
+        print("FFmpeg failed to render the video.", file=sys.stderr)
+        with open(FFMPEG_LOG_FILE, "r") as f:
+            for line in f.readlines():
+                print(line, file=sys.stderr)
+        if self.video_encoder.getPresetTag() == "x264_vulkan":
+            print("Vulkan encode failed, try restarting the render.", file=sys.stderr)
+            print(
+                "Make sure you have the latest drivers installed and your GPU supports vulkan encoding.",
+                file=sys.stderr,
+            )
+        time.sleep(1)
+        os._exit(1)

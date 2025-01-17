@@ -5,7 +5,7 @@ from time import sleep, time
 import sys
 from multiprocessing import shared_memory
 
-from .FFmpeg import FFMpegRender
+from .FFmpegBuffers import FFmpegRead, FFmpegWrite
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log
 from .utils.BorderDetect import BorderDetect
@@ -20,7 +20,7 @@ def remove_shared_memory_block(name):
     except Exception as e:
         print(f"Error removing shared memory block '{name}': {e}")
 
-class Render(FFMpegRender):
+class Render:
     """
     Subclass of FFmpegRender
     FFMpegRender options:
@@ -113,8 +113,33 @@ class Render(FFMpegRender):
         self.ensemble = ensemble
         self.pytorch_gpu_id = pytorch_gpu_id
         self.ncnn_gpu_id = ncnn_gpu_id
-        
-        
+        self.readBuffer = FFmpegRead(  # input width
+            inputFile=inputFile,
+            width=self.width,
+            height=self.height,
+            borderX=self.borderX,
+            borderY=self.borderY,
+        )
+
+        self.writeBuffer = FFmpegWrite(
+            inputFile=inputFile,
+            outputFile=outputFile,
+            width=self.width,  # output width
+            height=self.height,
+            fps=self.fps,
+            crf=self.crf,
+            audio_bitrate=self.audio_bitrate,
+            pixelFormat=self.pixelFormat,
+            overwrite=self.overwrite,
+            custom_encoder=self.custom_encoder,
+            benchmark=self.benchmark,
+            slowmo_mode=self.slowmo_mode,
+            upscaleTimes=self.upscaleTimes,
+            ceilInterpolateFactor=self.ceilInterpolateFactor,
+            video_encoder=self.video_encoder,
+            audio_encoder=self.audio_encoder,
+        )
+
         # get video properties early
         self.getVideoProperties(inputFile)
 
@@ -148,42 +173,11 @@ class Render(FFMpegRender):
         sharedMemoryChunkSize = (
             self.originalHeight
             * self.originalWidth
-            * 3 # channels
+            * 3  # channels
             * self.upscaleTimes
             * self.upscaleTimes
         )
-        try:
-            self.shm = shared_memory.SharedMemory(
-                name=self.sharedMemoryID, create=True, size=sharedMemoryChunkSize
-            )
-        except FileExistsError:
-            log("error creating shared memory block")
-            self.shm = shared_memory.SharedMemory(
-                name=self.sharedMemoryID
-            )
-        
-        super().__init__(
-            inputFile=inputFile,
-            outputFile=outputFile,
-            interpolateFactor=interpolateFactor,
-            upscaleTimes=self.upscaleTimes,
-            custom_encoder=custom_encoder,
-            pixelFormat=pixelFormat,
-            benchmark=benchmark,
-            overwrite=overwrite,
-            crf=crf,
-            video_encoder_preset=video_encoder_preset,
-            audio_encoder_preset=audio_encoder_preset,
-            audio_bitrate=audio_bitrate,
-            sharedMemoryID=sharedMemoryID,
-            channels=3,
-            upscale_output_resolution=upscale_output_resolution,
-            slowmo_mode=slomo_mode,
-            hdr_mode=hdr_mode,
-            border_detect=border_detect,
-        )
-        
-        
+
         self.renderThread = Thread(target=self.render)
         self.ffmpegReadThread = Thread(target=self.readinVideoFrames)
         self.ffmpegWriteThread = Thread(target=self.writeOutVideoFrames)
@@ -194,7 +188,28 @@ class Render(FFMpegRender):
         self.ffmpegReadThread.start()
         self.ffmpegWriteThread.start()
         self.renderThread.start()
-        
+
+    def getVideoProperties(self, inputFile: str = None):
+        log("Getting Video Properties...")
+        if inputFile is None:
+            cap = cv2.VideoCapture(self.inputFile)
+        else:
+            cap = cv2.VideoCapture(inputFile)
+        if not cap.isOpened():
+            print("Error: Could not open video.")
+            exit()
+
+        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        self.originalWidth = self.width
+        self.originalHeight = self.height
+        self.borderX = 0
+        self.borderY = 0  # set borders for cropping automatically to 0, will be overwritten if borders are detected
+        self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+
+        self.outputFrameChunkSize = None
 
     def writeOutInformation(self, fcs, pause_shared_memory_id=None):
         """

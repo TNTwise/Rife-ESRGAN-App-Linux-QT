@@ -1,3 +1,5 @@
+from multiprocessing import shared_memory
+from turtle import width
 import cv2
 import os
 import subprocess
@@ -6,13 +8,10 @@ import sys
 import time
 import math
 from .constants import FFMPEG_PATH, FFMPEG_LOG_FILE
-from .utils.Util import (
-    log,
-    printAndLog,
-)
-from threading import Thread
+from .utils.Util import log, printAndLog, padFrame
 import numpy as np
 from .utils.Encoders import EncoderSettings
+from .FFmpegBuffers import FFmpegRead, FFmpegWrite
 
 
 def convertTime(remaining_time):
@@ -30,6 +29,94 @@ def convertTime(remaining_time):
         seconds = str(f"0{seconds}")
     return hours, minutes, seconds
 
+class InformationWriteOut:
+    def __init__(
+        self,
+        sharedMemoryID,
+        outputWidth,
+        outputHeight,
+        targetOutputWidth,
+        targetOutputHeight,
+        totalOutputFrames,
+        border_detect: bool = False,
+    ):
+        self.startTime = time.time()
+        self.frameChunkSize = targetOutputHeight * targetOutputWidth * 3
+        self.sharedMemoryID = sharedMemoryID
+        self.width = outputWidth
+        self.height = outputHeight
+        self.targetOutputWidth = targetOutputWidth
+        self.targetOututHeight = targetOutputHeight
+        self.totalOutputFrames = totalOutputFrames
+        self.border_detect = border_detect
+
+        if self.sharedMemoryID is not None:
+            self.shm = shared_memory.SharedMemory(
+                name=self.sharedMemoryID, create=True, size=self.frameChunkSize
+            )
+
+    def realTimePrint(self, data):
+        data = str(data)
+        # Clear the last line
+        sys.stdout.write("\r" + " " * self.last_length)
+        sys.stdout.flush()
+
+        # Write the new line
+        sys.stdout.write("\r" + data)
+        sys.stdout.flush()
+
+        # Update the length of the last printed line
+        self.last_length = len(data)
+
+    def calculateETA(self, framesRendered):
+        """
+        Calculates ETA
+
+        Gets the time for every frame rendered by taking the
+        elapsed time / completed iterations (files)
+        remaining time = remaining iterations (files) * time per iteration
+
+        """
+
+        # Estimate the remaining time
+        elapsed_time = time.time() - self.startTime
+        time_per_iteration = elapsed_time / framesRendered
+        remaining_iterations = self.totalOutputFrames - framesRendered
+        remaining_time = remaining_iterations * time_per_iteration
+        remaining_time = int(remaining_time)
+        # convert to hours, minutes, and seconds
+        hours, minutes, seconds = convertTime(remaining_time)
+        return f"{hours}:{minutes}:{seconds}"
+
+    def writeOutInformation(self, fcs, previewFrame, framesRendered):
+        """
+        fcs = framechunksize
+        """
+        # Create a shared memory block
+
+        log(f"Shared memory name: {self.shm.name}")
+        while True:
+            if previewFrame is not None:
+                # print out data to stdout
+                fps = round(framesRendered / (time.time() - self.startTime))
+                eta = self.calculateETA(framesRendered=framesRendered)
+                message = f"FPS: {fps} Current Frame: {framesRendered} ETA: {eta}"
+                self.realTimePrint(message)
+                if self.sharedMemoryID is not None and previewFrame is not None:
+                    # Update the shared array
+                    if self.border_detect:
+                        padded_frame = padFrame(
+                            previewFrame,
+                            self.width,
+                            self.height,
+                            self.targetOutputWidth,
+                            self.targetOututHeight,
+                        )
+                        self.shm.buf[:fcs] = bytes(padded_frame)
+                    else:
+                        self.shm.buf[:fcs] = bytes(previewFrame)
+
+            time.sleep(0.1)
 
 
 class FFMpegRender:
@@ -129,7 +216,6 @@ class FFMpegRender:
         self.pixelFormat = pixelFormat
         self.benchmark = benchmark
         self.overwrite = overwrite
-        self.readingDone = False
         self.writingDone = False
         self.writeOutPipe = False
         self.previewFrame = None
@@ -141,175 +227,14 @@ class FFMpegRender:
         self.upscale_output_resolution = upscale_output_resolution
         self.output_to_mpv = output_to_mpv
 
-        self.subtitleFiles = []
-        
         self.inputFrameChunkSize = self.width * self.height * channels
         self.outputFrameChunkSize = (
             self.width * self.upscaleTimes * self.height * self.upscaleTimes * channels
-        )
-        sharedMemoryChunkSize = (
-            self.originalHeight
-            * self.originalWidth
-            * channels
-            * self.upscaleTimes
-            * self.upscaleTimes
-        )
-        self.sharedMemoryThread = Thread(
-            target=lambda: self.writeOutInformation(sharedMemoryChunkSize)
         )
 
         self.totalOutputFrames = self.totalInputFrames * self.ceilInterpolateFactor
 
         self.writeOutPipe = self.outputFile == "PIPE"
 
-        self.readQueue = queue.Queue(maxsize=50)
-        self.writeQueue = queue.Queue(maxsize=50)
-
-    def getVideoProperties(self, inputFile: str = None):
-        log("Getting Video Properties...")
-        if inputFile is None:
-            cap = cv2.VideoCapture(self.inputFile)
-        else:
-            cap = cv2.VideoCapture(inputFile)
-        if not cap.isOpened():
-            print("Error: Could not open video.")
-            exit()
-
-        self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        self.originalWidth = self.width
-        self.originalHeight = self.height
-        self.borderX = 0
-        self.borderY = 0 # set borders for cropping automatically to 0, will be overwritten if borders are detected 
-        self.totalInputFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.fps = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
-
-        self.outputFrameChunkSize = None
-
-    def readinVideoFrames(self):
-        log("Starting Video Read")
-
-        log("Ending Video Read")
-        self.readQueue.put(None)
-        self.readingDone = True
-
     def returnFrame(self, frame):
         return frame
-
-    def realTimePrint(self, data):
-        data = str(data)
-        # Clear the last line
-        sys.stdout.write("\r" + " " * self.last_length)
-        sys.stdout.flush()
-
-        # Write the new line
-        sys.stdout.write("\r" + data)
-        sys.stdout.flush()
-
-        # Update the length of the last printed line
-        self.last_length = len(data)
-
-    def calculateETA(self):
-        """
-        Calculates ETA
-
-        Gets the time for every frame rendered by taking the
-        elapsed time / completed iterations (files)
-        remaining time = remaining iterations (files) * time per iteration
-
-        """
-
-        # Estimate the remaining time
-        elapsed_time = time.time() - self.startTime
-        time_per_iteration = elapsed_time / self.framesRendered
-        remaining_iterations = self.totalOutputFrames - self.framesRendered
-        remaining_time = remaining_iterations * time_per_iteration
-        remaining_time = int(remaining_time)
-        # convert to hours, minutes, and seconds
-        hours, minutes, seconds = convertTime(remaining_time)
-        return f"{hours}:{minutes}:{seconds}"
-
-    def writeOutInformation(self, fcs):
-        """
-        fcs = framechunksize
-        """
-        # Create a shared memory block
-
-        buffer = self.shm.buf
-
-        log(f"Shared memory name: {self.shm.name}")
-        while True:
-            if self.writingDone:
-                self.shm.close()
-                self.shm.unlink()
-                break
-            if self.previewFrame is not None:
-                # print out data to stdout
-                fps = round(self.framesRendered / (time.time() - self.startTime))
-                eta = self.calculateETA()
-                message = f"FPS: {fps} Current Frame: {self.framesRendered} ETA: {eta}"
-                self.realTimePrint(message)
-                if self.sharedMemoryID is not None and self.previewFrame is not None:
-                    # Update the shared array
-                    if self.border_detect:
-                        padded_frame = self.padFrame(
-                            self.previewFrame,
-                            self.originalWidth * self.upscaleTimes,
-                            self.originalHeight * self.upscaleTimes,
-                        )
-                        buffer[:fcs] = bytes(padded_frame)
-                    else:
-                        buffer[:fcs] = bytes(self.previewFrame)
-
-            time.sleep(0.1)
-
-    def onErroredExit(self):
-        self.writingDone = True
-        print("FFmpeg failed to render the video.",file=sys.stderr)
-        with open(FFMPEG_LOG_FILE, "r") as f:
-            for line in f.readlines():
-                print(line,file=sys.stderr)
-        if self.video_encoder_preset == 'x264_vulkan':
-            print("Vulkan encode failed, try restarting the render.",file=sys.stderr)
-            print("Make sure you have the latest drivers installed and your GPU supports vulkan encoding.",file=sys.stderr)
-        time.sleep(1)
-        os._exit(1)
-
-    def padFrame(self, frame_bytes: bytes, target_width: int, target_height: int) -> bytes:
-        R = 52
-        G = 59
-        B = 71
-        """
-        Pads the frame to the target resolution.
-        
-        Args:
-            frame_bytes (bytes): The input frame in bytes.
-            target_width (int): The target width for padding.
-            target_height (int): The target height for padding.
-        
-        Returns:
-            bytes: The padded frame in bytes.
-        """
-        # Convert bytes to numpy array
-        frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
-        frame_array = frame_array.reshape(
-            (self.height * self.upscaleTimes, self.width * self.upscaleTimes, 3)
-        )
-
-        padded_frame = np.full(
-            (target_height, target_width, 3), (R, G, B), dtype=np.uint8
-        )
-
-        # Calculate padding offsets
-        y_offset = (target_height - self.height * self.upscaleTimes) // 2
-        x_offset = (target_width - self.width * self.upscaleTimes) // 2
-
-        # Place the original frame in the center of the padded frame
-        padded_frame[
-            y_offset : y_offset + self.height * self.upscaleTimes,
-            x_offset : x_offset + self.width * self.upscaleTimes,
-        ] = frame_array
-
-        # Convert the padded frame back to bytes
-        return padded_frame.tobytes()
