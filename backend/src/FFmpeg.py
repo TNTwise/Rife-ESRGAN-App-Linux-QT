@@ -1,12 +1,10 @@
 import cv2
-from dataclasses import dataclass
 import os
 import subprocess
 import queue
 import sys
 import time
 import math
-from multiprocessing import shared_memory
 from .constants import FFMPEG_PATH, FFMPEG_LOG_FILE
 from .utils.Util import (
     log,
@@ -102,6 +100,7 @@ class FFMpegRender:
         slowmo_mode: bool = False,
         hdr_mode: bool = False,
         border_detect: bool = False,
+        output_to_mpv: bool = False,
     ):
         """
         Generates FFmpeg I/O commands to be used with VideoIO
@@ -140,6 +139,7 @@ class FFMpegRender:
         self.sharedMemoryID = sharedMemoryID
         self.border_detect = border_detect
         self.upscale_output_resolution = upscale_output_resolution
+        self.output_to_mpv = output_to_mpv
 
         self.subtitleFiles = []
         
@@ -187,145 +187,12 @@ class FFMpegRender:
 
         self.outputFrameChunkSize = None
 
-    def getFFmpegReadCommand(self):
-        log("Generating FFmpeg READ command...")
-        command = [
-            f"{FFMPEG_PATH}",
-            "-i",
-            f"{self.inputFile}",
-            '-vf',
-            f'crop={self.width}:{self.height}:{self.borderX}:{self.borderY}',
-            "-f",
-            "image2pipe",
-            "-pix_fmt",
-            "rgb24",
-            "-vcodec",
-            "rawvideo",
-            "-s",
-            f"{self.width}x{self.height}",
-            "-",
-        ]
-        log("FFMPEG READ COMMAND: " + str(command))
-        return command
-
-    def getFFmpegWriteCommand(self):
-        log("Generating FFmpeg WRITE command...")
-        if self.slowmo_mode:
-            log("Slowmo mode enabled, will not merge audio or subtitles.")
-        multiplier = (self.fps * self.ceilInterpolateFactor) if not self.slowmo_mode else self.fps 
-        if not self.benchmark:
-            # maybe i can split this so i can just use ffmpeg normally like with vspipe
-            command = [
-                f"{FFMPEG_PATH}",]
-            
-            if self.custom_encoder is None:
-                pre_in_set = self.video_encoder.getPreInputSettings()
-                if pre_in_set is not None:
-                    command += pre_in_set.split()
-
-
-            command += [
-                "-f",
-                "rawvideo",
-                "-pix_fmt",
-                "rgb24",
-                "-vcodec",
-                "rawvideo",
-                "-s",
-                f"{self.width * self.upscaleTimes}x{self.height * self.upscaleTimes}",
-                "-r",
-                f"{multiplier}",
-                "-i",
-                "-",
-            ]
-
-            if not self.slowmo_mode:
-                command += [
-                    "-i",
-                    f"{self.inputFile}",
-                    "-map",
-                    "0:v",  # Map video stream from input 0
-                    "-map",
-                    "1:a?",  # Map all audio streams from input 1
-                    "-map",
-                    "1:s?",  # Map all subtitle streams from input 1
-                ]
-                command += self.audio_encoder.getPostInputSettings().split()
-                if not self.audio_encoder.getPresetTag() == "copy_audio":
-                    command += [
-                        "-b:a",
-                        self.audio_bitrate,
-                    ]
-
-            command += [
-                "-pix_fmt",
-                self.pixelFormat,
-                "-c:s",
-                "copy",
-                "-loglevel",
-                "error",
-            ]
-
-            if self.custom_encoder is not None:
-                for i in self.custom_encoder.split():
-                    command.append(i)
-            else:
-                command += self.video_encoder.getPostInputSettings().split()
-                command += [self.video_encoder.getQualityControlMode(), str(self.crf)]
-
-            command.append(
-                f"{self.outputFile}",
-            )
-
-            if self.overwrite:
-                command.append("-y")
-
-        else:
-            command = [
-                f"{FFMPEG_PATH}",
-                "-hide_banner",
-                "-v",
-                "warning",
-                "-stats",
-                "-f",
-                "rawvideo",
-                "-vcodec",
-                "rawvideo",
-                "-video_size",
-                f"{self.width*self.upscaleTimes}x{self.upscaleTimes*self.height}",
-                "-pix_fmt",
-                "rgb24",
-                "-r",
-                str(multiplier),
-                "-i",
-                "-",
-                "-benchmark",
-                "-f",
-                "null",
-                "-",
-            ]
-        
-        log("FFMPEG COMMAND: " + str(command))
-        return command
-
     def readinVideoFrames(self):
         log("Starting Video Read")
-        self.readProcess = subprocess.Popen(
-            self.getFFmpegReadCommand(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-        while True:
-            chunk = self.readProcess.stdout.read(self.inputFrameChunkSize)
-            if len(chunk) < self.inputFrameChunkSize:
-                break
-            self.readQueue.put(chunk)
 
         log("Ending Video Read")
         self.readQueue.put(None)
         self.readingDone = True
-        self.readProcess.stdout.close()
-        self.readProcess.terminate()
 
     def returnFrame(self, frame):
         return frame
@@ -409,54 +276,10 @@ class FFMpegRender:
         time.sleep(1)
         os._exit(1)
 
-    def writeOutVideoFrames(self):
-        """
-        Writes out frames either to ffmpeg or to pipe
-        This is determined by the --output command, which if the PIPE parameter is set, it outputs the chunk to pipe.
-        A command like this is required,
-        ffmpeg -f rawvideo -pix_fmt rgb24 -s 1920x1080 -framerate 24 -i - -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a copy out.mp4
-        """
-        log("Rendering")
-        self.startTime = time.time()
-        self.framesRendered: int = 1
-        self.last_length: int = 0
-        exit_code:int = 0
-        try:
-            with open (FFMPEG_LOG_FILE, "w") as f:  
-                with subprocess.Popen(
-                    self.getFFmpegWriteCommand(),
-                    stdin=subprocess.PIPE,
-                    stderr=f,
-                    stdout=f,
-                    text=True,
-                    universal_newlines=True,
-                ) as self.writeProcess:
-                    while True:
-                        frame = self.writeQueue.get()
-                        if frame is None:
-                            break
-                        self.previewFrame = frame
-
-                        self.writeProcess.stdin.buffer.write(frame)
-                        self.framesRendered += 1
-
-                    self.writeProcess.stdin.close()
-                    self.writeProcess.wait()
-                    exit_code = self.writeProcess.returncode
-
-                    renderTime = time.time() - self.startTime
-                    self.writingDone = True
-
-                    printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
-        except Exception as e:
-            print(str(e),file=sys.stderr)
-            self.onErroredExit()
-        if exit_code != 0:
-            self.onErroredExit()
-
-
-
     def padFrame(self, frame_bytes: bytes, target_width: int, target_height: int) -> bytes:
+        R = 52
+        G = 59
+        B = 71
         """
         Pads the frame to the target resolution.
         
@@ -474,7 +297,9 @@ class FFMpegRender:
             (self.height * self.upscaleTimes, self.width * self.upscaleTimes, 3)
         )
 
-        padded_frame = np.full((target_height, target_width, 3), (52, 59, 71), dtype=np.uint8)
+        padded_frame = np.full(
+            (target_height, target_width, 3), (R, G, B), dtype=np.uint8
+        )
 
         # Calculate padding offsets
         y_offset = (target_height - self.height * self.upscaleTimes) // 2
