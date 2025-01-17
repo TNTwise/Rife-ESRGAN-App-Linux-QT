@@ -140,32 +140,7 @@ class Render:
         video_encoder = EncoderSettings(video_encoder_preset)
         audio_encoder = EncoderSettings(audio_encoder_preset)
 
-        self.readBuffer = FFmpegRead(  # input width
-            inputFile=inputFile,
-            width=self.width,
-            height=self.height,
-            borderX=self.borderX,
-            borderY=self.borderY,
-        )
-
-        self.writeBuffer = FFmpegWrite(
-            inputFile=inputFile,
-            outputFile=outputFile,
-            width=self.width,  # output width
-            height=self.height,
-            fps=self.fps,
-            crf=crf,
-            audio_bitrate=audio_bitrate,
-            pixelFormat=pixelFormat,
-            overwrite=overwrite,
-            custom_encoder=custom_encoder,
-            benchmark=benchmark,
-            slowmo_mode=slomo_mode,
-            upscaleTimes=self.upscaleTimes,
-            ceilInterpolateFactor=self.ceilInterpolateFactor,
-            video_encoder=video_encoder,
-            audio_encoder=audio_encoder,
-        )
+        
 
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
@@ -193,6 +168,34 @@ class Render:
             log(
                 f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
             )
+            
+        self.readBuffer = FFmpegRead(  # input width
+            inputFile=inputFile,
+            width=self.width,
+            height=self.height,
+            borderX=self.borderX,
+            borderY=self.borderY,
+        )
+
+        self.writeBuffer = FFmpegWrite(
+            inputFile=inputFile,
+            outputFile=outputFile,
+            width=self.width,  # output width
+            height=self.height,
+            fps=self.fps,
+            crf=crf,
+            audio_bitrate=audio_bitrate,
+            pixelFormat=pixelFormat,
+            overwrite=overwrite,
+            custom_encoder=custom_encoder,
+            benchmark=benchmark,
+            slowmo_mode=slomo_mode,
+            upscaleTimes=self.upscaleTimes,
+            ceilInterpolateFactor=self.ceilInterpolateFactor,
+            video_encoder=video_encoder,
+            audio_encoder=audio_encoder,
+        )
+
         self.informationHandler = InformationWriteOut(
             sharedMemoryID=sharedMemoryID,
             paused_shared_memory_id=pause_shared_memory_id,

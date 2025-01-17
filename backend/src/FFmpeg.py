@@ -90,6 +90,7 @@ class InformationWriteOut:
         self.totalOutputFrames = totalOutputFrames
         self.border_detect = border_detect
         self.previewFrame = None
+        self.last_length = 0
         self.framesRendered = 0
 
         if self.sharedMemoryID is not None:
