@@ -107,7 +107,7 @@ class UpdateGUIThread(QThread):
             self.shm.unlink()
             print("Closed Read Memory")
         except Exception as e:
-            log("No read memory", str(e))
+            log(f"No read memory {str(e)}")
 
     def run(self):
         while True:
@@ -719,7 +719,7 @@ class DownloadDepsDialog(QtWidgets.QDialog):
         self.label_11.setText(
             QCoreApplication.translate(
                 "Dialog",
-                "DirectML (All DirectX12 capable GPUs, faster inference, small download, Windows only)",
+                "DirectML- NOT IMPLEMENTED YET (All DirectX12 capable GPUs, faster inference, small download, Windows only)",
                 None,
             )
         )

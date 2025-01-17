@@ -4540,7 +4540,7 @@ QScrollBar:horizontal{
                         <item>
                          <widget class="QLabel" name="label_28">
                           <property name="text">
-                           <string>DirectML (All DirectX12 capable GPUs, faster inference, small download, Windows only)</string>
+                           <string>DirectML - NOT IMPLEMENTED YET (All DirectX12 capable GPUs, faster inference, small download, Windows only)</string>
                           </property>
                          </widget>
                         </item>
