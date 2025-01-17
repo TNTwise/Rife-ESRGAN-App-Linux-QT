@@ -7,7 +7,6 @@ import torch.nn.functional as F
 import sys
 from time import sleep
 
-from .TensorRTHandler import TorchTensorRTHandler
 
 from ..utils.Util import (
     check_bfloat16_support,
@@ -107,6 +106,8 @@ class UpscalePytorch:
     @torch.inference_mode()
     def set_self_model(self):
         if self.backend == "tensorrt":
+            from .TensorRTHandler import TorchTensorRTHandler
+
             trtHandler = TorchTensorRTHandler()
             trtHandler.load_engine(self.trt_engine_path)
         else:
