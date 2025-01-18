@@ -251,7 +251,7 @@ class Render:
                 self.informationHandler.setPreviewFrame(frame)
                 self.informationHandler.setFramesRendered(frames_rendered)
                 self.writeBuffer.writeQueue.put(frame)
-                frames_rendered += self.interpolateFactor
+                frames_rendered += int(self.ceilInterpolateFactor)
             else:
                 sleep(1)
         self.writeBuffer.writeQueue.put(None)
