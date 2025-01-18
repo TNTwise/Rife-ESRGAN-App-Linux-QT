@@ -330,8 +330,8 @@ def get_gpus_ncnn():
 
 def padFrame(
     frame_bytes: bytes,
-    target_width: int,
-    target_height: int,
+    to_width: int,
+    to_height: int,
     from_width: int,
     from_height: int,
 ) -> bytes:
@@ -353,11 +353,11 @@ def padFrame(
     frame_array = np.frombuffer(frame_bytes, dtype=np.uint8)
     frame_array = frame_array.reshape((from_height, from_width, 3))
 
-    padded_frame = np.full((target_height, target_width, 3), (R, G, B), dtype=np.uint8)
+    padded_frame = np.full((to_height, to_width, 3), (R, G, B), dtype=np.uint8)
 
     # Calculate padding offsets
-    y_offset = (target_height - from_height) // 2
-    x_offset = (target_width - from_width) // 2
+    y_offset = (to_height - from_height) // 2
+    x_offset = (to_width - from_width) // 2
 
     # Place the original frame in the center of the padded frame
     padded_frame[

@@ -225,8 +225,6 @@ class FFmpegWrite(Buffer):
         log("FFMPEG WRITE COMMAND: " + str(command))
         return command
 
-    def get_preview_frame(self):
-        return self.previewFrame
 
     def get_num_frames_rendered(self):
         return self.framesRendered
@@ -259,17 +257,13 @@ class FFmpegWrite(Buffer):
                         frame = self.writeQueue.get()
                         if frame is None:
                             break
-                        self.previewFrame = frame
-
                         self.writeProcess.stdin.buffer.write(frame)
-                        self.framesRendered += 1
 
                     self.writeProcess.stdin.close()
                     self.writeProcess.wait()
                     exit_code = self.writeProcess.returncode
 
                     renderTime = time.time() - self.startTime
-                    self.writingDone = True
 
                     printAndLog(f"\nTime to complete render: {round(renderTime, 2)}")
         except Exception as e:
@@ -279,7 +273,6 @@ class FFmpegWrite(Buffer):
             self.onErroredExit()
 
     def onErroredExit(self):
-        self.writingDone = True
         print("FFmpeg failed to render the video.", file=sys.stderr)
         with open(FFMPEG_LOG_FILE, "r") as f:
             for line in f.readlines():

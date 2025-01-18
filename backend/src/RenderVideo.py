@@ -140,7 +140,16 @@ class Render:
         video_encoder = EncoderSettings(video_encoder_preset)
         audio_encoder = EncoderSettings(audio_encoder_preset)
 
-        
+        if border_detect: # border detect has to be put before everything, to overwrite the width and height
+            print("Detecting borders", file=sys.stderr)
+            borderDetect = BorderDetect(inputFile=self.inputFile)
+            self.width, self.height, self.borderX, self.borderY = (
+                borderDetect.getBorders()
+            )
+            log(
+                f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
+            )
+
 
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
@@ -159,15 +168,7 @@ class Render:
         if upscaleModel:
             self.upscaleOption.hotReload()
 
-        if border_detect:
-            print("Detecting borders", file=sys.stderr)
-            borderDetect = BorderDetect(inputFile=self.inputFile)
-            self.width, self.height, self.borderX, self.borderY = (
-                borderDetect.getBorders()
-            )
-            log(
-                f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
-            )
+        
 
         self.readBuffer = FFmpegRead(  # input width
             inputFile=inputFile,
@@ -180,7 +181,7 @@ class Render:
         self.writeBuffer = FFmpegWrite(
             inputFile=inputFile,
             outputFile=outputFile,
-            width=self.width,  # output width
+            width=self.width,  
             height=self.height,
             fps=self.fps,
             crf=crf,
