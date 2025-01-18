@@ -134,13 +134,23 @@ class SettingsTab:
     def writeOutputFolder(self):
         outputlocation = self.parent.output_folder_location.text()
         if os.path.exists(outputlocation) and os.path.isdir(outputlocation):
-            if checkForWritePermissions(outputlocation):
-                self.settings.writeSetting(
-                    "output_folder_location",
-                    str(outputlocation),
+            if not checkForWritePermissions(outputlocation):
+                RegularQTPopup(
+                    "No permissions to export here!\nSetting default output folder to home directory."
                 )
-            else:
-                RegularQTPopup("No permissions to export here!")
+                outputlocation = HOME_PATH
+        else:
+            try:
+                os.mkdir(outputlocation)
+            except Exception:
+                RegularQTPopup(
+                    "No videos folder, and cannot make one!\nSetting default output folder to home directory."
+                )
+                outputlocation = HOME_PATH
+        self.settings.writeSetting(
+            "output_folder_location",
+            str(outputlocation),
+        )
 
     def resetSettings(self):
         self.settings.writeDefaultSettings()
