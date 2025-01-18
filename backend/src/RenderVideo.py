@@ -168,7 +168,7 @@ class Render:
             log(
                 f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
             )
-            
+
         self.readBuffer = FFmpegRead(  # input width
             inputFile=inputFile,
             width=self.width,
@@ -234,6 +234,7 @@ class Render:
             if not self.isPaused:
                 frame = self.readBuffer.get()
                 if frame is None:
+                    self.informationHandler.stopWriting()
                     break
 
                 if self.interpolateModel:
@@ -250,7 +251,7 @@ class Render:
                 self.informationHandler.setPreviewFrame(frame)
                 self.informationHandler.setFramesRendered(frames_rendered)
                 self.writeBuffer.writeQueue.put(frame)
-                frames_rendered += 1
+                frames_rendered += self.interpolateFactor
             else:
                 sleep(1)
         self.writeBuffer.writeQueue.put(None)

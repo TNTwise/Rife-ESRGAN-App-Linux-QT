@@ -151,10 +151,12 @@ class InformationWriteOut:
         fcs = framechunksize
         """
         # Create a shared memory block
-
-        log(f"Shared memory name: {self.shm.name}")
+        if self.sharedMemoryID is not None:
+            log(f"Shared memory name: {self.shm.name}")
+        
         while not self.stop:
             if self.previewFrame is not None and self.framesRendered > 0:
+                
                 # print out data to stdout
                 fps = round(self.framesRendered / (time.time() - self.startTime))
                 eta = self.calculateETA(framesRendered=self.framesRendered)
