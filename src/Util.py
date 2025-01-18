@@ -384,6 +384,8 @@ def checkForWritePermissions(dir):
     Args:
         - the directory to check if permissions are in
     """
+    if not os.path.isdir(dir):
+        return False
 
     i = 2  # change this to 1 to debug flatpak
     if IS_FLATPAK or i == 1:
