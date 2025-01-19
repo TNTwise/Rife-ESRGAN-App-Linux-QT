@@ -270,7 +270,7 @@ class Settings:
                 "x265_vaapi",
                 "av1_vaapi",
             ),
-            "audio_encoder": ("aac", "libmp3lame"),
+            "audio_encoder": ("aac", "libmp3lame", "copy_audio"),
             "audio_bitrate": ("320k", "192k", "128k", "96k"),
             "preview_enabled": ("True", "False"),
             "scene_change_detection_method": (
