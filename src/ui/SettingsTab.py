@@ -241,7 +241,7 @@ class Settings:
             "precision": "auto",
             "tensorrt_optimization_level": "3",
             "encoder": "libx264",
-            "audio_encoder": "aac",
+            "audio_encoder": "copy_audio",
             "audio_bitrate": "192k",
             "preview_enabled": "True",
             "scene_change_detection_method": "pyscenedetect",
