@@ -643,3 +643,10 @@ class softsplat_func(torch.autograd.Function):
 
 
 # end
+class SoftSplat(torch.nn.Module):
+    def __init__(self, mode: str):
+        super(SoftSplat, self).__init__()
+        self.mode = mode
+
+    def forward(self, tenIn: torch.Tensor, tenFlow: torch.Tensor, tenMetric: torch.Tensor, strMode: str):
+        return softsplat(tenIn, tenFlow, tenMetric, self.mode)

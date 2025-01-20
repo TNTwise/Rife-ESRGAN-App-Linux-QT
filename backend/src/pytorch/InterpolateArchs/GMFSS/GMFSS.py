@@ -11,7 +11,7 @@ from ....constants import HAS_SYSTEM_CUDA
 from ..DetectInterpolateArch import ArchDetect
 
 if HAS_SYSTEM_CUDA:
-    from ..util.softsplat_cupy import softsplat as warp
+    from ..util.softsplat_cupy import SoftSplat
 else:
     from ..util.softsplat_torch import SoftSplat
 
