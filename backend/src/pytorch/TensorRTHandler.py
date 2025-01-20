@@ -242,9 +242,21 @@ class TorchTensorRTHandler:
             self.export_torchscript_model(
                 model, example_inputs, device, dtype, trt_engine_path
             )
+        elif self.export_format == "fallback":
+            try:
+                  self.export_using_dynamo(
+                       model=model, example_inputs=example_inputs, device=device, dtype=dtype, trt_engine_path=trt_engine_path
+                  )
+            except Exception as e:
+                print(
+                    "Failed to export using dynamo. Falling back to torchscript...",
+                    file=sys.stderr,
+                )
+                self.export_torchscript_model(
+                    model, example_inputs, device, dtype, trt_engine_path
+                )
         else:
             raise ValueError(f"Unsupported export format: {self.export_format}")
-        
         torch.cuda.empty_cache()
 
     def load_engine(self, trt_engine_path: str) -> torch.jit.ScriptModule:

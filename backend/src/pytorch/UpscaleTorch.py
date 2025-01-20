@@ -147,7 +147,7 @@ class UpscalePytorch:
             if self.backend == "tensorrt":
                 
                 from .TensorRTHandler import TorchTensorRTHandler
-                trtHandler = TorchTensorRTHandler(export_format="dynamo",dynamo_export_format="fallback",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
+                trtHandler = TorchTensorRTHandler(export_format="fallback",dynamo_export_format="fallback",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
 
                 self.trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
