@@ -11,9 +11,9 @@ from ....constants import HAS_SYSTEM_CUDA
 from ..DetectInterpolateArch import ArchDetect
 
 if HAS_SYSTEM_CUDA:
-    from ..util.softsplat_cupy import SoftSplat
+    from ..util.softsplat_torch import softsplat
 else:
-    from ..util.softsplat_torch import SoftSplat
+    from ..util.softsplat_torch import softsplat
 
 
 class GMFSS(nn.Module):
@@ -44,6 +44,7 @@ class GMFSS(nn.Module):
         tmp = max(_pad, int(_pad / self.scale))
         self.pw = math.ceil(self.width / tmp) * tmp
         self.ph = math.ceil(self.height / tmp) * tmp
+        self.warp = softsplat
 
         combined_state_dict = torch.load(model_path, map_location="cpu")
 
@@ -64,7 +65,6 @@ class GMFSS(nn.Module):
         self.metricnet = MetricNet().to(dtype=dtype, device=device)
         self.feat_ext = FeatureNet().to(dtype=dtype, device=device)
         self.fusionnet = GridNet().to(dtype=dtype, device=device)
-        self.warp = SoftSplat('soft').to(dtype=dtype, device=device)
 
         if model_type != "base":
             self.ifnet.load_state_dict(combined_state_dict["rife"])

@@ -348,8 +348,25 @@ class SoftSplat(torch.nn.Module):
         return self.norm(tenOut)
 
 if __name__ == "__main__":
-    model = SoftSplat("soft")
-    tenIn = torch.randn(1, 3, 2000, 2000)
+    import os
+    import contextlib
+    @contextlib.contextmanager
+    def suppress_stdout_stderr():
+        """Suppress stdout and stderr by redirecting them to /dev/null."""
+        with open(os.devnull, "w") as devnull:
+            old_stdout_fd = os.dup(1)
+            old_stderr_fd = os.dup(2)
+            try:
+                os.dup2(devnull.fileno(), 1)
+                os.dup2(devnull.fileno(), 2)
+                yield
+            finally:
+                os.dup2(old_stdout_fd, 1)
+                os.dup2(old_stderr_fd, 2)
+                os.close(old_stdout_fd)
+                os.close(old_stderr_fd)
+    model = SoftSplat("soft").half().cuda()
+    tenIn = torch.randn(1, 3, 2000, 2000).cuda().half()
     
     # Compile the model
     example_inputs = (tenIn, tenIn, tenIn)
@@ -371,10 +388,17 @@ if __name__ == "__main__":
 
     start_time = time.time()
     softsplat(*example_inputs, 'soft')
+    softsplat(*example_inputs, 'soft')
+    softsplat(*example_inputs, 'soft')
     print("Inference time: ", time.time() - start_time)
-    from softsplat_cupy import softsplat as softsplat_cupy
-    start_time = time.time()
-    softsplat_cupy(*example_inputs, 'soft')
+    
+    
+    with suppress_stdout_stderr():
+        from softsplat_cupy import softsplat as softsplat_cupy
+        start_time = time.time()
+        softsplat_cupy(*example_inputs, 'soft')
+        softsplat_cupy(*example_inputs, 'soft')
+        softsplat_cupy(*example_inputs, 'soft')
     print("Inference time: ", time.time() - start_time)
 
 
