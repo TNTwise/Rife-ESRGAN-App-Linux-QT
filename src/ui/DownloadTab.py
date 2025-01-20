@@ -18,7 +18,9 @@ def downloadModelsBasedOnInstalledBackend(installed_backends: list):
             match backend:
                 case "ncnn":
                     for model in ncnnInterpolateModels:
-                        DownloadModel(model, ncnnInterpolateModels[model][1], MODELS_PATH)
+                        DownloadModel(
+                            model, ncnnInterpolateModels[model][1], MODELS_PATH
+                        )
                     for model in ncnnUpscaleModels:
                         DownloadModel(model, ncnnUpscaleModels[model][1], MODELS_PATH)
                 case "pytorch":  # no need for tensorrt as it uses pytorch models
@@ -27,8 +29,9 @@ def downloadModelsBasedOnInstalledBackend(installed_backends: list):
                             model, pytorchInterpolateModels[model][1], MODELS_PATH
                         )
                     for model in pytorchUpscaleModels:
-                        DownloadModel(model, pytorchUpscaleModels[model][1], MODELS_PATH)
-
+                        DownloadModel(
+                            model, pytorchUpscaleModels[model][1], MODELS_PATH
+                        )
 
 
 class DownloadTab:
@@ -41,11 +44,11 @@ class DownloadTab:
         self.downloadDeps = DownloadDependencies()
         self.backends = backends
         self.applicationUpdater = ApplicationUpdater()
-        
+
         # set this all to not visible, as scrapping the idea for now.
-        
+
         self.parent.ApplicationUpdateContainer.setVisible(False)
-        #elif self.applicationUpdater.check_for_updates():
+        # elif self.applicationUpdater.check_for_updates():
         #    addNotificationToButton(button=self.parent.UpdateApplicationButton)
         #    addNotificationToButton(button=self.parent.downloadBtn)
         self.QButtonConnect()

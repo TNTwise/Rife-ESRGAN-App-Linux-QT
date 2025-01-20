@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
+
 @dataclass
 class Arch(metaclass=ABCMeta):
     base_arch: str
@@ -47,11 +48,13 @@ class RIFE46(Arch):
         "module.block4.lastconv.0.bias",
         "transformer.layers.4.self_attn.merge.weight",
         "fnet.layer1.0.conv1.weight",
-        "caltime.8.bias", # thos is because for some reason, this arch is detected when loading gmfss pro's rife component.
+        "caltime.8.bias",  # thos is because for some reason, this arch is detected when loading gmfss pro's rife component.
     ]
+
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife46IFNET import IFNet
+
         return IFNet()
 
 
@@ -84,6 +87,7 @@ class RIFE47(Arch):
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife47IFNET import IFNet
+
         return IFNet
 
 
@@ -114,6 +118,7 @@ class RIFE413(Arch):
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife413IFNET import IFNet
+
         return IFNet
 
 
@@ -133,6 +138,7 @@ class RIFE420(Arch):
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife420IFNET import IFNet
+
         return IFNet
 
 
@@ -171,6 +177,7 @@ class RIFE422lite(Arch):
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife422_liteIFNET import IFNet
+
         return IFNet
 
 
@@ -189,6 +196,7 @@ class RIFE425(Arch):
     @staticmethod
     def module() -> torch.nn.Module:
         from .RIFE.rife425IFNET import IFNet
+
         return IFNet
 
 
@@ -204,10 +212,13 @@ class GMFSS(Arch):
         "module.encode.1.bias",
         "fnet.layer1.0.conv1.weight",
     ]
+
     @staticmethod
     def module() -> torch.nn.Module:
         from .GMFSS.GMFSS import GMFSS
+
         return GMFSS
+
 
 class GIMM(Arch):
     base_arch: str = "gimm"
@@ -219,10 +230,12 @@ class GIMM(Arch):
         "module.encode.1.bias",
         "transformer.layers.4.self_attn.merge.weight",
     ]
+
     def module() -> torch.nn.Module:
         from .GIMM.GIMM import GIMMVFI_R
+
         return GIMMVFI_R
-    
+
 
 archs = [RIFE46, RIFE47, RIFE413, RIFE420, RIFE421, RIFE422lite, RIFE425, GMFSS, GIMM]
 
@@ -238,8 +251,8 @@ class ArchDetect:
             )
         # this is specific to loading gmfss, as its loaded in as one big pkl
         if "flownet" in self.state_dict:
-            self.state_dict = self.state_dict["flownet"] # load in GMFSS FLOWNET
-        if "raft" in self.state_dict: # load in GIMM RAFT
+            self.state_dict = self.state_dict["flownet"]  # load in GMFSS FLOWNET
+        if "raft" in self.state_dict:  # load in GIMM RAFT
             self.state_dict = self.state_dict["raft"]
         self.keys = self.state_dict.keys()
         self.key_shape_pair = self.detect_weights()

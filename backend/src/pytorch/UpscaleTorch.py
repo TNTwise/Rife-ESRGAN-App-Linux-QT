@@ -13,6 +13,7 @@ from ..utils.Util import (
     get_gpus_torch,
 )
 
+
 class UpscalePytorch:
     """A class for upscaling images using PyTorch.
 
@@ -67,7 +68,6 @@ class UpscalePytorch:
         trt_max_aux_streams: int | None = None,
         trt_debug: bool = False,
     ):
-        
         if device == "default":
             if torch.cuda.is_available():
                 device = torch.device(
@@ -104,7 +104,7 @@ class UpscalePytorch:
         self._load()
 
     @torch.inference_mode()
-    def set_self_model(self, backend='pytorch'):
+    def set_self_model(self, backend="pytorch"):
         if backend == "tensorrt":
             from .TensorRTHandler import TorchTensorRTHandler
 
@@ -112,13 +112,13 @@ class UpscalePytorch:
             trtHandler.load_engine(self.trt_engine_path)
         else:
             self.model = self.loadModel(
-                    modelPath=self.modelPath, device=self.device, dtype=self.dtype
+                modelPath=self.modelPath, device=self.device, dtype=self.dtype
             )
 
     @torch.inference_mode()
     def _load(self):
         with torch.cuda.stream(self.prepareStream):
-            self.set_self_model(backend='pytorch')
+            self.set_self_model(backend="pytorch")
 
             match self.scale:
                 case 1:
@@ -145,9 +145,14 @@ class UpscalePytorch:
                 self.pad_h = self.videoHeight
 
             if self.backend == "tensorrt":
-                
                 from .TensorRTHandler import TorchTensorRTHandler
-                trtHandler = TorchTensorRTHandler(export_format="fallback",dynamo_export_format="fallback",multi_precision_engine=False, trt_optimization_level=self.trt_optimization_level)
+
+                trtHandler = TorchTensorRTHandler(
+                    export_format="fallback",
+                    dynamo_export_format="fallback",
+                    multi_precision_engine=False,
+                    trt_optimization_level=self.trt_optimization_level,
+                )
 
                 self.trt_engine_path = os.path.join(
                     os.path.realpath(self.trt_cache_dir),
@@ -184,7 +189,7 @@ class UpscalePytorch:
                         trt_engine_path=self.trt_engine_path,
                     )
                 torch.cuda.empty_cache()
-                self.set_self_model(backend='tensorrt')
+                self.set_self_model(backend="tensorrt")
         torch.cuda.empty_cache()
         self.prepareStream.synchronize()
 
@@ -242,7 +247,7 @@ class UpscalePytorch:
         return output
 
     @torch.inference_mode()
-    def __call__(self, image:torch.Tensor) -> torch.Tensor:
+    def __call__(self, image: torch.Tensor) -> torch.Tensor:
         with torch.cuda.stream(self.stream):
             while self.model is None:
                 sleep(1)
@@ -261,8 +266,8 @@ class UpscalePytorch:
                 .cpu()
                 .numpy()
             )
-            #torch.save(self.model.state_dict(), "Sudo_Shuffle_Span_no_update_params.pth")
-            #exit()
+            # torch.save(self.model.state_dict(), "Sudo_Shuffle_Span_no_update_params.pth")
+            # exit()
         self.stream.synchronize()
         return output
 

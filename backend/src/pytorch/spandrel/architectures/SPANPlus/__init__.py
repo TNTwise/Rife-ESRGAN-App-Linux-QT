@@ -26,7 +26,7 @@ class SPANPlusArch(Architecture[SPANPlus]):
         upscale: int = 4
         n_feats = get_seq_len(state_dict, "feats") - 1
         blocks = [
-            get_seq_len(state_dict, f"feats.{n_feat+1}.block_n")
+            get_seq_len(state_dict, f"feats.{n_feat + 1}.block_n")
             for n_feat in range(n_feats)
         ]
         num_in_ch = state_dict["feats.0.eval_conv.weight"].shape[1]

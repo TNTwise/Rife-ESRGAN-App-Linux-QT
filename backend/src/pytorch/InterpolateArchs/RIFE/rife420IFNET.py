@@ -160,7 +160,7 @@ class IFNet(nn.Module):
         scale=1.0,
         ensemble=False,
         dtype=torch.float32,
-        device:torch.device=torch.device("cuda"),
+        device: torch.device = torch.device("cuda"),
         width=1920,
         height=1080,
         rife_trt_mode="accurate",
@@ -195,7 +195,7 @@ class IFNet(nn.Module):
         warped_img1 = img1
         flow = None
         mask = None
-        
+
         for i in range(4):
             if flow is None:
                 flow, mask = self.blocks[i](
@@ -253,8 +253,6 @@ class IFNet(nn.Module):
             warped_img0 = self.warp(img0, flow[:, :2])
             warped_img1 = self.warp(img1, flow[:, 2:4])
         mask = torch.sigmoid(mask)
-        return (
-            (warped_img0 * mask + warped_img1 * (1 - mask))[
-                :, :, : self.height, : self.width
-            ]
-        )
+        return (warped_img0 * mask + warped_img1 * (1 - mask))[
+            :, :, : self.height, : self.width
+        ]

@@ -44,7 +44,7 @@ from ..architectures import (
     Uformer,
     Sebica,
     RTMoSR,
-    RCAN
+    RCAN,
 )
 from .registry import ArchRegistry, ArchSupport
 

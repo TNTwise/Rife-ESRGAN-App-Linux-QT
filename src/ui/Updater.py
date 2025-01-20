@@ -132,7 +132,6 @@ class DependencyUpdateChecker:
                 pass
 
 
-
 if __name__ == "__main__":
     updater = ApplicationUpdater()
     print(updater.check_for_updates())

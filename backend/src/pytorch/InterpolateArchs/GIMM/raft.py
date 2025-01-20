@@ -35,7 +35,9 @@ def warp(tenInput, tenFlow):
             .view(1, 1, tenFlow.shape[2], 1)
             .expand(tenFlow.shape[0], -1, -1, tenFlow.shape[3])
         ).float()
-        backwarp_tenGrid[k] = torch.cat([tenHorizontal, tenVertical], 1).to(device).float()
+        backwarp_tenGrid[k] = (
+            torch.cat([tenHorizontal, tenVertical], 1).to(device).float()
+        )
 
     tenFlow = torch.cat(
         [
@@ -306,7 +308,7 @@ class HypoNet(nn.Module):
                 modulation_param = modulation_params_dict[param_key]
             else:
                 modulation_param = torch.ones_like(base_param[:, :-1])
-              
+
             ones = torch.ones(*hidden.shape[:-1], 1, device=hidden.device)
             hidden = torch.cat([hidden, ones], dim=-1).to(dtype=origdtype)
 
@@ -321,7 +323,7 @@ class HypoNet(nn.Module):
             if self.normalize_weight:
                 param_w = F.normalize(param_w, dim=1)
             modulated_param = torch.cat([param_w, base_param_b], dim=1)
-            
+
             # print([param_key,hidden.shape,modulated_param.shape])
             hidden = torch.bmm(hidden, modulated_param)
 
@@ -709,7 +711,6 @@ class NewMultiFlowDecoder(nn.Module):
         flow1 = delta_flow1 + flow1.repeat(1, self.num_flows, 1, 1)
 
         return flow0, flow1, mask, img_res
-
 
 
 def multi_flow_combine(

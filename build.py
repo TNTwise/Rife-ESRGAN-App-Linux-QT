@@ -49,6 +49,7 @@ def download_file(url, destination):
     urllib.request.urlretrieve(url, destination)
     print("File downloaded successfully")
 
+
 def zero_mainwindow_size():
     import xml.etree.ElementTree as ET
 
@@ -171,7 +172,9 @@ def copy_backend(build_dir=None):
         except Exception:
             pass
         if not os.path.exists(rf"{build_dir}\\REAL-Video-Enhancer\\backend"):
-            os.system(f'xcopy "./backend" "./{build_dir}/REAL-Video-Enhancer/backend" /E /I')
+            os.system(
+                f'xcopy "./backend" "./{build_dir}/REAL-Video-Enhancer/backend" /E /I'
+            )
     if getPlatform() == "linux":
         if build_dir is None:
             build_dir = "bin"

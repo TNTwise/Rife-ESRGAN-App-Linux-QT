@@ -212,7 +212,7 @@ class GFPGANBilinear(nn.Module):
         in_channels = channels[f"{first_out_size}"]
         self.conv_body_down = nn.ModuleList()
         for i in range(self.log_size, 2, -1):
-            out_channels = channels[f"{2**(i - 1)}"]
+            out_channels = channels[f"{2 ** (i - 1)}"]
             self.conv_body_down.append(ResBlock(in_channels, out_channels))
             in_channels = out_channels
 

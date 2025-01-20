@@ -44,8 +44,18 @@ ncnnInterpolateModels = {
 }
 pytorchInterpolateModels = {
     "GMFSS (Slow Model, Animation)": ("GMFSS.pkl", "GMFSS.pkl", 1, "gmfss"),
-    "GMFSS Pro (Slow Model, Animation) (Helps with text warping)": ("GMFSS_PRO.pkl", "GMFSS_PRO.pkl", 1, "gmfss"),
-    "GIMM (Slow Model, Realistic/General)": ("GIMMVFI_RAFT.pth", "GIMMVFI_RAFT.pth", 1, "gimm"),
+    "GMFSS Pro (Slow Model, Animation) (Helps with text warping)": (
+        "GMFSS_PRO.pkl",
+        "GMFSS_PRO.pkl",
+        1,
+        "gmfss",
+    ),
+    "GIMM (Slow Model, Realistic/General)": (
+        "GIMMVFI_RAFT.pth",
+        "GIMMVFI_RAFT.pth",
+        1,
+        "gimm",
+    ),
     "RIFE 4.6 (Fastest Model)": ("rife4.6.pkl", "rife4.6.pkl", 1, "rife46"),
     "RIFE 4.7 (Smoothest Model)": ("rife4.7.pkl", "rife4.7.pkl", 1, "rife47"),
     "RIFE 4.15": ("rife4.15.pkl", "rife4.15.pkl", 1, "rife413"),
@@ -244,21 +254,18 @@ pytorchDenoiseModels = {
 }
 
 tensorrtUpscaleModels = {
-
     "SPAN Spanimation V2 (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV2.pth",
         "2x_ModernSpanimationV2.pth",
         2,
         "SPAN",
     ),
-
     "SPANPlus Spanimation V3 (Animation) (2X) (Fast)": (
         "2x_ModernSpanimationV3.pth",
         "2x_ModernSpanimationV3.pth",
         2,
         "SPANPlus",
     ),
-    
     "SPAN Nomos8k (Realistic) (High Quality Source) (4X) (Fast)": (
         "4xNomos8k_span_otf_weak_no_update_params.pth",
         "4xNomos8k_span_otf_weak_no_update_params.pth",
@@ -350,30 +357,31 @@ totalModels = (
     | tensorrtUpscaleModels
 )  # this doesnt include all models due to overwriting, but includes every case of every unique model name
 
+
 def getModels(backend):
-        """
-        returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
-        """
-        match backend:
-            case "ncnn":
-                interpolateModels = ncnnInterpolateModels
-                upscaleModels = ncnnUpscaleModels
-            case "pytorch (cuda)":
-                interpolateModels = pytorchInterpolateModels
-                upscaleModels = pytorchUpscaleModels
-            case "pytorch (rocm)":
-                interpolateModels = pytorchInterpolateModels
-                upscaleModels = pytorchUpscaleModels
-            case "tensorrt":
-                interpolateModels = tensorrtInterpolateModels
-                upscaleModels = tensorrtUpscaleModels
-            case "directml":
-                interpolateModels = onnxInterpolateModels
-                upscaleModels = onnxUpscaleModels
-            case _:
-                RegularQTPopup(
-                    "Failed to import any backends!, please try to reinstall the app!"
-                )
-                errorAndLog("Failed to import any backends!")
-                return {}
-        return interpolateModels, upscaleModels
+    """
+    returns models based on backend, used for populating the model comboboxes [interpolate, upscale]
+    """
+    match backend:
+        case "ncnn":
+            interpolateModels = ncnnInterpolateModels
+            upscaleModels = ncnnUpscaleModels
+        case "pytorch (cuda)":
+            interpolateModels = pytorchInterpolateModels
+            upscaleModels = pytorchUpscaleModels
+        case "pytorch (rocm)":
+            interpolateModels = pytorchInterpolateModels
+            upscaleModels = pytorchUpscaleModels
+        case "tensorrt":
+            interpolateModels = tensorrtInterpolateModels
+            upscaleModels = tensorrtUpscaleModels
+        case "directml":
+            interpolateModels = onnxInterpolateModels
+            upscaleModels = onnxUpscaleModels
+        case _:
+            RegularQTPopup(
+                "Failed to import any backends!, please try to reinstall the app!"
+            )
+            errorAndLog("Failed to import any backends!")
+            return {}
+    return interpolateModels, upscaleModels

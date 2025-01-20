@@ -32,7 +32,6 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
         upscale: int = 2
         drop_rate: float = 0.0
 
-
         num_in_ch = state_dict["feats.0.conv.0.weight"].shape[1]
         feature_channels = state_dict["feats.0.conv.2.weight"].shape[
             0
@@ -45,7 +44,7 @@ class sudo_SPANPlusArch(Architecture[sudo_SPANPlus]):  # noqa: N801
         )"""
         upscale = 2
         num_out_ch = 3
-        
+
         downsample = num_in_ch != num_out_ch
 
         model = sudo_SPANPlus(

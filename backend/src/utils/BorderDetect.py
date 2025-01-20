@@ -1,6 +1,8 @@
 from ..constants import FFMPEG_PATH
 from ..utils.Util import log
 import subprocess
+
+
 class BorderDetect:
     def __init__(self, inputFile):
         self.inputFile = inputFile

@@ -4,7 +4,8 @@ from abc import ABCMeta, abstractmethod
 from queue import Queue
 
 from ..utils.SSIM import SSIM
-#from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
+
+# from backend.src.pytorch.InterpolateArchs.GIMM import GIMM
 from .InterpolateArchs.DetectInterpolateArch import ArchDetect
 from .UpscaleTorch import UpscalePytorch
 import math
@@ -18,7 +19,7 @@ from ..utils.Util import (
     check_bfloat16_support,
     warnAndLog,
     log,
-    get_gpus_torch
+    get_gpus_torch,
 )
 from ..constants import HAS_SYSTEM_CUDA
 from time import sleep
@@ -27,18 +28,21 @@ torch.set_float32_matmul_precision("medium")
 torch.set_grad_enabled(False)
 logging.basicConfig(level=logging.INFO)
 
+
 class DynamicScale:
-    def __init__(self, possible_values:dict, CompareNet:SSIM):
+    def __init__(self, possible_values: dict, CompareNet: SSIM):
         self.possible_values = possible_values
         self.CompareNet = CompareNet
+
     @torch.inference_mode()
-    def dynamicScaleCalculation(self,frame0, frame1):
-        ssim:torch.Tensor = self.CompareNet(frame0, frame1)
+    def dynamicScaleCalculation(self, frame0, frame1):
+        ssim: torch.Tensor = self.CompareNet(frame0, frame1)
         closest_value = min(self.possible_values, key=lambda v: abs(ssim.item() - v))
         scale = self.possible_values[closest_value]
         return scale
-    
+
     # limit gmfss scale to 1.0 max
+
 
 class BaseInterpolate(metaclass=ABCMeta):
     @abstractmethod
@@ -50,21 +54,23 @@ class BaseInterpolate(metaclass=ABCMeta):
         self.dtype = torch.float32
         self.width = 1920
         self.height = 1080
-        self.padding = [0,0,0,0]
+        self.padding = [0, 0, 0, 0]
         self.frame0 = None
         self.encode0 = None
         self.flownet = None
         self.encode = None
         self.tenFlow_div = None
         self.backwarp_tenGrid = None
-        self.doEncodingOnFrame = False # set this by default
+        self.doEncodingOnFrame = False  # set this by default
         self.CompareNet = None
 
     @staticmethod
-    def handleDevice(device:str, gpu_id:int = 0) -> torch.device:
+    def handleDevice(device: str, gpu_id: int = 0) -> torch.device:
         if device == "default":
             if torch.cuda.is_available():
-                torchdevice = torch.device("cuda", gpu_id)  # 0 is the device index, may have to change later
+                torchdevice = torch.device(
+                    "cuda", gpu_id
+                )  # 0 is the device index, may have to change later
             else:
                 torchdevice = torch.device("cpu")
         else:
@@ -86,7 +92,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @torch.inference_mode()
     def copyTensor(self, tensorToCopy: torch.Tensor, tensorCopiedTo: torch.Tensor):
-        with torch.cuda.stream(self.stream): #type: ignore
+        with torch.cuda.stream(self.stream):  # type: ignore
             tensorToCopy.copy_(tensorCopiedTo, non_blocking=True)
         self.stream.synchronize()
 
@@ -105,10 +111,15 @@ class BaseInterpolate(metaclass=ABCMeta):
     def hotReload(self):
         self._load()
 
-
     @abstractmethod
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscalePytorch = None,
+    ):  # type: ignore
         """Perform processing"""
 
     def initLog(self):
@@ -125,7 +136,7 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @torch.inference_mode()
     def frame_to_tensor(self, frame) -> torch.Tensor:
-        with torch.cuda.stream(self.prepareStream): # type: ignore
+        with torch.cuda.stream(self.prepareStream):  # type: ignore
             frame = self.norm(
                 torch.frombuffer(
                     frame,
@@ -144,7 +155,16 @@ class BaseInterpolate(metaclass=ABCMeta):
 
     @torch.inference_mode()
     def tensor_to_frame(self, frame: torch.Tensor):
-        return frame.squeeze_(0).permute(1, 2, 0).mul(255).float().byte().contiguous().cpu().numpy()
+        return (
+            frame.squeeze_(0)
+            .permute(1, 2, 0)
+            .mul(255)
+            .float()
+            .byte()
+            .contiguous()
+            .cpu()
+            .numpy()
+        )
 
 
 class InterpolateGIMMTorch(BaseInterpolate):
@@ -173,14 +193,17 @@ class InterpolateGIMMTorch(BaseInterpolate):
         if ensemble:
             print("Ensemble is not implemented for GIMM, disabling", file=sys.stderr)
         if dynamicScaledOpticalFlow:
-            print("Dynamic Scaled Optical Flow is not implemented for GIMM, disabling",file=sys.stderr)        
-        
+            print(
+                "Dynamic Scaled Optical Flow is not implemented for GIMM, disabling",
+                file=sys.stderr,
+            )
+
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
         self.frame0 = None
-        self.scale = 0.5 # GIMM uses fat amounts of vram, needs really low flow resolution for regular resolutions
+        self.scale = 0.5  # GIMM uses fat amounts of vram, needs really low flow resolution for regular resolutions
         if UHDMode:
-            self.scale = 0.25 # GIMM uses fat amounts of vram, needs really low flow resolution for UHD
+            self.scale = 0.25  # GIMM uses fat amounts of vram, needs really low flow resolution for UHD
         self.doEncodingOnFrame = False
         self.initLog()
         self._load()
@@ -189,13 +212,15 @@ class InterpolateGIMMTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream): # type: ignore
+        with torch.cuda.stream(self.prepareStream):  # type: ignore
             from .InterpolateArchs.GIMM.gimmvfi_r import GIMMVFI_R
 
             self.flownet = GIMMVFI_R(
                 model_path=self.interpolateModel, width=self.width, height=self.height
             )
-            state_dict = torch.load(self.interpolateModel, map_location=self.device)["gimmvfi_r"]
+            state_dict = torch.load(self.interpolateModel, map_location=self.device)[
+                "gimmvfi_r"
+            ]
             self.flownet.load_state_dict(state_dict)
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
 
@@ -204,85 +229,121 @@ class InterpolateGIMMTorch(BaseInterpolate):
             self.pw = math.ceil(self.width / tmp) * tmp
             self.ph = math.ceil(self.height / tmp) * tmp
             self.padding = (0, self.pw - self.width, 0, self.ph - self.height)
-            
-            dummyInput = torch.zeros([1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device)
-            dummyInput2 = torch.zeros([1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device)
-            xs = torch.cat((dummyInput.unsqueeze(2), dummyInput2.unsqueeze(2)), dim=2).to(self.device, non_blocking=True)
+
+            dummyInput = torch.zeros(
+                [1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device
+            )
+            dummyInput2 = torch.zeros(
+                [1, 3, self.ph, self.pw], dtype=self.dtype, device=self.device
+            )
+            xs = torch.cat(
+                (dummyInput.unsqueeze(2), dummyInput2.unsqueeze(2)), dim=2
+            ).to(self.device, non_blocking=True)
             s_shape = xs.shape[-2:]
-            
+
             # caching the timestep tensor in a dict with the timestep as a float for the key
-            
+
             self.timestepDict = {}
             self.coordDict = {}
 
             for n in range(self.ceilInterpolateFactor):
                 timestep = n / (self.ceilInterpolateFactor)
-                timestep_tens = n * 1 /  self.ceilInterpolateFactor * torch.ones(xs.shape[0]).to(xs.device).to(self.dtype).reshape(-1, 1, 1, 1)
+                timestep_tens = (
+                    n
+                    * 1
+                    / self.ceilInterpolateFactor
+                    * torch.ones(xs.shape[0])
+                    .to(xs.device)
+                    .to(self.dtype)
+                    .reshape(-1, 1, 1, 1)
+                )
                 self.timestepDict[timestep] = timestep_tens
-                coord = (self.flownet.sample_coord_input(
+                coord = (
+                    self.flownet.sample_coord_input(
                         1,
                         s_shape,
                         [1 / self.ceilInterpolateFactor * n],
                         device=self.device,
                         upsample_ratio=self.scale,
-                ).to(non_blocking=True, dtype=self.dtype, device=self.device),None)
+                    ).to(non_blocking=True, dtype=self.dtype, device=self.device),
+                    None,
+                )
                 self.coordDict[timestep] = coord
-            
+
             log("GIMM loaded")
             log("Scale: " + str(self.scale))
             log("Using System CUDA: " + str(HAS_SYSTEM_CUDA))
             if not HAS_SYSTEM_CUDA:
-                print("WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",file=sys.stderr)
+                print(
+                    "WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",
+                    file=sys.stderr,
+                )
             if self.backend == "tensorrt":
                 warnAndLog(
                     "TensorRT is not implemented for GIMM yet, falling back to PyTorch"
                 )
         self.prepareStream.synchronize()
-    
+
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
-        
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscalePytorch = None,
+    ):  # type: ignore
         with torch.cuda.stream(self.stream):  # type: ignore
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
                 self.stream.synchronize()
                 return
             frame1 = self.frame_to_tensor(img1)
-            for n in range(self.ceilInterpolateFactor-1):
+            for n in range(self.ceilInterpolateFactor - 1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
                     coord = self.coordDict[timestep]
                     timestep_tens = self.timestepDict[timestep]
-                    xs = torch.cat((self.frame0.unsqueeze(2), frame1.unsqueeze(2)), dim=2).to(
-                    self.device, non_blocking=True,dtype=self.dtype
-                    )
+                    xs = torch.cat(
+                        (self.frame0.unsqueeze(2), frame1.unsqueeze(2)), dim=2
+                    ).to(self.device, non_blocking=True, dtype=self.dtype)
 
                     while self.flownet is None:
                         sleep(1)
-                    with torch.autocast(enabled=True,device_type='cuda'):
-                        output = self.flownet(xs, coord, timestep_tens, ds_factor=self.scale)
-                    
+                    with torch.autocast(enabled=True, device_type="cuda"):
+                        output = self.flownet(
+                            xs, coord, timestep_tens, ds_factor=self.scale
+                        )
+
                     if torch.isnan(output).any():
                         # if there are nans in output, reload with float32 precision and process.... dumb fix but whatever
-                        print("NaNs in output, returning the first image",file=sys.stderr)
+                        print(
+                            "NaNs in output, returning the first image", file=sys.stderr
+                        )
                         if upscaleModel is not None:
-                            img1 = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(img1)))
+                            img1 = upscaleModel(
+                                upscaleModel.frame_to_tensor(self.tensor_to_frame(img1))
+                            )
                         writeQueue.put(img1)
 
                     else:
                         if upscaleModel is not None:
-                            output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
+                            output = upscaleModel(
+                                upscaleModel.frame_to_tensor(
+                                    self.tensor_to_frame(output)
+                                )
+                            )
                         else:
                             output = self.tensor_to_frame(output)
                         writeQueue.put(output)
-                
+
                 else:
                     if upscaleModel is not None:
-                            img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
-                    writeQueue.put(img1)    
+                        img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
+                    writeQueue.put(img1)
             self.copyTensor(self.frame0, frame1)
 
         self.stream.synchronize()
+
 
 class InterpolateGMFSSTorch(BaseInterpolate):
     @torch.inference_mode()
@@ -326,18 +387,31 @@ class InterpolateGMFSSTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream): # type: ignore
+        with torch.cuda.stream(self.prepareStream):  # type: ignore
             if self.dynamicScaledOpticalFlow:
                 from ..utils.SSIM import SSIM
+
                 compareNet = SSIM()
                 self.CompareNet = compareNet.to(device=self.device, dtype=self.dtype)
-                possible_values = {0.25:0.25, 0.5:0.5, 0.75:1.0} # closest_value:representative_scale
-                self.dynamicScale = DynamicScale(possible_values=possible_values, CompareNet=compareNet)
+                possible_values = {
+                    0.25: 0.25,
+                    0.5: 0.5,
+                    0.75: 1.0,
+                }  # closest_value:representative_scale
+                self.dynamicScale = DynamicScale(
+                    possible_values=possible_values, CompareNet=compareNet
+                )
                 print("Dynamic Scaled Optical Flow Enabled")
                 if self.backend == "tensorrt":
-                    print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
+                    print(
+                        "Dynamic Scaled Optical Flow does not work with TensorRT, disabling",
+                        file=sys.stderr,
+                    )
                 if self.UHDMode:
-                    print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
+                    print(
+                        "Dynamic Scaled Optical Flow does not work with UHD Mode, disabling",
+                        file=sys.stderr,
+                    )
             from .InterpolateArchs.GMFSS.GMFSS import GMFSS
 
             _pad = 64
@@ -366,13 +440,16 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                 device=self.device,
                 max_timestep=self.max_timestep,
             )
-            
+
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
             log("GMFSS loaded")
             log("Scale: " + str(self.scale))
             log("Using System CUDA: " + str(HAS_SYSTEM_CUDA))
             if not HAS_SYSTEM_CUDA:
-                print("WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",file=sys.stderr)
+                print(
+                    "WARNING: System CUDA not found, falling back to PyTorch softsplat. This will be a bit slower.",
+                    file=sys.stderr,
+                )
             if self.backend == "tensorrt":
                 warnAndLog(
                     "TensorRT is not implemented for GMFSS yet, falling back to PyTorch"
@@ -380,20 +457,27 @@ class InterpolateGMFSSTorch(BaseInterpolate):
         self.prepareStream.synchronize()
 
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):  # type: ignore
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscalePytorch = None,
+    ):  # type: ignore
         if self.frame0 is None:
             self.frame0 = self.frame_to_tensor(img1)
             self.stream.synchronize()
             return
         frame1 = self.frame_to_tensor(img1)
         with torch.cuda.stream(self.stream):  # type: ignore
-
             if self.dynamicScaledOpticalFlow:
-                closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+                closest_value = self.dynamicScale.dynamicScaleCalculation(
+                    self.frame0, frame1
+                )
             else:
                 closest_value = None
 
-            for n in range(self.ceilInterpolateFactor-1):
+            for n in range(self.ceilInterpolateFactor - 1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
                     while self.flownet is None:
@@ -401,7 +485,9 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                     timestep = self.timestepDict[timestep]
                     output = self.flownet(self.frame0, frame1, timestep, closest_value)
                     if upscaleModel is not None:
-                        output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
+                        output = upscaleModel(
+                            upscaleModel.frame_to_tensor(self.tensor_to_frame(output))
+                        )
                     else:
                         output = self.tensor_to_frame(output)
                     writeQueue.put(output)
@@ -410,9 +496,9 @@ class InterpolateGMFSSTorch(BaseInterpolate):
                         img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
                     self.flownet.reset_cache_after_transition()
                     writeQueue.put(img1)
-            
+
             self.copyTensor(self.frame0, frame1)
-           
+
         self.stream.synchronize()
 
 
@@ -436,12 +522,11 @@ class InterpolateRifeTorch(BaseInterpolate):
         *args,
         **kwargs,
     ):
-        
         self.interpolateModel = modelPath
         self.width = width
         self.height = height
 
-        self.device:torch.device = self.handleDevice(device, gpu_id=gpu_id)
+        self.device: torch.device = self.handleDevice(device, gpu_id=gpu_id)
         self.dtype = self.handlePrecision(dtype)
         self.backend = backend
         self.ceilInterpolateFactor = ceilInterpolateFactor
@@ -456,8 +541,8 @@ class InterpolateRifeTorch(BaseInterpolate):
 
         self.trt_optimization_level = trt_optimization_level
         self.trt_cache_dir = os.path.dirname(
-                modelPath
-            )  # use the model directory as the cache directory
+            modelPath
+        )  # use the model directory as the cache directory
         self.UHDMode = UHDMode
         if self.UHDMode:
             self.scale = 0.5
@@ -467,7 +552,7 @@ class InterpolateRifeTorch(BaseInterpolate):
     def _load(self):
         self.stream = torch.cuda.Stream()
         self.prepareStream = torch.cuda.Stream()
-        with torch.cuda.stream(self.prepareStream): # type: ignore
+        with torch.cuda.stream(self.prepareStream):  # type: ignore
             state_dict = torch.load(
                 self.interpolateModel,
                 map_location=self.device,
@@ -526,7 +611,9 @@ class InterpolateRifeTorch(BaseInterpolate):
 
             # model unspecific setup
             if self.dynamicScaledOpticalFlow:
-                tmp = max(_pad, int(_pad / 0.25)) # set pad to higher for better dynamic optical scale support
+                tmp = max(
+                    _pad, int(_pad / 0.25)
+                )  # set pad to higher for better dynamic optical scale support
             else:
                 tmp = max(_pad, int(_pad / self.scale))
             self.pw = math.ceil(self.width / tmp) * tmp
@@ -570,25 +657,41 @@ class InterpolateRifeTorch(BaseInterpolate):
                 self.encode.eval().to(device=self.device, dtype=self.dtype)
             self.flownet.load_state_dict(state_dict=state_dict, strict=False)
             self.flownet.eval().to(device=self.device, dtype=self.dtype)
-            
+
             if self.dynamicScaledOpticalFlow:
                 if self.backend == "tensorrt":
-                    print("Dynamic Scaled Optical Flow does not work with TensorRT, disabling", file=sys.stderr)
-                
+                    print(
+                        "Dynamic Scaled Optical Flow does not work with TensorRT, disabling",
+                        file=sys.stderr,
+                    )
+
                 elif self.UHDMode:
-                    print("Dynamic Scaled Optical Flow does not work with UHD Mode, disabling", file=sys.stderr)
+                    print(
+                        "Dynamic Scaled Optical Flow does not work with UHD Mode, disabling",
+                        file=sys.stderr,
+                    )
                 else:
                     from ..utils.SSIM import SSIM
+
                     CompareNet = SSIM().to(device=self.device, dtype=self.dtype)
-                    possible_values = {0.25:0.25, 0.37:0.5, 0.5:1.0, 0.69:1.5, 1.0:2.0} # closest_value:representative_scale
-                    self.dynamicScale = DynamicScale(possible_values=possible_values, CompareNet=CompareNet)
+                    possible_values = {
+                        0.25: 0.25,
+                        0.37: 0.5,
+                        0.5: 1.0,
+                        0.69: 1.5,
+                        1.0: 2.0,
+                    }  # closest_value:representative_scale
+                    self.dynamicScale = DynamicScale(
+                        possible_values=possible_values, CompareNet=CompareNet
+                    )
                     print("Dynamic Scaled Optical Flow Enabled")
 
             if self.backend == "tensorrt":
                 from .TensorRTHandler import TorchTensorRTHandler
 
                 trtHandler = TorchTensorRTHandler(
-                    trt_optimization_level=self.trt_optimization_level, multi_precision_engine=True
+                    trt_optimization_level=self.trt_optimization_level,
+                    multi_precision_engine=True,
                 )
 
                 base_trt_engine_path = os.path.join(
@@ -728,25 +831,32 @@ class InterpolateRifeTorch(BaseInterpolate):
         self.backwarp_tenGrid = torch.cat([tenHorizontal, tenVertical], 1)
 
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None):  # type: ignore
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscalePytorch = None,
+    ):  # type: ignore
         with torch.cuda.stream(self.stream):  # type: ignore
-
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
                 if self.doEncodingOnFrame:
                     self.encode0 = self.encode_Frame(self.frame0)
                 self.stream.synchronize()
                 return
-                
+
             frame1 = self.frame_to_tensor(img1)
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
-            
+
             if self.dynamicScaledOpticalFlow:
-                closest_value = self.dynamicScale.dynamicScaleCalculation(self.frame0,frame1)
+                closest_value = self.dynamicScale.dynamicScaleCalculation(
+                    self.frame0, frame1
+                )
             else:
                 closest_value = None
-            for n in range(self.ceilInterpolateFactor-1):
+            for n in range(self.ceilInterpolateFactor - 1):
                 if not transition:
                     timestep = (n + 1) * 1.0 / (self.ceilInterpolateFactor)
                     while self.flownet is None:
@@ -760,15 +870,22 @@ class InterpolateRifeTorch(BaseInterpolate):
                             self.tenFlow_div,
                             self.backwarp_tenGrid,
                             self.encode0,
-                            encode1, # type: ignore
-                            closest_value
+                            encode1,  # type: ignore
+                            closest_value,
                         )
                     else:
                         output = self.flownet(
-                            self.frame0, frame1, timestep, self.tenFlow_div, self.backwarp_tenGrid, closest_value
+                            self.frame0,
+                            frame1,
+                            timestep,
+                            self.tenFlow_div,
+                            self.backwarp_tenGrid,
+                            closest_value,
                         )
                     if upscaleModel is not None:
-                        output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
+                        output = upscaleModel(
+                            upscaleModel.frame_to_tensor(self.tensor_to_frame(output))
+                        )
                     else:
                         output = self.tensor_to_frame(output)
                     writeQueue.put(output)
@@ -776,10 +893,10 @@ class InterpolateRifeTorch(BaseInterpolate):
                     if upscaleModel is not None:
                         img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
                     writeQueue.put(img1)
-            
+
             self.copyTensor(self.frame0, frame1)
             if self.doEncodingOnFrame:
-                self.copyTensor(self.encode0, encode1) # type: ignore
+                self.copyTensor(self.encode0, encode1)  # type: ignore
 
         self.stream.synchronize()
 
@@ -787,29 +904,34 @@ class InterpolateRifeTorch(BaseInterpolate):
     def encode_Frame(self, frame: torch.Tensor):
         while self.encode is None:
             sleep(1)
-        with torch.cuda.stream(self.prepareStream): # type: ignore
+        with torch.cuda.stream(self.prepareStream):  # type: ignore
             frame = self.encode(frame)
         self.prepareStream.synchronize()
         return frame
 
+
 class InterpolateRifeTensorRT(InterpolateRifeTorch):
     @torch.inference_mode()
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel:UpscalePytorch = None): # type: ignore
-        with torch.cuda.stream(self.stream): # type: ignore
-
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscalePytorch = None,
+    ):  # type: ignore
+        with torch.cuda.stream(self.stream):  # type: ignore
             if self.frame0 is None:
                 self.frame0 = self.frame_to_tensor(img1)
                 if self.doEncodingOnFrame:
                     self.encode0 = self.encode_Frame(self.frame0)
                 self.stream.synchronize()
                 return
-                
+
             frame1 = self.frame_to_tensor(img1)
             if self.doEncodingOnFrame:
                 encode1 = self.encode_Frame(frame1)
-            
-            for n in range(self.ceilInterpolateFactor-1):
 
+            for n in range(self.ceilInterpolateFactor - 1):
                 while self.flownet is None:
                     sleep(1)
 
@@ -825,15 +947,21 @@ class InterpolateRifeTensorRT(InterpolateRifeTorch):
                             self.tenFlow_div,
                             self.backwarp_tenGrid,
                             self.encode0,
-                            encode1, # type: ignore
+                            encode1,  # type: ignore
                         )
                     else:
                         output = self.flownet(
-                            self.frame0, frame1, timestep, self.tenFlow_div, self.backwarp_tenGrid
+                            self.frame0,
+                            frame1,
+                            timestep,
+                            self.tenFlow_div,
+                            self.backwarp_tenGrid,
                         )
 
                     if upscaleModel is not None:
-                        output = upscaleModel(upscaleModel.frame_to_tensor(self.tensor_to_frame(output)))
+                        output = upscaleModel(
+                            upscaleModel.frame_to_tensor(self.tensor_to_frame(output))
+                        )
                     else:
                         output = self.tensor_to_frame(output)
 
@@ -843,17 +971,17 @@ class InterpolateRifeTensorRT(InterpolateRifeTorch):
                     if upscaleModel is not None:
                         img1 = upscaleModel(frame1[:, :, : self.height, : self.width])
                     writeQueue.put(img1)
-            
+
             self.copyTensor(self.frame0, frame1)
             if self.doEncodingOnFrame:
-                self.copyTensor(self.encode0, encode1) # type: ignore
+                self.copyTensor(self.encode0, encode1)  # type: ignore
 
         self.stream.synchronize()
 
 
 class InterpolateFactory:
     @staticmethod
-    def build_interpolation_method(interpolate_model_path,backend):
+    def build_interpolation_method(interpolate_model_path, backend):
         ad = ArchDetect(interpolate_model_path)
         base_arch = ad.getArchBase()
         match base_arch:

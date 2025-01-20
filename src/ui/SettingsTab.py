@@ -5,6 +5,7 @@ from ..constants import PLATFORM, HOME_PATH
 from ..Util import currentDirectory, checkForWritePermissions
 from .QTcustom import RegularQTPopup
 
+
 class SettingsTab:
     def __init__(
         self,
@@ -22,7 +23,7 @@ class SettingsTab:
         # disable half option if its not supported
         if not halfPrecisionSupport:
             self.parent.precision.removeItem(1)
-        
+
         # set max gpu id for combo boxs
         self.parent.pytorch_gpu_id.setMaximum(total_pytorch_gpus)
         self.parent.ncnn_gpu_id.setMaximum(total_ncnn_gpus)
@@ -165,8 +166,12 @@ class SettingsTab:
             self.settings.settings["tensorrt_optimization_level"]
         )
         self.parent.encoder.setCurrentText(self.settings.settings["encoder"])
-        self.parent.audio_encoder.setCurrentText(self.settings.settings["audio_encoder"])
-        self.parent.audio_bitrate.setCurrentText(self.settings.settings["audio_bitrate"])
+        self.parent.audio_encoder.setCurrentText(
+            self.settings.settings["audio_encoder"]
+        )
+        self.parent.audio_bitrate.setCurrentText(
+            self.settings.settings["audio_bitrate"]
+        )
         self.parent.preview_enabled.setChecked(
             self.settings.settings["preview_enabled"] == "True"
         )
@@ -191,11 +196,11 @@ class SettingsTab:
         self.parent.select_output_folder_location_btn.clicked.connect(
             self.selectOutputFolder
         )
-        self.parent.uhd_mode.setChecked(
-            self.settings.settings["uhd_mode"] == "True"
-        )
+        self.parent.uhd_mode.setChecked(self.settings.settings["uhd_mode"] == "True")
         self.parent.ncnn_gpu_id.setValue(int(self.settings.settings["ncnn_gpu_id"]))
-        self.parent.pytorch_gpu_id.setValue(int(self.settings.settings["pytorch_gpu_id"]))
+        self.parent.pytorch_gpu_id.setValue(
+            int(self.settings.settings["pytorch_gpu_id"])
+        )
         self.parent.auto_border_cropping.setChecked(
             self.settings.settings["auto_border_cropping"] == "True"
         )

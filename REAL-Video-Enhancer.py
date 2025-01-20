@@ -47,6 +47,7 @@ svg = (
     QtSvg.QSvgRenderer()
 )  # utilize the imported QtSvg module to render svg icons on windows
 
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     """Main window class for the REAL Video Enhancer application.
 
@@ -232,9 +233,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             interpolateTimes = self.getInterpolationMultiplier(interpolateModelName)
             scale = self.getUpscaleModelScale(upscaleModelName)
             text = (
-                f"FPS: {round(self.videoFps,0)} -> {round(self.videoFps*interpolateTimes,0)}\n"
-                + f"Resolution: {self.videoWidth}x{self.videoHeight} -> {self.videoWidth*scale}x{self.videoHeight*scale}\n"
-                + f"Frame Count: {self.videoFrameCount} -> {int(round(self.videoFrameCount * interpolateTimes,0))}\n"
+                f"FPS: {round(self.videoFps, 0)} -> {round(self.videoFps * interpolateTimes, 0)}\n"
+                + f"Resolution: {self.videoWidth}x{self.videoHeight} -> {self.videoWidth * scale}x{self.videoHeight * scale}\n"
+                + f"Frame Count: {self.videoFrameCount} -> {int(round(self.videoFrameCount * interpolateTimes, 0))}\n"
                 + f"Bitrate: {self.videoBitrate}\n"
                 + f"Encoder: {self.videoEncoder}\n"
                 + f"Container: {self.videoContainer}\n"
@@ -277,8 +278,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             file_name = os.path.splitext(os.path.basename(inputFile))[0]
             base_file_name = (
                 f"{file_name}"
-                + f"_{round(interpolateTimes*self.videoFps,0)}fps"
-                + f"_{scale*self.videoWidth}x{scale*self.videoHeight}"
+                + f"_{round(interpolateTimes * self.videoFps, 0)}fps"
+                + f"_{scale * self.videoWidth}x{scale * self.videoHeight}"
             )
             output_file = os.path.join(
                 outputDirectory,

@@ -29,9 +29,9 @@ def index_reverse(index):
 
 def feature_shuffle(x, index):
     dim = index.dim()
-    assert (
-        x.shape[:dim] == index.shape
-    ), f"x ({x.shape}) and index ({index.shape}) shape incompatible"
+    assert x.shape[:dim] == index.shape, (
+        f"x ({x.shape}) and index ({index.shape}) shape incompatible"
+    )
 
     for _ in range(x.dim() - index.dim()):
         index = index.unsqueeze(-1)

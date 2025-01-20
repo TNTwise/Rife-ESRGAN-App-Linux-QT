@@ -627,7 +627,7 @@ class RAFT(nn.Module):
         corr_fn = CorrBlock(fmap1, fmap2, radius=4)
 
         # run the context network
-        with autocast(enabled=False): # no mixed precision
+        with autocast(enabled=False):  # no mixed precision
             cnet, feats = self.cnet(image1, return_feature=True)
             net, inp = torch.split(cnet, [hdim, cdim], dim=1)
             net = torch.tanh(net)
@@ -645,7 +645,12 @@ class RAFT(nn.Module):
 
             flow = coords1 - coords0
             with autocast(enabled=False):
-                net, up_mask, delta_flow = self.update_block(net.to(dtype=imgdtype), inp.to(dtype=imgdtype), corr.to(dtype=imgdtype), flow.to(dtype=imgdtype))
+                net, up_mask, delta_flow = self.update_block(
+                    net.to(dtype=imgdtype),
+                    inp.to(dtype=imgdtype),
+                    corr.to(dtype=imgdtype),
+                    flow.to(dtype=imgdtype),
+                )
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
@@ -694,9 +699,9 @@ class BidirCorrBlock:
         r = self.radius
         coords0 = coords0.permute(0, 2, 3, 1)
         coords1 = coords1.permute(0, 2, 3, 1)
-        assert (
-            coords0.shape == coords1.shape
-        ), f"coords0 shape: [{coords0.shape}] is not equal to [{coords1.shape}]"
+        assert coords0.shape == coords1.shape, (
+            f"coords0 shape: [{coords0.shape}] is not equal to [{coords1.shape}]"
+        )
         batch, h1, w1, _ = coords0.shape
 
         out_pyramid = []

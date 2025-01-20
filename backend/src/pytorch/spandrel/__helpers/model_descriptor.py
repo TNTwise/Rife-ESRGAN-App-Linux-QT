@@ -416,9 +416,9 @@ class ImageModelDescriptor(ModelBase[T], Generic[T]):
         tiling: ModelTiling = ModelTiling.SUPPORTED,
         call_fn: Callable[[T, Tensor], Tensor] | None = None,
     ):
-        assert (
-            purpose != "Restoration" or scale == 1
-        ), "Restoration models must have a scale of 1"
+        assert purpose != "Restoration" or scale == 1, (
+            "Restoration models must have a scale of 1"
+        )
 
         super().__init__(
             model,
@@ -470,9 +470,9 @@ class ImageModelDescriptor(ModelBase[T], Generic[T]):
 
         # call model
         output = self._call_fn(self.model, image)
-        assert isinstance(
-            output, Tensor
-        ), f"Expected {type(self.model).__name__} model to return a tensor, but got {type(output)}"
+        assert isinstance(output, Tensor), (
+            f"Expected {type(self.model).__name__} model to return a tensor, but got {type(output)}"
+        )
 
         # guarantee range
         output = output.clamp_(0, 1)
@@ -565,9 +565,9 @@ class MaskedImageModelDescriptor(ModelBase[T], Generic[T]):
 
         # call model
         output = self._call_fn(self.model, image, mask)
-        assert isinstance(
-            output, Tensor
-        ), f"Expected {type(self.model).__name__} model to returns a tensor, but got {type(output)}"
+        assert isinstance(output, Tensor), (
+            f"Expected {type(self.model).__name__} model to returns a tensor, but got {type(output)}"
+        )
 
         # guarantee range
         output = output.clamp_(0, 1)

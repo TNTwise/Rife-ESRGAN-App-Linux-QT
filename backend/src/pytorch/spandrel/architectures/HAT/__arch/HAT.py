@@ -292,9 +292,9 @@ class HAB(nn.Module):
             # if window size is larger than input resolution, we don't partition windows
             self.shift_size = 0
             self.window_size = min(self.input_resolution)
-        assert (
-            0 <= self.shift_size < self.window_size
-        ), "shift_size must in 0-window_size"
+        assert 0 <= self.shift_size < self.window_size, (
+            "shift_size must in 0-window_size"
+        )
 
         self.norm1 = norm_layer(dim)
         self.attn = WindowAttention(
@@ -818,7 +818,7 @@ class Upsample(nn.Sequential):
             m.append(nn.PixelShuffle(3))
         else:
             raise ValueError(
-                f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
+                f"scale {scale} is not supported. Supported scales: 2^n and 3."
             )
         super().__init__(*m)
 

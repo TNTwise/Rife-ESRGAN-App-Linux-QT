@@ -12,6 +12,8 @@ from .utils.Encoders import EncoderSettings
 from .utils.SceneDetect import SceneDetect
 from .utils.Util import printAndLog, log
 from .utils.BorderDetect import BorderDetect
+
+
 def remove_shared_memory_block(name):
     try:
         existing_shm = shared_memory.SharedMemory(name=name)
@@ -22,6 +24,7 @@ def remove_shared_memory_block(name):
         print(f"Shared memory block '{name}' does not exist.")
     except Exception as e:
         print(f"Error removing shared memory block '{name}': {e}")
+
 
 class Render:
     """
@@ -86,8 +89,6 @@ class Render:
         dynamic_scaled_optical_flow: bool = False,
         ensemble: bool = False,
     ):
-        
-        
         self.inputFile = inputFile
         self.backend = backend
         self.upscaleModel = upscaleModel
@@ -140,7 +141,7 @@ class Render:
         video_encoder = EncoderSettings(video_encoder_preset)
         audio_encoder = EncoderSettings(audio_encoder_preset)
 
-        if border_detect: # border detect has to be put before everything, to overwrite the width and height
+        if border_detect:  # border detect has to be put before everything, to overwrite the width and height
             print("Detecting borders", file=sys.stderr)
             borderDetect = BorderDetect(inputFile=self.inputFile)
             self.width, self.height, self.borderX, self.borderY = (
@@ -150,25 +151,21 @@ class Render:
                 f"Detected borders: Width,Height:{self.width}x{self.height}, X,Y: {self.borderX}x{self.borderY}"
             )
 
-
         printAndLog("Using backend: " + self.backend)
         # upscale has to be called first to get the scale of the upscale model
         if upscaleModel:
             self.setupUpscale()
-            self.upscaleOption.hotUnload() # unload model to free up memory for trt enging building
+            self.upscaleOption.hotUnload()  # unload model to free up memory for trt enging building
             printAndLog("Using Upscaling Model: " + self.upscaleModel)
         else:
             self.upscaleTimes = 1  # if no upscaling, it will default to 1
 
-        
         if interpolateModel:
             self.setupInterpolate()
             printAndLog("Using Interpolation Model: " + self.interpolateModel)
 
         if upscaleModel:
             self.upscaleOption.hotReload()
-
-        
 
         self.readBuffer = FFmpegRead(  # input width
             inputFile=inputFile,
@@ -181,7 +178,7 @@ class Render:
         self.writeBuffer = FFmpegWrite(
             inputFile=inputFile,
             outputFile=outputFile,
-            width=self.width,  
+            width=self.width,
             height=self.height,
             fps=self.fps,
             crf=crf,

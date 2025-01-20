@@ -86,9 +86,7 @@ class UpdateGUIThread(QThread):
 
     latestPreviewPixmap = Signal(QtGui.QImage)
 
-    def __init__(
-        self, parent, imagePreviewSharedMemoryID
-    ):
+    def __init__(self, parent, imagePreviewSharedMemoryID):
         super().__init__()
         self._parent = parent
         self._stop_flag = False  # Boolean flag to control stopping
@@ -100,7 +98,7 @@ class UpdateGUIThread(QThread):
     def setOutputVideoRes(self, width, height):
         self.outputVideoHeight = height
         self.outputVideoWidth = width
-    
+
     def unlink_shared_memory(self):
         try:
             self.shm.close()
@@ -124,7 +122,7 @@ class UpdateGUIThread(QThread):
                     ].tobytes()
                     expected_size = self.outputVideoHeight * self.outputVideoWidth * 3
                     if len(image_bytes) < expected_size:
-                        image_bytes += b'\x00' * (expected_size - len(image_bytes))
+                        image_bytes += b"\x00" * (expected_size - len(image_bytes))
                     # Convert image bytes back to numpy array
                     image_array = np.frombuffer(image_bytes, dtype=np.uint8).reshape(
                         (self.outputVideoHeight, self.outputVideoWidth, 3)
@@ -746,6 +744,7 @@ def NetworkCheckPopup(hostname="https://raw.githubusercontent.com") -> bool:
     # return true if network connection
     return True
 
+
 def addNotificationToButton(button: QPushButton):
     notification = QLabel(button)
     notification.setFixedSize(10, 10)
@@ -760,4 +759,3 @@ if __name__ == "__main__":
         downloadLocation="ffmpeg",
         title="Downloading Python",
     )
-

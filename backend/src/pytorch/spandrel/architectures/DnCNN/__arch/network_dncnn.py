@@ -71,9 +71,9 @@ class DnCNN(nn.Module):
         # ------------------------------------
         """
         super().__init__()
-        assert (
-            "R" in act_mode or "L" in act_mode
-        ), "Examples of activation function: R, L, BR, BL, IR, IL"
+        assert "R" in act_mode or "L" in act_mode, (
+            "Examples of activation function: R, L, BR, BL, IR, IL"
+        )
         bias = True
 
         self.mode = mode

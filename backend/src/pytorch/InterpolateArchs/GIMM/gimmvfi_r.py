@@ -16,6 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ....constants import HAS_SYSTEM_CUDA
+
 try:
     from .raft import (
         normalize_flow,
@@ -33,19 +34,19 @@ try:
     )
 except ImportError:
     from raft import (
-    normalize_flow,
-    unnormalize_flow,
-    warp,
-    resize,
-    build_coord,
-    multi_flow_combine,
-    NewInitDecoder,
-    NewMultiFlowDecoder,
-    BasicUpdateBlock,
-    LateralBlock,
-    HypoNet,
-    CoordSampler3D,
-)
+        normalize_flow,
+        unnormalize_flow,
+        warp,
+        resize,
+        build_coord,
+        multi_flow_combine,
+        NewInitDecoder,
+        NewMultiFlowDecoder,
+        BasicUpdateBlock,
+        LateralBlock,
+        HypoNet,
+        CoordSampler3D,
+    )
 try:
     from .raftarch import RAFT, BidirCorrBlock
 except ImportError:
@@ -60,7 +61,7 @@ except ImportError:
 
 
 class GIMMVFI_R(nn.Module):
-    def __init__(self,model_path,width=1920,height=1080):
+    def __init__(self, model_path, width=1920, height=1080):
         super().__init__()
         self.raft_iter = 20
         self.width = width
@@ -71,7 +72,7 @@ class GIMMVFI_R(nn.Module):
         ckpt = torch.load(model_path)
         model.load_state_dict(ckpt["raft"], strict=True)
         self.flow_estimator = model
-        
+
         cur_f_dims = [128, 96]
         f_dims = [256, 128]
 
@@ -194,24 +195,24 @@ class GIMMVFI_R(nn.Module):
             else:
                 if torch.isnan(tensor).any():
                     print(f"NaNs found in {name}")
+
         raft_flow01 = flows[:, :, 0].detach()
         raft_flow10 = flows[:, :, 1].detach()
-        #check_for_nans(raft_flow01, "raft_flow01")
-        #check_for_nans(raft_flow10, "raft_flow10")
+        # check_for_nans(raft_flow01, "raft_flow01")
+        # check_for_nans(raft_flow10, "raft_flow10")
 
         # calculate splatting metrics
         weights1, weights2 = self.cal_splatting_weights(raft_flow01, raft_flow10)
-        #check_for_nans(weights1, "weights1")
-        #check_for_nans(weights2, "weights2")
+        # check_for_nans(weights1, "weights1")
+        # check_for_nans(weights2, "weights2")
         strtype = self.fwarp_type + "-zeroeps"
-        #check_for_nans(f, "f")
+        # check_for_nans(f, "f")
 
         # b,c,h,w
         pixel_latent_0 = self.cnn_encoder(f[:, :, 0])
         pixel_latent_1 = self.cnn_encoder(f[:, :, 1])
-        #check_for_nans(pixel_latent_0, "pixel_latent_0")
-        #check_for_nans(pixel_latent_1, "pixel_latent_1")
-
+        # check_for_nans(pixel_latent_0, "pixel_latent_0")
+        # check_for_nans(pixel_latent_1, "pixel_latent_1")
 
         tmp_pixel_latent_0 = softsplat(
             tenIn=pixel_latent_0,
@@ -226,25 +227,27 @@ class GIMMVFI_R(nn.Module):
             strMode=strtype,
         )
 
-        tmp_pixel_latent = torch.cat(
-            [tmp_pixel_latent_0, tmp_pixel_latent_1], dim=1
-        )
-        #check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
+        tmp_pixel_latent = torch.cat([tmp_pixel_latent_0, tmp_pixel_latent_1], dim=1)
+        # check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
         tmp_pixel_latent = tmp_pixel_latent + self.res_conv(
             torch.cat([pixel_latent_0, pixel_latent_1, tmp_pixel_latent], dim=1)
         )
-        #check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
+        # check_for_nans(tmp_pixel_latent, "tmp_pixel_latent")
         permute_idx_range = [i for i in range(1, f.ndim - 1)]
 
         if cur_coord[1] is None:
             outputs = self.hyponet(
-                cur_coord, modulation_params_dict=None, pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1)
+                cur_coord,
+                modulation_params_dict=None,
+                pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1),
             ).permute(0, -1, *permute_idx_range)
         else:
             outputs = self.hyponet(
-                cur_coord, modulation_params_dict=None, pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1)
+                cur_coord,
+                modulation_params_dict=None,
+                pixel_latent=tmp_pixel_latent.permute(0, 2, 3, 1),
             )
-        #check_for_nans(outputs, "outputs")
+        # check_for_nans(outputs, "outputs")
         return outputs
 
     def warp_w_mask(self, img0, img1, ft0, ft1, mask, scale=1):
@@ -403,7 +406,6 @@ class GIMMVFI_R(nn.Module):
             full_img=full_size_img,
         )
 
-
         return imgt_pred[:, :, : self.height, : self.width]
 
     def warp_frame(self, frame, flow):
@@ -467,20 +469,24 @@ class GIMMVFI_R(nn.Module):
             2,
             dim=1,
         )
-        #check_for_nan(sqaure_mean, "sqaure_mean")
-        #check_for_nan(mean_square, "mean_square")
+        # check_for_nan(sqaure_mean, "sqaure_mean")
+        # check_for_nan(mean_square, "mean_square")
         var = (
-            (sqaure_mean.float() - mean_square.float()**2).clamp(1e-9, None).sqrt().mean(1).unsqueeze(1)
+            (sqaure_mean.float() - mean_square.float() ** 2)
+            .clamp(1e-9, None)
+            .sqrt()
+            .mean(1)
+            .unsqueeze(1)
         ).to(raft_flow01.dtype)
-        #check_for_nan(var, "var")
+        # check_for_nan(var, "var")
         var01 = var[:batch_size]
         var10 = var[batch_size:]
 
         ## flow warp metirc
         f01_warp = -warp(raft_flow10, raft_flow01)
         f10_warp = -warp(raft_flow01, raft_flow10)
-        #check_for_nan(f01_warp, "f01_warp")
-        #check_for_nan(f10_warp, "f10_warp")
+        # check_for_nan(f01_warp, "f01_warp")
+        # check_for_nan(f10_warp, "f10_warp")
         err01 = (
             torch.nn.functional.l1_loss(
                 input=f01_warp, target=raft_flow01, reduction="none"
@@ -495,13 +501,13 @@ class GIMMVFI_R(nn.Module):
             .mean(1)
             .unsqueeze(1)
         )
-        #check_for_nan(err01, "err01")
-        #check_for_nan(err02, "err02")
+        # check_for_nan(err01, "err01")
+        # check_for_nan(err02, "err02")
 
         weights1 = 1 / (1 + err01 * self.alpha_fe) + 1 / (1 + var01 * self.alpha_v)
         weights2 = 1 / (1 + err02 * self.alpha_fe) + 1 / (1 + var10 * self.alpha_v)
-        #check_for_nan(weights1, "weights1")
-        #check_for_nan(weights2, "weights2")
+        # check_for_nan(weights1, "weights1")
+        # check_for_nan(weights2, "weights2")
 
         return weights1, weights2
 

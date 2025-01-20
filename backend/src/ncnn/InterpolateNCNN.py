@@ -2,13 +2,16 @@ from rife_ncnn_vulkan_python import wrapped
 from time import sleep
 from .UpscaleNCNN import UpscaleNCNN
 from queue import Queue
+
 # built-in imports
 import pathlib
 import sys
 from ..utils.Util import suppress_stdout_stderr
+
 # third-party imports
 import numpy as np
 import ncnn
+
 
 class Rife:
     def __init__(
@@ -167,19 +170,27 @@ class InterpolateRIFENCNN:
     def hotReload(self):
         self.paused = False
 
-    def __call__(self, img1, writeQueue:Queue, transition=False, upscaleModel: UpscaleNCNN=None):
+    def __call__(
+        self,
+        img1,
+        writeQueue: Queue,
+        transition=False,
+        upscaleModel: UpscaleNCNN = None,
+    ):
         if self.frame0 is None:
             self.frame0 = img1
             return
         if transition:
-            self.render.process_bytes(self.frame0, img1, self.max_timestep) # get the cache to skip to next frame
+            self.render.process_bytes(
+                self.frame0, img1, self.max_timestep
+            )  # get the cache to skip to next frame
             self.frame0 = img1
             if upscaleModel is not None:
                 img1 = upscaleModel(img1)
-            for n in range(self.interpolateFactor-1):
+            for n in range(self.interpolateFactor - 1):
                 writeQueue.put(img1)
             return
-        for n in range(self.interpolateFactor-1):
+        for n in range(self.interpolateFactor - 1):
             while self.paused:
                 sleep(1)
             timestep = (n + 1) * 1.0 / (self.interpolateFactor)

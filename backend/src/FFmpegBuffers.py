@@ -209,7 +209,7 @@ class FFmpegWrite(Buffer):
                 "-vcodec",
                 "rawvideo",
                 "-video_size",
-                f"{self.width*self.upscaleTimes}x{self.upscaleTimes*self.height}",
+                f"{self.width * self.upscaleTimes}x{self.upscaleTimes * self.height}",
                 "-pix_fmt",
                 "rgb24",
                 "-r",
@@ -224,7 +224,6 @@ class FFmpegWrite(Buffer):
 
         log("FFMPEG WRITE COMMAND: " + str(command))
         return command
-
 
     def get_num_frames_rendered(self):
         return self.framesRendered

@@ -73,7 +73,7 @@ class DnCNNArch(Architecture[DnCNN]):
         nc = state_dict["model.0.weight"].shape[0]
 
         layers = get_seq_len(state_dict, "model")
-        out_nc = state_dict[f"model.{layers-1}.weight"].shape[0]
+        out_nc = state_dict[f"model.{layers - 1}.weight"].shape[0]
 
         if "model.3.weight" in state_dict:
             act_mode = "BR"

@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from typing import (
     TypeVar,
 )
+
 upscale = 2
 
 """
@@ -99,7 +100,6 @@ class TemperatureScheduler:
     def get(self, crt_epoch=None):
         crt_epoch = crt_epoch if crt_epoch else self.final_epoch
         return self.initial_value + (min(crt_epoch, self.final_epoch) - 1) * self.step
-
 
 
 class Conv2dWrapper(nn.Conv2d):
@@ -513,7 +513,6 @@ class sudo_SPANPlus(nn.Module):
         if downsample:
             upscale = upscale**2
 
-
         self.upsampler = DySample(feature_channels, feature_channels, upscale)
         self.dynamic = DynamicConvolution(
             3,
@@ -528,7 +527,6 @@ class sudo_SPANPlus(nn.Module):
     def forward(self, x):
         n, c, h, w = x.shape
         if self.downsample:
-            
             if h % 8 != 0 or w % 8 != 0:
                 ph = ((h - 1) // 8 + 1) * 8
                 pw = ((w - 1) // 8 + 1) * 8

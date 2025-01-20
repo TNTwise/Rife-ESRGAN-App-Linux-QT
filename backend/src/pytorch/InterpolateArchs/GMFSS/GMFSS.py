@@ -9,11 +9,11 @@ from .MetricNet import MetricNet
 from .FusionNet_u import GridNet
 from ....constants import HAS_SYSTEM_CUDA
 from ..DetectInterpolateArch import ArchDetect
+
 if HAS_SYSTEM_CUDA:
     from ..util.softsplat_cupy import softsplat as warp
 else:
     from ..util.softsplat_torch import softsplat as warp
-
 
 
 class GMFSS(nn.Module):
@@ -44,21 +44,21 @@ class GMFSS(nn.Module):
         tmp = max(_pad, int(_pad / self.scale))
         self.pw = math.ceil(self.width / tmp) * tmp
         self.ph = math.ceil(self.height / tmp) * tmp
-        
+
         combined_state_dict = torch.load(model_path, map_location="cpu")
 
         archDetect = ArchDetect(combined_state_dict["rife"])
         rife_version = archDetect.getArchName()
-        #print(rife_version)
+        # print(rife_version)
         if rife_version.lower() == "rife46":
             from .IFNet_HDv3 import IFNet
         else:
             # this is dumb, it detects rife4.7 with a stupid hack, so we need to just force load 422
             from .IFNet_HDv3_422 import IFNet
-        
+
         # get gmfss from here, as its a combination of all the models https://github.com/TNTwise/real-video-enhancer-models/releases/download/models/GMFSS.pkl
         # model unspecific setup
-        
+
         self.ifnet = IFNet(ensemble=ensemble).to(dtype=dtype, device=device)
         self.flownet = GMFlow().to(dtype=dtype, device=device)
         self.metricnet = MetricNet().to(dtype=dtype, device=device)
@@ -78,12 +78,40 @@ class GMFSS(nn.Module):
 
         if trt:
             from ...TensorRTHandler import TorchTensorRTHandler
-            trtHandler = TorchTensorRTHandler(multi_precision_engine=False, trt_optimization_level=3, debug=True)
-            trtHandler.build_engine(self.flownet, dtype=dtype, device=device, example_inputs=self.flownet_example_input(), trt_engine_path="Flownet.engine")
-            trtHandler.build_engine(self.ifnet, dtype=dtype, device=device, example_inputs=self.rife_example_input(), trt_engine_path="IFNet.engine")
-            trtHandler.build_engine(self.feat_ext, dtype=dtype, device=device, example_inputs=self.img0_example_input(), trt_engine_path="Feat.engine")
-            trtHandler.build_engine(self.fusionnet, dtype=dtype, device=device, example_inputs=self.flownet_example_input(), trt_engine_path="FusionNet.engine")
+
+            trtHandler = TorchTensorRTHandler(
+                multi_precision_engine=False, trt_optimization_level=3, debug=True
+            )
+            trtHandler.build_engine(
+                self.flownet,
+                dtype=dtype,
+                device=device,
+                example_inputs=self.flownet_example_input(),
+                trt_engine_path="Flownet.engine",
+            )
+            trtHandler.build_engine(
+                self.ifnet,
+                dtype=dtype,
+                device=device,
+                example_inputs=self.rife_example_input(),
+                trt_engine_path="IFNet.engine",
+            )
+            trtHandler.build_engine(
+                self.feat_ext,
+                dtype=dtype,
+                device=device,
+                example_inputs=self.img0_example_input(),
+                trt_engine_path="Feat.engine",
+            )
+            trtHandler.build_engine(
+                self.fusionnet,
+                dtype=dtype,
+                device=device,
+                example_inputs=self.flownet_example_input(),
+                trt_engine_path="FusionNet.engine",
+            )
             import gc
+
             gc.collect()
             torch.cuda.empty_cache()
             torch.cuda.reset_max_memory_allocated()
@@ -159,19 +187,15 @@ class GMFSS(nn.Module):
         feat2t3 = warp(feat23, F2tdd, Z2dd, strMode="soft")
 
         in1 = torch.cat(
-                [img0, I1t, I2t, img1]
-                if self.model_type == "base"
-                else [I1t, rife, I2t],
-                dim=1,
-            )
+            [img0, I1t, I2t, img1] if self.model_type == "base" else [I1t, rife, I2t],
+            dim=1,
+        )
         in2 = torch.cat([feat1t1, feat2t1], dim=1)
         in3 = torch.cat([feat1t2, feat2t2], dim=1)
-        in4 =  torch.cat([feat1t3, feat2t3], dim=1)
-        
-        out = self.fusionnet(
-            in1, in2, in3, in4
-        )
-            
+        in4 = torch.cat([feat1t3, feat2t3], dim=1)
+
+        out = self.fusionnet(in1, in2, in3, in4)
+
         out = out[:, :, : self.height, : self.width]
         if timestep == self.max_timestep:  # last interp, going to next frames
             self.feat11, self.feat12, self.feat13 = feat21, feat22, feat23
@@ -190,12 +214,12 @@ class GMFSS(nn.Module):
     def rife_example_input(self):
         return [
             torch.zeros(
-                [1, 3, int(self.ph/2), int(self.pw/2)],
+                [1, 3, int(self.ph / 2), int(self.pw / 2)],
                 dtype=self.dtype,
                 device=self.device,
             ),
             torch.zeros(
-                [1, 3, int(self.ph/2), int(self.pw/2)],
+                [1, 3, int(self.ph / 2), int(self.pw / 2)],
                 dtype=self.dtype,
                 device=self.device,
             ),
@@ -203,9 +227,9 @@ class GMFSS(nn.Module):
                 [1],
                 dtype=self.dtype,
                 device=self.device,
-            ), 
+            ),
         ]
-    
+
     def img0_example_input(self) -> list[torch.Tensor]:
         return [
             torch.zeros(
@@ -213,11 +237,11 @@ class GMFSS(nn.Module):
                 dtype=self.dtype,
                 device=self.device,
             ),
-            
         ]
-    
+
     def flownet_example_input(self) -> list[torch.Tensor]:
-        
-        imgf0 = F.interpolate(self.img0_example_input()[0], scale_factor=self.scale/2, mode="bilinear")
+        imgf0 = F.interpolate(
+            self.img0_example_input()[0], scale_factor=self.scale / 2, mode="bilinear"
+        )
 
         return [imgf0, imgf0]

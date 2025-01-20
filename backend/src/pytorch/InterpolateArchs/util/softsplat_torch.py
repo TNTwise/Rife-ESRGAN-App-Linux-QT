@@ -28,21 +28,25 @@ def forward(tenIn, tenFlow):
 
     # Initialize output tensor
     tenOut = torch.zeros_like(tenIn)
-    
+
     key = (H, W, device, origdtype)
     if key not in grid_cache:
         # Create meshgrid of pixel coordinates
         gridY, gridX = torch.meshgrid(
             torch.arange(H, device=device, dtype=origdtype),
             torch.arange(W, device=device, dtype=origdtype),
-            indexing='ij'
+            indexing="ij",
         )  # [H, W]
         # Cache the grids
-        grid_cache[key] = (gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W), gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W))
-    
+        grid_cache[key] = (
+            gridY.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W),
+            gridX.unsqueeze(0).unsqueeze(0).expand(N, 1, H, W),
+        )
 
     if key not in batch_cache:
-        batch_cache[key] = torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+        batch_cache[key] = (
+            torch.arange(N, device=device).view(N, 1, 1).expand(N, H, W).reshape(-1)
+        )
 
     gridY, gridX = grid_cache[key]
     batch_indices = batch_cache[key]
@@ -55,8 +59,6 @@ def forward(tenIn, tenFlow):
     fltX_flat = fltX.reshape(-1)
     fltY_flat = fltY.reshape(-1)
     tenIn_flat = tenIn.permute(0, 2, 3, 1).reshape(-1, C)
-
-    
 
     # Finite mask
     finite_mask = torch.isfinite(fltX_flat) & torch.isfinite(fltY_flat)
@@ -90,18 +92,31 @@ def forward(tenIn, tenFlow):
     positions_all_x = torch.cat([intNW_X, intNE_X, intSW_X, intSE_X], dim=0)
     positions_all_y = torch.cat([intNW_Y, intNE_Y, intSW_Y, intSE_Y], dim=0)
     weights_all = torch.cat([fltNW, fltNE, fltSW, fltSE], dim=0)
-    batch_all = torch.cat([batch_indices, batch_indices, batch_indices, batch_indices], dim=0)
+    batch_all = torch.cat(
+        [batch_indices, batch_indices, batch_indices, batch_indices], dim=0
+    )
 
-    tenIn_flat_corners = torch.cat([tenIn_flat, tenIn_flat, tenIn_flat, tenIn_flat], dim=0)
+    tenIn_flat_corners = torch.cat(
+        [tenIn_flat, tenIn_flat, tenIn_flat, tenIn_flat], dim=0
+    )
 
-    valid_mask_all = (positions_all_x >= 0) & (positions_all_x < W) & (positions_all_y >= 0) & (positions_all_y < H)
+    valid_mask_all = (
+        (positions_all_x >= 0)
+        & (positions_all_x < W)
+        & (positions_all_y >= 0)
+        & (positions_all_y < H)
+    )
     positions_all_x = positions_all_x[valid_mask_all]
     positions_all_y = positions_all_y[valid_mask_all]
     weights_all = weights_all[valid_mask_all]
     batch_all = batch_all[valid_mask_all]
     vals = tenIn_flat_corners[valid_mask_all] * weights_all.unsqueeze(1)
 
-    idx_nhw = batch_all.to(dtype=torch.int32) * H * W + positions_all_y.to(dtype=torch.int32) * W + positions_all_x.to(dtype=torch.int32)
+    idx_nhw = (
+        batch_all.to(dtype=torch.int32) * H * W
+        + positions_all_y.to(dtype=torch.int32) * W
+        + positions_all_x.to(dtype=torch.int32)
+    )
 
     tenOut_flat.index_add_(0, idx_nhw, vals)
 
@@ -124,7 +139,6 @@ def softsplat(
         assert tenMetric is None
     if mode_main in ["linear", "soft"]:
         assert tenMetric is not None
-
 
     mode_to_operation = {
         "avg": lambda: torch.cat(
@@ -150,7 +164,7 @@ def softsplat(
             None: lambda x: x + 0.0000001,
             "addeps": lambda x: x + 0.0000001,
             "zeroeps": lambda x: torch.where(
-                x == 0.0, torch.tensor(1.0, device=x.device,dtype=x.dtype), x
+                x == 0.0, torch.tensor(1.0, device=x.device, dtype=x.dtype), x
             ),
             "clipeps": lambda x: x.clip(0.0000001, None),
         }

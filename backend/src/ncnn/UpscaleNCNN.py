@@ -260,6 +260,7 @@ class UpscaleNCNN:
                 ]
         return self.output
 
+
 if __name__ == "__main__":
     ncnnParam = NCNNParam(
         "models/2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k/2x_AnimeJaNai_HD_V3_Sharp1_Compact_430k.param"

@@ -284,12 +284,12 @@ class L_SA(nn.Module):
         self.patches_resolution = reso
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
 
-        assert (
-            0 <= self.shift_size[0] < self.split_size[0]
-        ), "shift_size must in 0-split_size0"
-        assert (
-            0 <= self.shift_size[1] < self.split_size[1]
-        ), "shift_size must in 0-split_size1"
+        assert 0 <= self.shift_size[0] < self.split_size[0], (
+            "shift_size must in 0-split_size0"
+        )
+        assert 0 <= self.shift_size[1] < self.split_size[1], (
+            "shift_size must in 0-split_size1"
+        )
 
         self.branch_num = 2
 
@@ -529,9 +529,9 @@ class RG_SA(nn.Module):
         c_ratio=0.5,
     ):
         super().__init__()
-        assert (
-            dim % num_heads == 0
-        ), f"dim {dim} should be divided by num_heads {num_heads}."
+        assert dim % num_heads == 0, (
+            f"dim {dim} should be divided by num_heads {num_heads}."
+        )
         self.num_heads = num_heads
         head_dim = dim // num_heads
 
@@ -803,7 +803,7 @@ class Upsample(nn.Sequential):
             m.append(nn.PixelShuffle(3))
         else:
             raise ValueError(
-                f"scale {scale} is not supported. " "Supported scales: 2^n and 3."
+                f"scale {scale} is not supported. Supported scales: 2^n and 3."
             )
         super().__init__(*m)
 

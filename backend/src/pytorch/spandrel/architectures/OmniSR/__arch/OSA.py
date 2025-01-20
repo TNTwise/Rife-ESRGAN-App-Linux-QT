@@ -204,9 +204,9 @@ class Attention(nn.Module):
         with_pe=True,
     ):
         super().__init__()
-        assert (
-            dim % dim_head
-        ) == 0, "dimension should be divisible by dimension per head"
+        assert (dim % dim_head) == 0, (
+            "dimension should be divisible by dimension per head"
+        )
 
         self.heads = dim // dim_head
         self.scale = dim_head**-0.5
@@ -300,9 +300,9 @@ class Block_Attention(nn.Module):
         with_pe=True,
     ):
         super().__init__()
-        assert (
-            dim % dim_head
-        ) == 0, "dimension should be divisible by dimension per head"
+        assert (dim % dim_head) == 0, (
+            "dimension should be divisible by dimension per head"
+        )
 
         self.heads = dim // dim_head
         self.ps = window_size

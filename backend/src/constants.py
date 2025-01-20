@@ -1,15 +1,18 @@
 import os
 
+
 def checkForCUDA() -> bool:
     try:
         import torch
         import torchvision
         import cupy
+
         if cupy.cuda.get_cuda_path() == None:
             return False
     except Exception as e:
         return False
     return True
+
 
 __version__ = "2.1.5"
 IS_FLATPAK = "FLATPAK_ID" in os.environ

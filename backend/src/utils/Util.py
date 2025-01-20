@@ -9,7 +9,7 @@ import contextlib
 @contextlib.contextmanager
 def suppress_stdout_stderr():
     """Suppress stdout and stderr by redirecting them to /dev/null."""
-    with open(os.devnull, 'w') as devnull:
+    with open(os.devnull, "w") as devnull:
         old_stdout_fd = os.dup(1)
         old_stderr_fd = os.dup(2)
         try:
@@ -21,6 +21,7 @@ def suppress_stdout_stderr():
             os.dup2(old_stderr_fd, 2)
             os.close(old_stdout_fd)
             os.close(old_stderr_fd)
+
 
 try:
     from ..constants import CWD
@@ -146,6 +147,7 @@ def checkForTensorRT() -> bool:
         import torch
         import torchvision
         import tensorrt
+
         with suppress_stdout_stderr():
             import torch_tensorrt
         return True
@@ -273,6 +275,7 @@ def checkForNCNN() -> bool:
     try:
         from rife_ncnn_vulkan_python import Rife
         import ncnn
+
         try:
             from upscale_ncnn_py import UPSCALE
         except Exception:
@@ -294,6 +297,7 @@ def get_gpus_torch():
     devices = []
     try:
         import torch
+
         if torch.cuda.is_available():
             for dev_index in range(torch.cuda.device_count()):
                 props = torch.cuda.get_device_properties(dev_index)
@@ -308,17 +312,19 @@ def get_gpus_torch():
         devices.append("CPU")
     return devices
 
+
 def get_gpus_ncnn():
     devices = []
     try:
         with suppress_stdout_stderr():
             import ncnn
+
             gpu_count = ncnn.get_gpu_count()
             if gpu_count < 1:
                 return ["CPU"]
             for i in range(gpu_count):
                 device = ncnn.get_gpu_device(i)
-                gpu_info = device.info()  
+                gpu_info = device.info()
                 devices.append(gpu_info.device_name())
         return devices
     except Exception:
@@ -372,4 +378,3 @@ def padFrame(
 if __name__ == "__main__":
     print(get_gpus_ncnn())
     print(get_gpus_torch())
-

@@ -178,7 +178,7 @@ class ESRGANArch(Architecture[ESRGAN]):
         model_seq_len = get_seq_len(state_dict, "model")
 
         in_nc = state_dict["model.0.weight"].shape[1]
-        out_nc = state_dict[f"model.{model_seq_len-1}.weight"].shape[0]
+        out_nc = state_dict[f"model.{model_seq_len - 1}.weight"].shape[0]
 
         scale = _get_scale(state_dict)
         num_blocks = get_seq_len(state_dict, "model.1.sub") - 1

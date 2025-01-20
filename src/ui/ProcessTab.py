@@ -33,10 +33,9 @@ from ..Util import (
 from ..DownloadModels import DownloadModel
 from .SettingsTab import Settings
 from ..DiscordRPC import DiscordRPC
-from ..ModelHandler import (
-    getModels
-)
+from ..ModelHandler import getModels
 from .RenderQueue import RenderOptions
+
 
 class ProcessTab:
     def __init__(self, parent, settings: Settings):
@@ -50,7 +49,7 @@ class ProcessTab:
         self.tileUpAnimationHandler = AnimationHandler()
         self.tileDownAnimationHandler = AnimationHandler()
         self.settings = settings
-        
+
         self.qualityToCRF = {
             "Low": "28",
             "Medium": "23",
@@ -65,7 +64,6 @@ class ProcessTab:
         self.QConnect()
         self.populateModels(self.parent.backendComboBox.currentText())
 
-
     def populateModels(self, backend) -> dict:
         """
         returns
@@ -78,7 +76,6 @@ class ProcessTab:
             ["None"] + list(interpolateModels.keys())
         )
         self.parent.upscaleModelComboBox.addItems(["None"] + list(upscaleModels.keys()))
-       
 
     def onTilingSwitch(self):
         if self.parent.tilingCheckBox.isChecked():
@@ -109,7 +106,7 @@ class ProcessTab:
         self.parent.startRenderButton.clicked.connect(self.parent.startRender)
         # set tile size visible to false by default
         self.parent.tileSizeContainer.setVisible(False)
-        #set slo mo container visable to false by default
+        # set slo mo container visable to false by default
         self.parent.interpolateContainer_2.setVisible(False)
         # connect up tilesize container visiable
         self.parent.tilingCheckBox.stateChanged.connect(self.onTilingSwitch)
@@ -141,20 +138,19 @@ class ProcessTab:
 
     def pauseRender(self):
         shmbuf = self.pausedSharedMemory.buf
-        shmbuf[0] = 1 # 1 = True
+        shmbuf[0] = 1  # 1 = True
         hide_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(True)
         self.parent.startRenderButton.setEnabled(True)
 
     def resumeRender(self):
         shmbuf = self.pausedSharedMemory.buf
-        shmbuf[0] = 0 # 0 = False
+        shmbuf[0] = 0  # 0 = False
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.onRenderButtonsContiainer.setEnabled(True)
         self.parent.startRenderButton.setVisible(False)
 
     def startGUIUpdate(self):
-        
         self.workerThread = UpdateGUIThread(
             parent=self,
             imagePreviewSharedMemoryID=IMAGE_SHARED_MEMORY_ID,
@@ -202,7 +198,6 @@ class ProcessTab:
         self,
         renderQueue: RenderQueue,
     ):
-        
         # gui changes
         show_layout_widgets(self.parent.onRenderButtonsContiainer)
         self.parent.startRenderButton.setVisible(False)
@@ -215,11 +210,9 @@ class ProcessTab:
         self.startDiscordRPC()
         self.settings.readSettings()
 
-        
         self.startGUIUpdate()
         writeThread = Thread(target=lambda: self.renderToPipeThread(renderQueue))
         writeThread.start()
-        
 
     def startDiscordRPC(self):
         if self.settings.settings["discord_rich_presence"] == "True":
@@ -229,17 +222,16 @@ class ProcessTab:
             except Exception:
                 pass
 
-    
     def createPausedSharedMemory(self):
         try:
-                self.pausedSharedMemory = shared_memory.SharedMemory(
-                    name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
-                )
+            self.pausedSharedMemory = shared_memory.SharedMemory(
+                name=PAUSED_STATE_SHARED_MEMORY_ID, create=True, size=1
+            )
         except FileExistsError:
             self.pausedSharedMemory = shared_memory.SharedMemory(
                 name=PAUSED_STATE_SHARED_MEMORY_ID
             )
-    
+
     def renderToPipeThread(
         self,
         renderQueue: RenderQueue,
@@ -247,15 +239,18 @@ class ProcessTab:
         for renderOptions in renderQueue.getQueue():
             self.createPausedSharedMemory()
 
-            self.workerThread.setOutputVideoRes(renderOptions.videoWidth*renderOptions.upscaleTimes, renderOptions.videoHeight*renderOptions.upscaleTimes)
-            self.parent.progressBar.setRange(
-            0,
-            # only set the range to multiply the frame count if the method is interpolate
-            int(
-                renderOptions.videoFrameCount
-                * math.ceil(renderOptions.interpolateTimes)
+            self.workerThread.setOutputVideoRes(
+                renderOptions.videoWidth * renderOptions.upscaleTimes,
+                renderOptions.videoHeight * renderOptions.upscaleTimes,
             )
-        )
+            self.parent.progressBar.setRange(
+                0,
+                # only set the range to multiply the frame count if the method is interpolate
+                int(
+                    renderOptions.videoFrameCount
+                    * math.ceil(renderOptions.interpolateTimes)
+                ),
+            )
             command = self.build_command(renderOptions)
             self.renderProcess = subprocess.Popen(
                 command,
@@ -383,14 +378,13 @@ class ProcessTab:
             self.parent.previewLabel.setPixmap(roundedPixmap)
 
     def build_command(self, renderOptions: RenderOptions):
-
         if (
-                renderOptions.backend == "pytorch (cuda)"
-                or renderOptions.backend == "pytorch (rocm)"
-            ):
-                renderOptions.backend = (
-                    "pytorch"  # pytorch is the same for both cuda and rocm
-                )
+            renderOptions.backend == "pytorch (cuda)"
+            or renderOptions.backend == "pytorch (rocm)"
+        ):
+            renderOptions.backend = (
+                "pytorch"  # pytorch is the same for both cuda and rocm
+            )
 
         command = [
             f"{PYTHON_PATH}",
@@ -406,7 +400,7 @@ class ProcessTab:
             "--precision",
             f"{self.settings.settings['precision']}",
             "--video_encoder_preset",
-            f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)','')}",  # remove experimental from encoder
+            f"{self.settings.settings['encoder'].replace(' (experimental)', '').replace(' (40 series and up)', '')}",  # remove experimental from encoder
             "--video_pixel_format",
             f"{self.settings.settings['video_pixel_format']}",
             "--audio_encoder_preset",
@@ -428,7 +422,9 @@ class ProcessTab:
         if renderOptions.upscaleModel:
             modelPath = os.path.join(MODELS_PATH, renderOptions.upscaleModelFile)
             if renderOptions.upscaleModelArch == "custom":
-                modelPath = os.path.join(CUSTOM_MODELS_PATH, renderOptions.upscaleModelFile)
+                modelPath = os.path.join(
+                    CUSTOM_MODELS_PATH, renderOptions.upscaleModelFile
+                )
             command += [
                 "--upscale_model",
                 modelPath,

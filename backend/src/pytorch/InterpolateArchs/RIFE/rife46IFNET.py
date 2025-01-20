@@ -122,7 +122,7 @@ class IFNet(nn.Module):
         scale=1.0,
         ensemble=False,
         dtype=torch.float32,
-        device:torch.device=torch.device("cuda"),
+        device: torch.device = torch.device("cuda"),
         width=1920,
         height=1080,
     ):
@@ -140,6 +140,7 @@ class IFNet(nn.Module):
         self.height = height
         self.block = [self.block0, self.block1, self.block2, self.block3]
         from .warplayer import warp
+
         self.warp = warp
 
     def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, scale=None):

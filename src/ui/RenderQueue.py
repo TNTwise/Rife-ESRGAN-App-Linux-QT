@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QListWidget
 from dataclasses import dataclass
 
+
 @dataclass
 class RenderOptions:
     def __init__(
@@ -126,11 +127,11 @@ class RenderOptions:
     @interpolateModel.setter
     def interpolateModel(self, value: str):
         self._interpolateModel = value
-    
+
     @property
     def interpolateModelFile(self):
         return self._interpolateModelFile
-    
+
     @interpolateModelFile.setter
     def interpolateModelFile(self, value: str):
         self._interpolateModelFile = value
@@ -146,15 +147,15 @@ class RenderOptions:
     @property
     def upscaleTimes(self):
         return self._upscaleTimes
-    
+
     @upscaleTimes.setter
     def upscaleTimes(self, value: int):
         self._upscaleTimes = value
-    
+
     @property
     def upscaleModelArch(self):
         return self._upscaleModelArch
-    
+
     @upscaleModelArch.setter
     def upscaleModelArch(self, value: str):
         self._upscaleModelArch = value
@@ -218,7 +219,7 @@ class RenderQueue:
         self.queue.append(renderable)
         self.qlistwidget.addItem(renderable.inputFile)
         self.inputNameList.append(renderable.inputFile)
-    
+
     def clear(self):
         self.queue.clear()
         self.inputNameList.clear()

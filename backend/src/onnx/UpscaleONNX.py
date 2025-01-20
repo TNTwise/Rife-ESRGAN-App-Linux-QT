@@ -74,9 +74,7 @@ class UpscaleONNX:
         return model
 
     def loadInferenceSession(self) -> InferenceSession:
-        directml_backend = [
-            ("DmlExecutionProvider", {"device_id": f"{  self.deviceID }"})
-        ]
+        directml_backend = [("DmlExecutionProvider", {"device_id": f"{self.deviceID}"})]
 
         session_options = ort.SessionOptions()
         session_options.graph_optimization_level = (

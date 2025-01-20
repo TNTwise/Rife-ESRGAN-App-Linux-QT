@@ -225,9 +225,9 @@ class MultiHeadAttnBlock(nn.Module):
         self.in_channels = in_channels
         self.head_size = head_size
         self.att_size = in_channels // head_size
-        assert (
-            in_channels % head_size == 0
-        ), "The size of head should be divided by the number of channels."
+        assert in_channels % head_size == 0, (
+            "The size of head should be divided by the number of channels."
+        )
 
         self.norm1 = Normalize(in_channels)
         self.norm2 = Normalize(in_channels)

@@ -2,7 +2,7 @@ from multiprocessing import shared_memory
 import sys
 import time
 
-from .utils.Util import log,  padFrame
+from .utils.Util import log, padFrame
 
 
 def convertTime(remaining_time):
@@ -125,10 +125,9 @@ class InformationWriteOut:
         # Create a shared memory block
         if self.sharedMemoryID is not None:
             log(f"Shared memory name: {self.shm.name}")
-        
+
         while not self.stop:
             if self.previewFrame is not None and self.framesRendered > 0:
-                
                 # print out data to stdout
                 fps = round(self.framesRendered / (time.time() - self.startTime))
                 eta = self.calculateETA(framesRendered=self.framesRendered)
@@ -143,11 +142,9 @@ class InformationWriteOut:
                             self.height,
                             self.croppedOutputWidth,
                             self.croppedOututHeight,
-                            
                         )
                         self.shm.buf[:fcs] = bytes(padded_frame)
                     else:
-                        
                         self.shm.buf[:fcs] = bytes(self.previewFrame)
                 self.isPaused = self.pausedManager.pause_manager()
             time.sleep(0.1)

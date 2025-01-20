@@ -161,7 +161,7 @@ class IFNet(nn.Module):
         scale=1.0,
         ensemble=False,
         dtype=torch.float32,
-        device:torch.device=torch.device("cuda"),
+        device: torch.device = torch.device("cuda"),
         width=1920,
         height=1080,
     ):
@@ -176,17 +176,19 @@ class IFNet(nn.Module):
         self.scaleList = [8 / scale, 4 / scale, 2 / scale, 1 / scale]
         if ensemble:
             import sys
-            print("Ensemble is not supported with this model.",file=sys.stderr)
+
+            print("Ensemble is not supported with this model.", file=sys.stderr)
         self.width = width
         self.height = height
         self.blocks = [self.block0, self.block1, self.block2, self.block3]
 
-    
         from .warplayer import warp
-       
+
         self.warp = warp
 
-    def forward(self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1, scale=None):
+    def forward(
+        self, img0, img1, timestep, tenFlow_div, backwarp_tenGrid, f0, f1, scale=None
+    ):
         warped_img0 = img0
         warped_img1 = img1
         flow = None
@@ -225,8 +227,6 @@ class IFNet(nn.Module):
             warped_img1 = self.warp(img1, flow[:, 2:4], tenFlow_div, backwarp_tenGrid)
 
         mask = torch.sigmoid(mask)
-        return (
-            (warped_img0 * mask + warped_img1 * (1 - mask))[
-                :, :, : self.height, : self.width
-            ]
-        )
+        return (warped_img0 * mask + warped_img1 * (1 - mask))[
+            :, :, : self.height, : self.width
+        ]
