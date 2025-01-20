@@ -202,8 +202,8 @@ class Render:
             paused_shared_memory_id=pause_shared_memory_id,
             outputWidth=self.originalWidth * self.upscaleTimes,
             outputHeight=self.originalHeight * self.upscaleTimes,
-            targetOutputWidth=self.width * self.upscaleTimes,
-            targetOutputHeight=self.height * self.upscaleTimes,
+            croppedOutputWidth=self.width * self.upscaleTimes,
+            croppedOutputHeight=self.height * self.upscaleTimes,
             totalOutputFrames=self.totalOutputFrames,
             border_detect=border_detect,
         )
