@@ -13,7 +13,7 @@ from ..DetectInterpolateArch import ArchDetect
 if HAS_SYSTEM_CUDA:
     from ..util.softsplat_cupy import softsplat as warp
 else:
-    from ..util.softsplat_torch import softsplat as warp
+    from ..util.softsplat_torch import SoftSplat
 
 
 class GMFSS(nn.Module):
@@ -64,6 +64,7 @@ class GMFSS(nn.Module):
         self.metricnet = MetricNet().to(dtype=dtype, device=device)
         self.feat_ext = FeatureNet().to(dtype=dtype, device=device)
         self.fusionnet = GridNet().to(dtype=dtype, device=device)
+        self.warp = SoftSplat('soft').to(dtype=dtype, device=device)
 
         if model_type != "base":
             self.ifnet.load_state_dict(combined_state_dict["rife"])
@@ -163,28 +164,28 @@ class GMFSS(nn.Module):
         Z1t = timestep * self.metric0
         Z2t = (1 - timestep) * self.metric1
 
-        I1t = warp(img0, F1t, Z1t, strMode="soft")
-        I2t = warp(img1, F2t, Z2t, strMode="soft")
+        I1t = self.warp(img0, F1t, Z1t, strMode="soft")
+        I2t = self.warp(img1, F2t, Z2t, strMode="soft")
 
         if self.model_type == "union":
             rife = self.ifnet(img0, img1, timestep)
 
-        feat1t1 = warp(self.feat11, F1t, Z1t, strMode="soft")
-        feat2t1 = warp(feat21, F2t, Z2t, strMode="soft")
+        feat1t1 = self.warp(self.feat11, F1t, Z1t, strMode="soft")
+        feat2t1 = self.warp(feat21, F2t, Z2t, strMode="soft")
 
         F1td = F.interpolate(F1t, scale_factor=0.5, mode="bilinear") * 0.5
         Z1d = F.interpolate(Z1t, scale_factor=0.5, mode="bilinear")
-        feat1t2 = warp(self.feat12, F1td, Z1d, strMode="soft")
+        feat1t2 = self.warp(self.feat12, F1td, Z1d, strMode="soft")
         F2td = F.interpolate(F2t, scale_factor=0.5, mode="bilinear") * 0.5
         Z2d = F.interpolate(Z2t, scale_factor=0.5, mode="bilinear")
-        feat2t2 = warp(feat22, F2td, Z2d, strMode="soft")
+        feat2t2 = self.warp(feat22, F2td, Z2d, strMode="soft")
 
         F1tdd = F.interpolate(F1t, scale_factor=0.25, mode="bilinear") * 0.25
         Z1dd = F.interpolate(Z1t, scale_factor=0.25, mode="bilinear")
-        feat1t3 = warp(self.feat13, F1tdd, Z1dd, strMode="soft")
+        feat1t3 = self.warp(self.feat13, F1tdd, Z1dd, strMode="soft")
         F2tdd = F.interpolate(F2t, scale_factor=0.25, mode="bilinear") * 0.25
         Z2dd = F.interpolate(Z2t, scale_factor=0.25, mode="bilinear")
-        feat2t3 = warp(feat23, F2tdd, Z2dd, strMode="soft")
+        feat2t3 = self.warp(feat23, F2tdd, Z2dd, strMode="soft")
 
         in1 = torch.cat(
             [img0, I1t, I2t, img1] if self.model_type == "base" else [I1t, rife, I2t],
