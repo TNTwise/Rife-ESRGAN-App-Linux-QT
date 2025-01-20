@@ -7,11 +7,13 @@
  - GPU ID selection
  - Default video container setting
  - Batch input support
+ - Full fallback on TRT upscaling, so the engine has the greatest chance of building correctly.
 ### Changed
  - Adjusted dynamic scale.
  - Transcodes audio by default, to fix potential audio copying issues.
  - Moved pausing to shared memory.
  - Changed checks on default output directory.
+ - Optimized engine building for interpolate and upscale at the same time, should now use less VRAM.
 ### Fixed
  - Win10 tooltips and pop ups.
    
